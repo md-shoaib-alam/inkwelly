@@ -1,0 +1,2337 @@
+[
+  {
+    "id": 1,
+    "entryId": "af248417b5d8acc492e62ad83cb9280b02df878b",
+    "iso": "2026-09-27T17:37:11Z",
+    "when": "27 Sept 23:07 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "ai",
+    "slug": "af24841",
+    "title": "Inkwelly AI answers whole-school questions with exact numbers",
+    "summary": "",
+    "bullets": [
+      "Inkwelly AI: Whole-school questions now read every record, not just the first 100. September's absent list returns all 1,316 entries, and a fees + transport + parent-contact sheet for 524 students matches the school's books to the rupee. Schools using ChatGPT or Claude through the Inkwelly connector get the same fixes.",
+      "Fees: A new one-row-per-student fee list gives the AI total, paid, balance and days overdue for every child, so fee sheets stay correct even for 1,000+ student schools billing monthly. See the student fee module .",
+      "Payroll: Principals and accountants with payroll access can ask for a staff salary register in chat — basic salary, bank account and a teaching-staff filter. Staff without payroll permission never see salaries. See school payroll .",
+      "Homework: The homework dashboard now shows the true submission rate, and the teacher, class and performance cards finally fill in. Class filters now count homework by the students actually enrolled in each subject batch.",
+      "Attendance: Class attendance % and monthly registers count working days only up to today. The staff dashboard counts every late arrival, and department week-offs and 2nd/4th Saturday rules now apply correctly in staff registers, salary summaries and payroll.",
+      "Timetable and lesson plans: Teacher workload now comes from the real timetable, and a period handed to another teacher counts for that teacher. \"On track\" counts only batches with a teaching plan, and the AI can tell who is free in any period across the school.",
+      "Messages and transport: \"Aaj kitne message gaye\" now counts today's messages, and every message links to its student and class. Transport dues include part-paid bills past their due date, cancelled bills no longer count as unpaid, and receipts show only the current session.",
+      "Privacy: Staff bank details, the achievements leaderboard and ID-card lookups now follow the same permissions as the dashboard, so the AI shows nobody more than their role allows."
+    ]
+  },
+  {
+    "id": 2,
+    "entryId": "e2e7058349ad0f1198df7acabb28a221bee1390d",
+    "iso": "2026-09-27T15:29:05Z",
+    "when": "27 Sept 20:59 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "ai",
+    "slug": "e2e7058",
+    "title": "share any Inkwelly AI chat as a public link, no login needed",
+    "summary": "",
+    "bullets": [
+      "Inkwelly AI: A new Share button turns any chat into a public link that principals can send on WhatsApp in one tap. Anyone with the link can read it on their phone without an Inkwelly login. The link keeps the chat as it was when shared, with one-tap Update link , Stop sharing and expiry after 7, 30 or 90 days or never.",
+      "Shared page: Trustees, owners and accountants see the answers, charts and Excel or PDF reports exactly as in Inkwelly, with downloads. It is built for cheap Android phones first. On a laptop, reports open beside the chat in a panel you can widen or narrow.",
+      "Privacy and control: Only the questions and answers are shared, never the raw school records behind them. Shared pages never appear on Google and carry no trackers. A new role permission, Share AI chats publicly , is on for principals and admins by default. A link stops working if its sharer loses that permission.",
+      "Shared links: A new list shows every link you have shared and how many times each was opened, with copy and stop-sharing buttons. Everything is available in Hindi and English."
+    ]
+  },
+  {
+    "id": 3,
+    "entryId": "25d4787112d367e305e4b3059993955e381f89bd",
+    "iso": "2026-09-27T12:58:00Z",
+    "when": "27 Sept 18:28 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "ai",
+    "slug": "25d4787",
+    "title": "Inkwelly AI now calculates across the whole school's data",
+    "summary": "",
+    "bullets": [
+      "AI compute: ask for any list, total, comparison or audit across the whole school — every student with fees paid and outstanding, absent students with dues, class-wise collection — and the AI fetches every page of data on the server, calculates exactly, and delivers the result as a downloadable sheet with a short summary. No more 100-row limits or hand-typed numbers.",
+      "See it working: the chat shows a live activity card while the AI works — data pages being fetched with running counts, the calculation running, rows produced — and the steps it wrote are viewable on demand.",
+      "PDF sheets: every AI-created sheet now downloads as a print-ready PDF too, alongside Excel and CSV, from one Download menu on the file card.",
+      "Attendance marking audit: ask which class missed marking attendance on which working day across the session — weekly offs and holidays excluded, classes that haven't started marking reported honestly.",
+      "Answers what you're authorized to see: the AI no longer refuses data the signed-in user can already view — student lists now include mobile numbers and Aadhaar, useful for verification rosters and PTM calling lists.",
+      "Faster and cheaper answers: momentary provider rate limits now retry instead of failing the question, repeated data fetches within one question are served from cache, and long results become sheets instead of walls of chat text — cutting the cost of heavy questions roughly in half."
+    ]
+  },
+  {
+    "id": 4,
+    "entryId": "2c6e4c56018ff7ec65f32ea2c6c0ce87ee122c03",
+    "iso": "2026-09-27T04:44:19Z",
+    "when": "27 Sept 10:14 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "ai",
+    "slug": "2c6e4c5",
+    "title": "rich cards in AI chat — student profiles with photo, stats and charts",
+    "summary": "",
+    "bullets": [
+      "AI cards: ask about one student or staff member and Inkwelly AI answers with a rich card — photo, badges, and key numbers with color-coded meaning — and can add KPI strips, progress bars and donut/bar charts to its answers, all matching the portal theme in light and dark mode, in English or Hindi.",
+      "Photos: the AI's student and staff profile lookups now include the profile photo for its cards — kept strictly in-app; externally connected AI apps never receive photo links.",
+      "Reliable by design: while a card is still arriving it shows a subtle placeholder, anything malformed falls back to plain text so the chat can never break, and copied or exported answers stay clean.",
+      "Snappier chat: long conversations now re-render only the streaming message instead of every message on every frame."
+    ]
+  },
+  {
+    "id": 5,
+    "entryId": "1d894e77a4128bdae515179c30429eaff7a62b0b",
+    "iso": "2026-09-27T03:27:19Z",
+    "when": "27 Sept 08:57 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "ai",
+    "slug": "1d894e7",
+    "title": "Inkwelly AI creates Excel sheets and PDF reports right in the chat",
+    "summary": "",
+    "bullets": [
+      "AI files: ask for any list as Excel (\"class 10 ke students ki list Excel me do\") or a report as PDF — the AI builds the file and previews it beside the chat: an Excel-style grid with gridlines, column letters, banded rows and sheet tabs, or an A4 document page, each with a one-click Download.",
+      "Built for real data: the AI assembles the full list server-side — thousands of rows land in the file even when the chat shows a shortened view — and every file stays private to the person who asked for it.",
+      "A preview that behaves like Excel: drag the panel edge to resize it, drag between column letters to resize columns, and Hindi text renders correctly in both the grid and the PDF.",
+      "Fixes: approving an AI action no longer drops that answer's step-by-step detail from history, tool activity now shows row counts, and AI guide updates apply more reliably."
+    ]
+  },
+  {
+    "id": 6,
+    "entryId": "0ffb9a71c56ba507e55b97867c75ecd959d3a3c4",
+    "iso": "2026-09-26T07:15:08Z",
+    "when": "26 Sept 12:45 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "ai",
+    "slug": "0ffb9a7",
+    "title": "AI skills — teach it your school's ways, ask it how to use any screen",
+    "summary": "",
+    "bullets": [
+      "Skills: a new Skills panel in the AI chat lets admins teach Inkwelly AI school-wide working styles (\"fee answers hamesha table me dikhao\") and lets every user add personal ones — the AI reads and follows them in its answers.",
+      "Website help: ask \"exam kaise banaye?\" or \"vidhi ka fee profile link do\" and the AI answers step by step with clickable links straight to the right screen — built-in guides now cover every module and all 670+ portal screens, including which record opens where.",
+      "Chat: answers now flow like ChatGPT — the AI writes, checks your data, and continues writing in one natural stream instead of dumping everything at the end; every link the AI gives opens in a new tab so the conversation is never lost.",
+      "Admin: super admins manage system skills and module guides live (edits apply instantly, no release needed); school admins control school-wide skills from the chat itself."
+    ]
+  },
+  {
+    "id": 7,
+    "entryId": "22ab3e8c2bc2fbdb0dbe518a6c96c0298cde1e0a",
+    "iso": "2026-09-25T16:47:03Z",
+    "when": "25 Sept 22:17 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "ai",
+    "slug": "22ab3e8",
+    "title": "launch Inkwelly AI — chat that answers and takes action",
+    "summary": "",
+    "bullets": [
+      "Inkwelly AI: Ask anything about your school in plain English or Hindi — pending fees, today's attendance, timetable gaps — and get real answers pulled live from your school's data. Every answer respects the asker's role, so a class teacher only ever sees what a class teacher should.",
+      "Actions with approval: The assistant can also do the work — create an event, record an expense, mark a topic covered — but nothing happens until you approve a preview card. Decline it and the change is discarded.",
+      "Fast and Smart modes with weekly credits: Each school gets a weekly credit allowance, reset every Monday, and can pick quick answers or deeper thinking per question. School owners see usage at a glance.",
+      "Search hands off to AI: The search boxes on the fee, student, employee and payroll dashboards now open Inkwelly AI with your question pre-filled, replacing the old keyword search.",
+      "Always improving: When the assistant can't answer something, it records the question — including when asked through ChatGPT or Claude connected to your school — so missing capabilities get built. The assistant gets better every week."
+    ]
+  },
+  {
+    "id": 8,
+    "entryId": "cb492e711bd661aa5da905a57770e6165b139ad1",
+    "iso": "2026-09-24T12:23:23Z",
+    "when": "24 Sept 17:53 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "attendance",
+    "slug": "cb492e7",
+    "title": "auto-mark staff absent when they never check in",
+    "summary": "",
+    "bullets": [
+      "Staff attendance: Schools using phone check-in can now switch on auto-absent. Staff who have not checked in — by phone, biometric machine or office entry — by their department's \"Full-day absent after\" time are marked absent, so no day stays \"not marked\" and payroll counts it. See the staff attendance module .",
+      "Fair to staff: Holidays, week-offs, approved leave, work-from-home and on-duty days are skipped, and each teacher's own working hours and short leave move their time. A check-in after the cutoff still counts as absent, and the teacher gets an app notification the moment they are marked.",
+      "Safety check: If half or more of the expected staff have not checked in at once — usually a phone or network problem, not a mass absence — nothing is marked. Principals get an alert to mark them absent or skip the day, and one tap undoes a day's auto-absent marks.",
+      "Easy setup: Before switching on, principals see every department's cutoff time and a live preview of who would be marked today, in Hindi and English. New departments no longer come with a 12:00 absent time filled in by default."
+    ]
+  },
+  {
+    "id": 9,
+    "entryId": "a52dc0f5ad9c4eb6f30a5daa7be822493757c7bb",
+    "iso": "2026-09-24T07:24:43Z",
+    "when": "24 Sept 12:54 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "attendance",
+    "slug": "a52dc0f",
+    "title": "add face check-in for staff to stop proxy attendance",
+    "summary": "",
+    "bullets": [
+      "Staff attendance: Teachers and staff can now check in from the Inkwelly app only when the phone's front camera sees their own face, live. A random head turn, a photo-and-screen check and a match with their approved face stop a colleague from punching in on someone else's phone. Set it up in the staff attendance module .",
+      "Face registration: Staff register their face in the app after reading a short consent note in English or Hindi, and a principal or admin approves it. Admins are notified of every new face and can also approve their own.",
+      "Blocked check-ins: When a face check blocks someone on a bad-light morning or a new phone, they tap Ask admin to approve . The approved punch keeps the original time, so nobody is marked late for it.",
+      "Three security levels: Schools pick Free, Smart or Bank-grade. Free runs on Inkwelly's own servers at no extra cost; Smart and Bank-grade add a certified live-face check (iBeta Level 1 and 2 tested) for schools that want the strongest proof, within monthly limits.",
+      "Privacy: Face photos stay in a private, locked store — never the media library — and are deleted on a fixed schedule. Staff can withdraw consent from the app and their face data is erased straight away, in line with India's DPDP Act.",
+      "Smooth rollout: A face required from date gives staff a practice period in which a failed check only flags the punch, and older app versions keep checking in with a selfie until that date.",
+      "Mobile check-in: A quick double tap on Check in no longer records two punches, for every school using mobile attendance."
+    ]
+  },
+  {
+    "id": 10,
+    "entryId": "618ab3361cc14dcbefd4dc50fe30adaa93288065",
+    "iso": "2026-09-23T08:25:17Z",
+    "when": "23 Sept 13:55 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "attendance",
+    "slug": "618ab33",
+    "title": "remind staff to check in only when they forget",
+    "summary": "",
+    "bullets": [
+      "Check-in reminders: Staff who check in on their phone get a nudge at their start time, a last call a few minutes before they would be marked late, and a reminder to check out before leaving. Each goes by app notification, WhatsApp, SMS or email, chosen per reminder. See staff attendance .",
+      "Never a wasted message: Nobody is reminded on a holiday, week-off, leave, work-from-home or on-duty day, or after punching in on the biometric device. Half-day and short leave move the reminder time instead. Each reminder reaches a person at most once a day, and staff can switch reminders off for themselves.",
+      "See it before you switch it on: Settings show how many staff will be reminded tomorrow and why the rest are skipped. The daily activity shows how many reminded staff checked in within 15 minutes.",
+      "Late marking follows each person's hours: Late marks now use a teacher's own working hours and the department on their staff profile, so part-time and shift staff are judged by their own start time. Staff who check in on time from their phone no longer get a \"marked present\" message.",
+      "Selfies on the register: Check-in selfies now show when you open a day on a staff member's attendance calendar and in the daily attendance edit window."
+    ]
+  },
+  {
+    "id": 11,
+    "entryId": "b551c634bbde6fd88de92bba9b107c169e999822",
+    "iso": "2026-09-22T17:27:08Z",
+    "when": "22 Sept 22:57 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "auth",
+    "slug": "b551c63",
+    "title": "sign in on any school computer by scanning a QR code",
+    "summary": "",
+    "bullets": [
+      "Sign-in: Staff and parents can now open the school portal on any computer and sign in by scanning the code with the Inkwelly app — no OTP, no waiting for an SMS to arrive. Built for the shared front-desk and staff-room machines where the phone is never in the same room.",
+      "Security: Scanning never signs anyone in by itself. The app first shows which computer is asking and where it is signing in from, and refuses outright when that computer and your phone are in different countries. Every scanned sign-in is listed under your signed-in devices and can be signed out from there. See identity and access management .",
+      "Shared computers: Tick This is a shared computer before scanning and that session signs out after 12 hours, leaving nothing behind on a machine the whole office uses."
+    ]
+  },
+  {
+    "id": 12,
+    "entryId": "7301c464bf32982788775a9702b10b4d943fe97e",
+    "iso": "2026-09-22T15:43:04Z",
+    "when": "22 Sept 21:13 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "attendance",
+    "slug": "7301c46",
+    "title": "staff check in from their phone inside the school campus",
+    "summary": "",
+    "bullets": [
+      "Employee attendance: Teachers and staff can now mark their own attendance from the Inkwelly app with a Check in / Check out button that works only inside a circle the school draws around its campus. Punch time comes from the server, fake-GPS and weak-signal fixes are refused, and the school can ask for a selfie with every punch. No biometric machine, PC or bridge needed. See the employee attendance module .",
+      "Admin controls: A new Mobile Check-in screen under Settings holds the on/off switch, the campus pin and radius on a map, the selfie rule and department exclusions, plus an Activity tab showing every accepted punch with distance, device and selfie, and every refused attempt with the reason.",
+      "Late marking: Daily staff attendance is now marked Late automatically from each department's in-time and grace period, for biometric, mobile and office-entered punches alike, so the late tracker and monthly register fill themselves. An admin's excusal stays in place through the evening punch-out.",
+      "Fixes: Punches between midnight and 5:30 AM IST were filed under the previous day; the employee app's \"today\" also followed the server clock. Both now use the Indian calendar day."
+    ]
+  },
+  {
+    "id": 13,
+    "entryId": "cdb2ecf9d06941f448730a846ff4668831902b8d",
+    "iso": "2026-09-18T08:32:47Z",
+    "when": "18 Sept 14:02 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "examinations",
+    "slug": "cdb2ecf",
+    "title": "set the whole exam date sheet from one screen",
+    "summary": "",
+    "bullets": [
+      "Examinations: Schools can now set the date, timing and duration of every paper for every class from one screen, instead of opening each subject one at a time. One timing can be applied to every paper at once, and entering any two of start time, end time or duration fills in the third. See the examinations module .",
+      "Date sheet downloads: Download the date sheet as Excel or as a printable PDF on the school letterhead — one class for the notice board, or the whole exam in a single file for the office.",
+      "Fewer date-sheet mix-ups: The screen flags two papers falling on the same day and hour for a class, a paper landing on a school holiday, and dates outside the exam window, so office staff catch these before parents do.",
+      "Exam timings: Exam start and end times now reach parents and students in the app exactly as the school entered them, matching the times printed on admit cards."
+    ]
+  },
+  {
+    "id": 14,
+    "entryId": "e6e8153203e55ab49f7cc8affe1bdabe9eb4b2c8",
+    "iso": "2026-09-17T11:18:16Z",
+    "when": "17 Sept 16:48 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "student",
+    "slug": "e6e8153",
+    "title": "control who can read and write each student's diary",
+    "summary": "",
+    "bullets": [
+      "Student Diary: Principals now decide in Diary settings who can read and write diary notes, and about which students — every staff member, only a teacher's own classes, or rules for chosen staff, departments, grades, classes or single students. Write-only access suits gate and bus staff. See the student information module .",
+      "Diary heads: Schools name diary heads with full access — private staff notes, who wrote each note, editing or deleting any note, and the behaviour insights. Access rules copy forward to the next academic year in one click.",
+      "Diary settings: A redesigned settings page with a side menu, staff photos next to every name, clear on/off switches, and a \"check a staff member\" preview that explains exactly what each teacher can do.",
+      "Edit and delete notes: Teachers can edit or delete their own diary notes at any time from the teacher app. Parents see an Edited label when a note changed after they read it, and principals keep a list of deleted notes.",
+      "Teacher app: The diary now shows every note a teacher is allowed to read, with a By me filter and pull-to-refresh on every screen. A missing permission now says \"you don't have access\" instead of a misleading \"session expired\" screen."
+    ]
+  },
+  {
+    "id": 15,
+    "entryId": "3069b70e9508ee4f868fbbe0cf787dd0e50f992c",
+    "iso": "2026-09-17T11:02:19Z",
+    "when": "17 Sept 16:32 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "3069b70",
+    "title": "UPI-style PIN and location check on every fee collection",
+    "summary": "",
+    "bullets": [
+      "Fees: Office staff now confirm every counter collection and reversal of school fees and transport fees with a personal 4-digit PIN, just like UPI. A borrowed or unlocked phone can no longer record a payment. Works in the mobile app and on the web portal, in English and Hindi. See the student fee module .",
+      "Confirm screen: Before a payment is recorded, the PIN screen shows the student's photo, name, class and the exact amount, so the cashier always knows whose fee they are confirming.",
+      "PIN safety: Five wrong tries lock the PIN for 30 minutes, and longer on repeat. A forgotten PIN is reset with an OTP on the staff member's own phone. Schools can keep a PIN unlocked for 5, 15 or 30 minutes so busy fee counters keep moving.",
+      "Location: Every collection records the device and where it happened, such as at school or Sector 62, Noida, 10.2 km from school. Tap the place to see the exact spot on a map. Staff get a clear warning when phone or browser location is switched off.",
+      "Alerts for owners: Principals and school owners get push and WhatsApp alerts when a PIN gets locked, or fees are collected away from campus or from a new phone. A new Security page lists every collection with device, place and result, and lets each school set its own rules in identity and access management .",
+      "Fixes: Transport fee reversals from the mobile app now go through, and the app no longer signs staff out when an action is refused right after their session refreshes."
+    ]
+  },
+  {
+    "id": 16,
+    "entryId": "f57e215d97b38557d13def6227fad8fc1d0a5944",
+    "iso": "2026-08-21T05:34:55Z",
+    "when": "21 Aug 11:04 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "student",
+    "slug": "f57e215",
+    "title": "undo a wrong promotion without hunting other screens",
+    "summary": "",
+    "bullets": [
+      "Promotions: Undoing a promotion that shouldn't have happened used to stop with a message telling you to go clean up attendance, exam results and report cards screen by screen. They now appear as one checklist on the promotion record — with the dates and exam names shown — and you clear the ones you pick after typing the student's admission number to confirm.",
+      "Fee safety: Fee and transport payments are never removed this way. They are listed with the amount and receipt numbers, plus a direct link to that child's fee records , so the receipt a parent already holds always matches what the school has.",
+      "Access control: Clearing those records needs its own separate permission, so office staff who can correct a promotion cannot wipe out a term's marks on their own.",
+      "Fix: The single-student undo screen now shows what is blocking it up front, instead of only reporting it after you had already filled in the reason."
+    ]
+  },
+  {
+    "id": 17,
+    "entryId": "fddf3dfb57ea16196ca7877351f71446495f626c",
+    "iso": "2026-08-21T04:33:37Z",
+    "when": "21 Aug 10:03 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "student",
+    "slug": "fddf3df",
+    "title": "admit a whole class from one Excel sheet",
+    "summary": "",
+    "bullets": [
+      "Students: One sheet per class now creates the child, the class enrolment, the permanent address and both parents together, instead of four separate uploads in the right order. You pick the session and class on screen, so nobody types them into sixty rows. See the student information module .",
+      "Ready-made sheet: Download an Excel template for the chosen class with dropdowns for gender, blood group, category and religion, and a reference sheet explaining every column. Only name, date of birth and gender are compulsory — student ID, admission number and roll number fill themselves in when your school has automatic numbering switched on.",
+      "Switching from another ERP: Old exports work as they are. Headings like DOB, Adm No, Pincode or Father's Name are understood, and values like Boy, F, Gen or EWS are matched automatically. Aadhaar and mobile numbers that Excel has mangled are flagged instead of being saved wrong.",
+      "Nothing half-saved: Every row is either created in full or reported with the reason in plain English, so no child is left without parents or a class. Check the whole file first without saving anything, and re-uploading a corrected sheet never creates duplicate children."
+    ]
+  },
+  {
+    "id": 18,
+    "entryId": "5e2d9ac406eac960c5f2f7596dd017c0f5aad9a1",
+    "iso": "2026-08-16T09:12:56Z",
+    "when": "16 Aug 14:42 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "5e2d9ac",
+    "title": "chase unpaid late fees on school and bus fee bills",
+    "summary": "",
+    "bullets": [
+      "Fees: A new Notify parents button on the late fees screen sends the late-fee notice again to every family whose bill still carries an unpaid fine — everyone at once or one class at a time, on WhatsApp, SMS, email or the app. Until now that notice went out once, when the fine first appeared, and a fine standing for weeks was never mentioned again. See the student fee module .",
+      "Transport: The same button on the bus fee late-fee screen, working exactly the same way, so both money screens now read and behave as one product.",
+      "Before you send: The screen shows how many families will actually be reached and why that number differs from the overdue count, warns when quiet hours would hold everything until morning, and flags a channel that is not connected or has run out of allowance for the day. Afterwards it reports in plain English what did not get delivered — families who opted out, numbers not on file, daily limits hit.",
+      "One message per family: A family several installments behind now hears about their oldest unpaid bill once, instead of receiving three near-identical messages in the same minute.",
+      "Communications: Fixed the channel picker across the product. Choosing only WhatsApp on a send dialog used to be quietly ignored, and messages went out on whatever channels the school had switched on behind the scenes. This affects fee reminders, sending an invoice or receipt, transport and hostel.",
+      "Late fees screen: Fixed the overdue count on school fees, which was under-reporting defaulters. It counted only bills already stamped overdue and missed unpaid bills that were past their due date, so the figure at the top disagreed with the list underneath it."
+    ]
+  },
+  {
+    "id": 19,
+    "entryId": "c5a406e144cb39b797f7b7b325e5d996e4208dc1",
+    "iso": "2026-08-16T06:49:50Z",
+    "when": "16 Aug 12:19 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "c5a406e",
+    "title": "charge late fees on the balance a family still owes",
+    "summary": "",
+    "bullets": [
+      "Fees: Schools now choose what a percentage late fee applies to in the student fee module — the full invoice, or only what a family still owes. A parent who has paid most of their fee is fined on the remainder rather than the whole bill. Existing rules keep their current behaviour until a school switches them over.",
+      "Recalculate fines: A new option on the late fees screen re-checks every fine already raised against the school's current setting and lowers any that were higher under the old one. It shows a full preview, down to individual bills, before anything changes.",
+      "Fees: A bill whose fee has been paid in full but still carries an earlier fine no longer keeps adding to it.",
+      "Transport and hostel: Bus and hostel fees follow the same setting, so a school runs one late-fee policy across all three. Hostel late fees can also now be switched on from the hostel fee settings, with their own grace period. See the transport module ."
+    ]
+  },
+  {
+    "id": 20,
+    "entryId": "afb2c294abf1ac50ba46aa75a828fc57a6831cd5",
+    "iso": "2026-08-12T10:44:28Z",
+    "when": "12 Aug 16:14 IST",
+    "type": "Fix",
+    "kind": "fix",
+    "scope": "transport",
+    "slug": "afb2c29",
+    "title": "show every overdue bus invoice on the late fees screen",
+    "summary": "",
+    "bullets": [
+      "Late fees: The late fees screen was only loading the first page of bills, so schools with many overdue transport bills saw just a fraction of them and every total ran short. It now pages through the full list, and the summary tiles count every overdue bill.",
+      "Late fee waivers: A partly waived late fee showed as fully cleared while the bill still charged the remainder, and the option to waive the rest disappeared. Waived amounts now read correctly on both the late fees list and the bill itself.",
+      "Late fee details: Every row now shows when the fee was charged, which installment it belongs to, and whether it was applied automatically or adjusted by hand, with the newest charges first. Totals show in full rupees. Part of transport management ."
+    ]
+  },
+  {
+    "id": 21,
+    "entryId": "f58c56ef9a0a8a88e48e87d4e05d9f836a04b105",
+    "iso": "2026-08-11T12:06:47Z",
+    "when": "11 Aug 17:36 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "transport",
+    "slug": "f58c56e",
+    "title": "track every bus's daily mileage and fuel spend",
+    "summary": "",
+    "bullets": [
+      "Bus odometer: The transport office can now pull up any day's readings on a phone and see at a glance which buses were never logged. Missing days can be filled in and wrong readings corrected with a reason kept on record, so the distance each bus ran always reconciles against its fuel bills.",
+      "Fuel: Every diesel or CNG fill lists quantity, rate, amount paid and running mileage per bus, filterable by bus, fuel type or date. Fills on a pump's monthly credit account are marked apart from cash, and any fill with no receipt photo is flagged for the accounts desk. Part of the transport module ."
+    ]
+  },
+  {
+    "id": 22,
+    "entryId": "6d051d3e75bb16bfb2da84e8b013876d28664f01",
+    "iso": "2026-08-11T11:04:43Z",
+    "when": "11 Aug 16:34 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "transport",
+    "slug": "6d051d3",
+    "title": "give a discount or charge a fine on any bus bill",
+    "summary": "",
+    "bullets": [
+      "Transport fees: Office staff can now take money off a specific bus bill, or charge a fine for damage, a lost bus card or misuse of the bus. Pick which bill it lands on, or park it and add it to the next one. Anything applied can be undone, and the bill returns to exactly what it was. See the transport module .",
+      "Bus concessions: Concessions set to cover only part of the fare — the base fare but not the fuel surcharge, say — now apply correctly, including to the main transport fee itself. Schools running sibling, staff-ward or EWS bus concessions will see the right amount on the next bill.",
+      "Parents: Every bus bill now spells out why it differs from the full amount, listing each concession, discount and waived fine on screen and on the printed PDF, in both English and Hindi.",
+      "Notifications: Families get a WhatsApp, SMS, email or app alert when a bus fine is added to a bill — only once it actually reaches a bill, so the message always quotes a real bill number they can pay against.",
+      "Access control: Raising a bus bill and writing one off are now separate permissions, so a school can let its transport clerk issue invoices while reserving discounts and fines for the accountant."
+    ]
+  },
+  {
+    "id": 23,
+    "entryId": "7072be2ae41b85d4bc730a4279e7c9d26beebd63",
+    "iso": "2026-08-11T05:59:57Z",
+    "when": "11 Aug 11:29 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "timetable",
+    "slug": "7072be2",
+    "title": "build a whole timetable by chatting with Inkwelly AI",
+    "summary": "",
+    "bullets": [
+      "Period timings in one step: Say \"8 periods of 40 minutes from 8am, lunch after the 4th\" and the full week's timings are worked out for you, including a shorter Saturday. Doing this by hand meant filling in one form per period, per day, before a single subject could be scheduled.",
+      "A class's whole week at once: An entire six-day timetable for a class can now be scheduled in one go instead of period by period. Nothing is saved until you see exactly what will change and approve it.",
+      "Catches a teacher booked twice: Clashes are now caught within the same request, not only against what is already saved — so a full week is checked for double-booked teachers, rooms and classes before any of it lands. See the academics module .",
+      "New session rollover: Last year's timetable can be copied into the new session in one step. Subjects and classes are matched to the new year automatically, and anything without a match is listed for you rather than quietly skipped."
+    ]
+  },
+  {
+    "id": 24,
+    "entryId": "f94beb927f67527b6b4bb9a07aa7fff2a84dfd85",
+    "iso": "2026-08-11T02:52:27Z",
+    "when": "11 Aug 08:22 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "examinations",
+    "slug": "f94beb9",
+    "title": "track and mark every class test across the school",
+    "summary": "",
+    "bullets": [
+      "Tests: Staff with the right access can now open Tests in the app and see every class test in the school — who set it, which class sat it, and how much marking is still outstanding. Until now only the teacher who set a test could see it. Part of the examinations module .",
+      "Marking: Principals and exam coordinators can enter or correct marks, mark a student absent, photograph an answer sheet, and release results to students from the phone. Half-entered marks stay saved on the device, so a dropped connection in a Tier-2 or Tier-3 school costs nothing.",
+      "Chasing marks: A ready-made list of tests that have been sat but not yet marked, worst first, so office staff can follow up without hunting through the whole register.",
+      "Student record: Tap any student on a test to see every class-test result they have this session, with their average — useful in parent meetings and for spotting a child slipping across subjects."
+    ]
+  },
+  {
+    "id": 25,
+    "entryId": "569444cbce6b8c2ad4f10431b8359693c5bb7378",
+    "iso": "2026-08-10T17:28:28Z",
+    "when": "10 Aug 22:58 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "transport",
+    "slug": "569444c",
+    "title": "track school buses live and see who is on board [as ADMIN]",
+    "summary": "",
+    "bullets": [
+      "Transport: Every running bus now shows as an actual bus on the live map, labelled with its registration number and colour-coded so office staff can tell at a glance whether its GPS is live, weak, or has gone quiet. Buses glide along the road instead of jumping between updates.",
+      "Bus details: Tap any bus for the driver's photo and a one-tap call button, plus every child expected on board — laid out along the route stop by stop with photos and live boarding status, so nobody gets missed. See the transport module ."
+    ]
+  },
+  {
+    "id": 26,
+    "entryId": "09d9d41d68798cc88acd54a634b372d72905ebb0",
+    "iso": "2026-08-10T16:59:36Z",
+    "when": "10 Aug 22:29 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "payroll",
+    "slug": "09d9d41",
+    "title": "hold a salary, skip an employee, or add one-off amounts",
+    "summary": "",
+    "bullets": [
+      "Payroll: School accountants can now withhold one employee's salary while paying everyone else, or leave someone out of a month's pay run entirely. A withheld salary still counts towards PF, ESI and TDS and stays in that month's returns, so statutory filings remain correct.",
+      "One-off earnings and deductions: Add a festival bonus, incentive or uniform recovery to a single payslip for one month, without touching the employee's salary structure. Each entry records who added it and why. See the payroll module .",
+      "Staff loans: Cancelling or re-running a monthly payroll now returns any instalment to the schedule and restores the outstanding balance on salary advances and staff loans.",
+      "Payroll records: Approving, disbursing or holding a payment now records which staff member did it, so every payroll action has a name against it."
+    ]
+  },
+  {
+    "id": 27,
+    "entryId": "c96fe14768d7a8be0f5e02af0b95811b4a38dced",
+    "iso": "2026-08-10T10:34:28Z",
+    "when": "10 Aug 16:04 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "parent",
+    "slug": "c96fe14",
+    "title": "read and sign school diary notes on a full note page",
+    "summary": "",
+    "bullets": [
+      "School Diary: The parent app now shows a teacher's notes as a real school diary — ruled pages grouped month by month, with appreciation and concerns colour-coded so a parent can tell them apart without reading a word.",
+      "Note page: Tapping a note opens it in full with every photo and voice note, plus one-tap sign-off. A reminder message about an unsigned note now opens that exact note, and class teachers can see that it reached the family.",
+      "Hindi: Parents can switch the whole diary between English and Hindi, and notes a school wrote in Hindi now display in Hindi — useful for Hindi-medium schools across Tier-2 and Tier-3 cities. See parent communication .",
+      "School settings: Schools that renamed this module now see their own name for it, and the \"who is signing\" picker follows each school's own preference."
+    ]
+  },
+  {
+    "id": 28,
+    "entryId": "b0a20fd3fc76c30a55c3a568e518ccb41572fdd8",
+    "iso": "2026-08-08T10:42:49Z",
+    "when": "08 Aug 16:12 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "student",
+    "slug": "b0a20fd",
+    "title": "show today's classes and live bus on the app home",
+    "summary": "",
+    "bullets": [
+      "Student app: A new bottom menu puts Home, Today, quick actions, every section and the student's own profile one tap apart. Home now opens on what matters today instead of a single grid of twenty-five icons.",
+      "School bus: Families who use school transport see the bus on the home screen — whether it has set off, scheduled against actual pickup and drop times, and a one-tap live map. See the transport module .",
+      "Today: A new day view shows the class running now, what is left of the day, homework due today, exam papers scheduled today, and any school diary note still waiting for a signature.",
+      "School diary: Parents can filter to just the notes awaiting a signature, pull to refresh, and tell signed notes apart at a glance. Signing now shows progress, so a patchy connection cannot record it twice.",
+      "Attendance: Today's timetable and attendance now always follow the Indian calendar day, so nothing shifts by a day near midnight. Teacher remarks on the register also honour the school's diary visibility setting on every family screen. See student attendance ."
+    ]
+  },
+  {
+    "id": 29,
+    "entryId": "eb6192ca041fbee31d0815a033cedc15028cec01",
+    "iso": "2026-08-08T05:47:33Z",
+    "when": "08 Aug 11:17 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "eb6192c",
+    "title": "choose which invoice a discount or fine applies to",
+    "summary": "",
+    "bullets": [
+      "Fee discounts: A concession now comes off the invoice you pick, and sits as Not billed until someone adds it to a bill when none is open yet. Earlier, a discount recorded after the invoice went out left that invoice untouched, so parents were still asked for the full amount. See the student fee module .",
+      "Fines: A damage, library or uniform fine can now be added to a bill the parent already has, instead of always raising a separate one. Office staff can also move a fine between invoices, or hold it back until the next term's bill is ready.",
+      "Accurate concession amounts: A fixed-rupee concession is now given once across the session instead of repeating on every installment, where it could add up to many times the intended amount. Every invoice also names the concessions behind each fee head, so staff can explain any bill to a parent on the spot.",
+      "Fee summary: A student's outstanding amount is now worked out from their actual invoices, so the fee summary and the invoice list always agree. Accountants get one number they can trust, with any not-yet-billed concessions and fines listed separately."
+    ]
+  },
+  {
+    "id": 30,
+    "entryId": "3669c875d65fe5f6baf56bbb7d2b911878cd3574",
+    "iso": "2026-08-07T08:03:13Z",
+    "when": "07 Aug 13:33 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "student",
+    "slug": "3669c87",
+    "title": "see everything about one student on a single page",
+    "summary": "",
+    "bullets": [
+      "Student 360: Attendance, marks, fees, transport, hostel, library, health, house and awards for one child now open together on one page, instead of a dozen separate screens. Office staff and principals get the whole picture before a parent meeting. See the student information module .",
+      "Switch profile: Every student screen now carries a switcher to jump straight to that same child in any other module — no going back to a list and searching again.",
+      "Marks history: A student's results across every published exam of the year now appear as one trend, with subject-wise strengths and class rank over time, instead of opening each exam separately.",
+      "Fee alerts: Teachers and office staff now see a clear flag when a family has an overdue fee invoice, so the parent conversation starts from the right place."
+    ]
+  },
+  {
+    "id": 31,
+    "entryId": "326daca0008193d47e9ecb7215738e0021a9cc96",
+    "iso": "2026-08-05T09:34:25Z",
+    "when": "05 Aug 15:04 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "academic",
+    "slug": "326daca",
+    "title": "add study notes with images and video to syllabus topics",
+    "summary": "",
+    "bullets": [
+      "Study material: Teachers and coordinators can now write revision notes for each syllabus topic — formatted text, images from the school's media library, and YouTube videos. Notes stay a draft until published, then students read them in the app beside the chapter they are studying.",
+      "Syllabus tracking: Curriculum screens now show live teaching coverage — how much of each chapter has actually been taught, averaged across every class studying it, with a per-class breakdown and the teachers' own daily logs. Principals can spot a class falling behind well before exams.",
+      "Curriculum screens: Chapters and topics now open as their own pages with clean tables, drag-and-drop ordering, and a description field for each. Part of the academics module ."
+    ]
+  },
+  {
+    "id": 32,
+    "entryId": "cc67abfa45a676719efc3f64d1967eef9f8bb885",
+    "iso": "2026-08-05T07:09:30Z",
+    "when": "05 Aug 12:39 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "employee",
+    "slug": "cc67abf",
+    "title": "give teachers one screen for each subject they teach",
+    "summary": "",
+    "bullets": [
+      "Subject screen: A teacher opens any subject they take and swipes between four pages — chapters covered, homework set, tests taken and study material shared. The class list, syllabus progress and teaching journal sit at the top. Part of academics .",
+      "Chapters: Every chapter carries a progress ring around its number, coloured to show whether the class is on track, at risk or behind the plan for the year.",
+      "Study material: Photos, worksheets and videos shared with a class now show on the screen itself instead of as a list of file names. Images swipe like a photo feed, videos show their still frame, and question papers open in the reader in one tap.",
+      "Quick add: A plus button on each page creates homework, a class test or new study material for that subject, with the class already filled in. See homework ."
+    ]
+  },
+  {
+    "id": 33,
+    "entryId": "fc114ebff40133050e05e7b85381aae0d7d7dc23",
+    "iso": "2026-08-04T02:47:58Z",
+    "when": "04 Aug 08:17 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "student",
+    "slug": "fc114eb",
+    "title": "let class teachers see the student details you allow",
+    "summary": "",
+    "bullets": [
+      "Student records: Class teachers can now open a student's parents and contacts, academic history, documents, fee status, transport, health, exam results, diary and achievements — but only the parts your school chooses to share, decided for each class teacher on each class. Attendance stays open to every class teacher exactly as before.",
+      "Fees: Fee amounts are a separate choice from fee status. A teacher can be allowed to see that a family owes something and by when, without seeing how much — enough to follow up before a parent meeting, without learning what the family pays.",
+      "Setup: Set one school-wide default and every new class teacher inherits it, so you don't repeat the same choices for forty classes. Widen or narrow any individual teacher whenever you like. Taking access away takes effect the moment you save it. See the student information module .",
+      "Change requests: Where you allow it, a class teacher can ask the office to correct a parent's phone number or add a document. Nothing changes until your office approves it, and the review list now shows whether a request came from the student or from a class teacher.",
+      "Privacy: Every time a teacher opens fees, documents or health details it is recorded, so you can always answer who has looked at a child's file."
+    ]
+  },
+  {
+    "id": 34,
+    "entryId": "ef6e70fde358c56a6d7eb372c3b79faee5ab39b0",
+    "iso": "2026-08-02T10:11:58Z",
+    "when": "02 Aug 15:41 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "employee",
+    "slug": "ef6e70f",
+    "title": "add a daily work screen and quick actions for staff",
+    "summary": "",
+    "bullets": [
+      "Today: Teachers now open the app to their actual day — every period in order with the live one highlighted, and one-tap buttons to mark class attendance or record what was taught. Homework waiting to be graded shows up on top.",
+      "Quick actions: A single button on the new bottom bar opens just the tasks that person is allowed to do — mark attendance and set homework for a class teacher, collect a fee at the office counter, apply for leave for everyone.",
+      "Workspace: The school modules screen is rebuilt as a clean icon grid with search and category filters. The modules each person opens most often rise to the top on their own, and anyone can pin their favourites.",
+      "My records: Payslips, salary, tax declaration, loans, leave, attendance and personal documents now sit together in one place instead of being scattered across the dashboard.",
+      "Look and feel: A lighter, flatter staff dashboard and module grid, tuned to stay readable on the budget Android phones most school staff carry."
+    ]
+  },
+  {
+    "id": 35,
+    "entryId": "c6f77ecdb28dc88da82d65e2d24a7019caff4666",
+    "iso": "2026-08-02T06:34:20Z",
+    "when": "02 Aug 12:04 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "achievements",
+    "slug": "c6f77ec",
+    "title": "add competitions, awards and student recognition",
+    "summary": "",
+    "bullets": [
+      "Competitions and awards: Every competition a school runs or sends children to — inter-house, district, state, national — now lives in one register with the entrants and what they won. A 20-member choir is recorded as one entry, not twenty. Medals stay with the child for life, so a Class 9 prize still shows on the Class 12 student record .",
+      "Scoring that cannot be rewritten: Schools set their own points ladder — participation against first place, school level against national — and the version used is frozen onto each award. Retuning the weights next year cannot change last year's prize list, and a yearly cap on minor entries stops point-collecting.",
+      "Proof before points: Certificates and photos attach as evidence, and a coordinator verifies an entry before it scores anything. Every verified award carries a permanent QR code, so a college or a scholarship board can confirm years later that it is genuine. Certificate images can be read automatically instead of typed in.",
+      "Recognition, honestly counted: A podium leaderboard with student photos, a lifetime trophy portfolio per child, and a class-by-class view of how many children have never been recognised at all — the figure a principal actually wants before prize day. Existing paper or spreadsheet registers import in one go.",
+      "Everywhere it is needed: Available in English and Hindi, on the web dashboard and on the teacher and student apps, where a child sees their own trophy case. Prize-day and annual reports print for the school's records, and parents can submit a win from outside school for the coordinator to confirm."
+    ]
+  },
+  {
+    "id": 36,
+    "entryId": "def4714efb6baa5cfb82d0e5b5106a42161c49f4",
+    "iso": "2026-08-02T05:04:38Z",
+    "when": "02 Aug 10:34 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "grievances",
+    "slug": "def4714",
+    "title": "add grievance redressal and safeguarding register",
+    "summary": "",
+    "bullets": [
+      "Grievance redressal: Every complaint a school receives now lives in one register with a case number and a full history. Everyday matters — a late bus, a wrong receipt, a broken tap — carry a promised reply-by date, while bullying, ragging, child-safety and workplace-harassment cases are sealed to a named list of people, with the legal deadline and the section of law it comes from printed on the file.",
+      "Anonymous reporting: A student or parent can report through the app or a QR poster on the school wall without leaving any identity behind, and follow the case later with a tracking code and no login. Reports that arrive at the office counter or over WhatsApp are marked confidential instead, because the school already knows who spoke.",
+      "Honest closure: Only the person who raised the complaint can mark it settled. Cases the school closes without that confirmation are counted separately and permanently, so a principal sees what was truly resolved rather than what staff marked done — the number an inspection or a parent meeting actually asks for.",
+      "Registers and reports: Schools can import their existing paper complaint register, attach evidence to a case, print a bound register, generate the annual return, and watch a pattern radar that flags repeat concerns. Available in English and Hindi, on the web dashboard and on the teacher and student apps."
+    ]
+  },
+  {
+    "id": 37,
+    "entryId": "b3b9fa58fd829c2605df27a7359d187b956a0f1e",
+    "iso": "2026-08-01T13:12:50Z",
+    "when": "01 Aug 18:42 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "student",
+    "slug": "b3b9fa5",
+    "title": "see each child's complete school diary in one place",
+    "summary": "",
+    "bullets": [
+      "School diary: Class teachers and office staff can now open any student and read a full year of diary notes — appreciation, concerns and the family's replies — grouped day by day. A \"what the family sees\" switch shows exactly what the parent's app shows, so a note meant only for staff is never on screen during a parent meeting.",
+      "Quiet students: The roster now surfaces children nobody has written about in two months — the quiet ones easily overlooked in a class of forty — alongside those needing attention and those whose behaviour is turning around.",
+      "Parent meetings: Print a one-page brief for a single child, or for a whole class as a single PDF with a page per child in roll order. Only what has already been shared with the family appears on it.",
+      "Acknowledgements: Staff can send a polite reminder when a family has not yet acknowledged a note, with the school deciding how many reminders go out and how far apart. Reminders reach parents in English or Hindi through the parent communication module ."
+    ]
+  },
+  {
+    "id": 38,
+    "entryId": "1ccc927bd6aa7940fb294d15ed968d4687d07d9d",
+    "iso": "2026-07-27T16:26:02Z",
+    "when": "27 Jul 21:56 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "academic",
+    "slug": "1ccc927",
+    "title": "add house system with inter-house points and standings",
+    "summary": "",
+    "bullets": [
+      "Houses: Schools can now set up their houses — Red, Blue and Green, or named after figures like Tagore and Shivaji — each with its own colour, crest and motto. A student stays in one house for their whole time at school, so it carries across promotion every year without being re-entered. Part of the academics module .",
+      "House points: Teachers award or deduct points for sports day, cultural events, academics and discipline, and the standings update straight away, with houses on equal points sharing a rank. Points are never edited or deleted — a mistake is reversed, and both the original and the correction stay on the record.",
+      "Balanced houses: When adding students, Inkwelly works out which house each one should join — keeping every class evenly split and placing siblings in the same house as their brother or sister. Filter to a class, accept the suggestions in one click, and houses stay even instead of drifting lopsided by Class 8.",
+      "Hindi and regional languages: House names and mottos can be recorded in Hindi or any regional language alongside English, so Hindi-medium and State board schools see their own सदन names on screen rather than English-only labels.",
+      "House staff: Each house gets a house master, house teachers, and captains or prefects appointed fresh each academic year — with a clear split between staff who can award points and the coordinator who can reverse them."
+    ]
+  },
+  {
+    "id": 39,
+    "entryId": "84d665ebb7e3a3e0ae335c650f9e778cdc2be52e",
+    "iso": "2026-07-18T07:11:47Z",
+    "when": "18 Jul 12:41 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "student",
+    "slug": "84d665e",
+    "title": "match student records with UDISE+ and fix mismatches",
+    "summary": "",
+    "bullets": [
+      "UDISE+ matching: Inkwelly now compares each student's name, date of birth, gender, PEN and Aadhaar against the government UDISE+/SDMS portal and shows every mismatch side by side. Office staff resolve each one in a single click — accept the UDISE value or flag it to fix in UDISE — with no retyping.",
+      "Compliance board: A school-wide view flags failed Aadhaar verification, missing APAAR IDs and students without a PEN across all classes, and pinpoints which parents to remind on WhatsApp so families fix documents before the yearly UDISE certification deadline. Built for CBSE, ICSE and State board schools. See the student information module .",
+      "Private connector: A lightweight browser helper reads your UDISE+ data inside your own logged-in session, so your government login never leaves your browser and nothing is ever written back to the portal automatically. It keeps Inkwelly's copy fresh as office staff work.",
+      "Fix: Student profiles with a migrated or detained status now show the correct status label instead of an error."
+    ]
+  },
+  {
+    "id": 40,
+    "entryId": "8b8bce4bf8a202a46743b0bb09a89739bd2a9448",
+    "iso": "2026-07-17T17:04:56Z",
+    "when": "17 Jul 22:34 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "academic",
+    "slug": "8b8bce4",
+    "title": "manage classes and timetable by asking AI",
+    "summary": "",
+    "bullets": [
+      "AI assistant: Inkwelly AI can now set up and run academics for you — create classes and teaching batches, assign class teachers, arrange the weekly timetable, and cover a teacher's leave with a same-day substitute — all in plain language, with a preview and confirm before anything changes. See the academics module .",
+      "Timetable: The system now catches a teacher or classroom booked in two places at the same time before a timetable is published, across every class and section — so clashes are fixed at setup, not discovered by a confused parent on Monday morning.",
+      "Fix: Timetables no longer disappear from student and parent views on their own last day — a schedule now stays visible through the full period it is active."
+    ]
+  },
+  {
+    "id": 41,
+    "entryId": "701004d8793c6913a89d734f2feaf3afe1de5ae3",
+    "iso": "2026-07-11T16:26:42Z",
+    "when": "11 Jul 21:56 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "letterhead",
+    "slug": "701004d",
+    "title": "write official school letters with AI on your own letterhead",
+    "summary": "",
+    "bullets": [
+      "Letterhead designer: Design your school's official letterhead once — logo, header, footer, watermark — with press-quality typography: gradient and vertically stretched school names, and separate Hindi/Devanagari fonts for the address, board affiliation, contact and UDISE lines. Ready-made classic, modern and minimal starting designs.",
+      "Word-like letter editor: Write any letter freely on an A4 page exactly as it will print — tables, Hindi text, images, fonts — with autosave and a live PDF preview. Perfect for replies to education department offices, book depot requests, bonafide certificates and everyday school correspondence.",
+      "Official issue register: Every issued letter gets an automatic serial number and a QR code that banks, offices and other schools can scan to instantly verify it is genuine. Certified duplicate copies, cancellations and a searchable digital register replace the manual letter book — and issued letters can be corrected later without changing the QR, with every revision openly disclosed.",
+      "AI-written letters: Connect Claude or ChatGPT and just ask — \"DEO ko class-wise enrolment reply bhejo\" — and the AI pulls the real student numbers from your records, drafts the letter in Hindi or English on your letterhead, and after your one-tap approval issues it and hands back the ready-to-print PDF link. The AI can also fix issued letters and save your best letters as reusable templates."
+    ]
+  },
+  {
+    "id": 42,
+    "entryId": "564b716220783304c413c3b4421891cd5b936044",
+    "iso": "2026-07-10T06:34:52Z",
+    "when": "10 Jul 12:04 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "platform",
+    "slug": "564b716",
+    "title": "ask AI across all your schools at once",
+    "summary": "",
+    "bullets": [
+      "AI Connect for organizations: Owners running multiple schools can now connect Claude or ChatGPT once and ask across every school — \"attendance across all my schools today\", \"which school collected the most fees this month\" — with one-call answers covering schools, attendance, fee collection, dues, enrollment and parent communication usage.",
+      "Per-school drill-down: The same AI connection can open any single school by name for the full range of questions school teams already ask. Approved actions (events, homework, lesson plans) always target one named school, with a preview-and-approve step whose approval can never carry over to a different school.",
+      "Organization portal: A new AI Connect section for organization admins to set up and manage AI access, see which schools the AI is being asked about, and review every question and action in a full activity log — available in English and Hindi."
+    ]
+  },
+  {
+    "id": 43,
+    "entryId": "7ca73a20be3a317c8387151ec53874f7dbe19dba",
+    "iso": "2026-07-08T01:10:32Z",
+    "when": "08 Jul 06:40 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "platform",
+    "slug": "7ca73a2",
+    "title": "let AI create homework and events with your approval",
+    "summary": "",
+    "bullets": [
+      "AI actions: School staff can now ask ChatGPT or Claude to do the work, not just answer — draft and publish homework , add exams and functions to the school calendar , plan Annual Day programs, and log daily syllabus coverage — in English or Hindi.",
+      "Approval-first safety: Anything that deletes, publishes, or notifies parents first shows a preview the staff member must approve; homework drafts stay invisible to students until published, and holidays can never be touched by AI. Every action is recorded with who did it, what changed, and when.",
+      "Admin control: Actions stay off for every existing AI connection unless a school admin explicitly switches them on per connection from the AI Connect dashboard — which now shows an actions counter, a recent-actions feed, and a dedicated Actions filter in the activity history."
+    ]
+  },
+  {
+    "id": 44,
+    "entryId": "5e8328d9ff0cddfd544dca9ca0fc801fe7e2e44c",
+    "iso": "2026-07-06T09:28:16Z",
+    "when": "06 Jul 14:58 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "platform",
+    "slug": "5e8328d",
+    "title": "ask ChatGPT or Claude about staff, homework, transport and more",
+    "summary": "",
+    "bullets": [
+      "AI Connect: School staff can now ask ChatGPT or Claude — in plain English — about far more of their school. Alongside fees and students, the AI assistant now answers on staff, staff attendance, homework, school events, lesson-plan progress, the school store, roles and access, ID cards, transport, academics, and parent communication .",
+      "Safety: Every answer is read-only and scoped to your own school's current academic session, so an AI assistant can report on your data but never change it.",
+      "How it works: All of these modules are served through Inkwelly's MCP (Model Context Protocol) connection — the same secure link ChatGPT and Claude already use to read your school data — so no extra setup is needed once AI Connect is on."
+    ]
+  },
+  {
+    "id": 45,
+    "entryId": "59a28c9f1fc584866615cca5f38d8d29c06f7664",
+    "iso": "2026-07-05T06:43:53Z",
+    "when": "05 Jul 12:13 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "attendance",
+    "slug": "59a28c9",
+    "title": "ask AI anything about student attendance",
+    "summary": "",
+    "bullets": [
+      "AI Connect: Schools with ChatGPT, Claude, or Grok connected can now ask any attendance question in English or Hinglish — today's summary, who's absent in a class, a student's full-year record, 75% board-eligibility lists, monthly registers, class rankings and trends. See the student attendance module .",
+      "Holiday-aware answers: The AI knows Sundays and named holidays — ask on Republic Day and it tells you it's a holiday instead of reporting zero attendance. It can also tell you who marked each class's attendance, when, and whether it came in by app, RFID, or an approved leave.",
+      "Leaves: Office staff (and the AI) can now list students on leave on any given date, including leaves that span multiple days — the right answer to \"who is on leave tomorrow?\".",
+      "Fees: Fee questions asked through AI now accept plain class names like \"Class 8 A\" — no technical identifiers needed for defaulter lists, invoices, or collection summaries."
+    ]
+  },
+  {
+    "id": 46,
+    "entryId": "d825e3a6a7c09eb72c53e6b57d930c8e550db998",
+    "iso": "2026-07-04T11:50:37Z",
+    "when": "04 Jul 17:20 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "platform",
+    "slug": "d825e3a",
+    "title": "connect ChatGPT or Claude to ask about fees and students",
+    "summary": "",
+    "bullets": [
+      "Inkwelly AI: Schools can connect the AI assistant they already use — ChatGPT or Claude — to Inkwelly and ask about fees, dues and students in plain English or Hindi. Defaulter lists, monthly collections and a student's full fee status come back in seconds, with no reports to run or exports to build. See the AI Native School ERP .",
+      "Built on the Model Context Protocol (MCP): Inkwelly runs a secure, read-only MCP server, so any MCP-compatible AI assistant — ChatGPT, Claude and others — can connect to a school's account and answer from live data. This makes Inkwelly one of the first school management platforms in the world, and the first in India, to speak MCP.",
+      "Read-only and safe: The assistant answers but never changes, deletes, collects a fee or messages a parent — every change still happens by a person inside Inkwelly. Answers respect each staff member's existing permissions, and school data stays hosted in India. Works for CBSE, ICSE and State board schools alike."
+    ]
+  },
+  {
+    "id": 47,
+    "entryId": "55886f539a8abc7468c8870df41a6b06583de3a7",
+    "iso": "2026-07-03T02:21:43Z",
+    "when": "03 Jul 07:51 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "55886f5",
+    "title": "control which staff can see fee collection amounts",
+    "summary": "",
+    "bullets": [
+      "Fees: School owners can now choose which staff see the exact rupee totals on the fee collection dashboard. Accountants and principals see the real figures; other office staff see them masked as ₹••••••, set per role from the staff access permissions. Keeps whole-school collection numbers private across both the web dashboard and the staff mobile app. See the student fee module ."
+    ]
+  },
+  {
+    "id": 48,
+    "entryId": "55f296890098331c9876ddfe736015a6c57570bd",
+    "iso": "2026-07-02T04:06:24Z",
+    "when": "02 Jul 09:36 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "admissions",
+    "slug": "55f2968",
+    "title": "track and convert admission enquiries end to end",
+    "summary": "",
+    "bullets": [
+      "Online admissions: A complete admission CRM for Indian schools — record walk-in and phone enquiries at the front desk, share a QR code that opens a public enquiry and application form for parents, and let automatic WhatsApp acknowledgements, duplicate detection and follow-up reminders make sure no enquiry is ever missed.",
+      "Sibling detection: Every new enquiry is instantly checked against families already enrolled, so the office knows when a younger sibling is applying — the warmest lead an admission team can get.",
+      "Campus visits and offers: Parents book campus visits themselves from the acknowledgement message; the school issues admission offer letters on its own letterhead with validity reminders, and parents accept online.",
+      "Fees and one-tap enrolment: Collect the registration fee through a Razorpay payment link, then convert an accepted offer into a real student record — profile, parent details, documents and family app login — in one tap, straight into student information .",
+      "Counselor app: The mobile app gets a full admissions module — add a walk-in enquiry in under a minute, work a My Day follow-up list with tap-to-call, and track the whole pipeline on the go.",
+      "AI assistance: AI summarises each enquiry's history, drafts WhatsApp and SMS follow-ups in English or Hindi, and fills the enquiry form from a pasted note.",
+      "Owner's daily digest: Principals and school owners get the admission funnel — new enquiries, visits, offers and enrolments — in their daily briefing on WhatsApp, email or push."
+    ]
+  },
+  {
+    "id": 49,
+    "entryId": "6db44aefb9b16162153474549657d177401a9096",
+    "iso": "2026-06-26T06:14:56Z",
+    "when": "26 Jun 11:44 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "audit",
+    "slug": "6db44ae",
+    "title": "enhance IP logging accuracy and security for web logins",
+    "summary": "",
+    "bullets": [
+      "Implemented a new helper to accurately capture client IP addresses in the audit logs, addressing previous issues where web logins recorded 127.0.0.1.",
+      "Updated multiple controllers and interceptors to utilize the new getClientIp and getUserAgent functions for consistent IP and user-agent logging.",
+      "Added changelog entry for version 1.1.1 to document the fix and its implications on security and data integrity.",
+      "Introduced new utility functions for forwarding client headers to ensure accurate logging in backend calls."
+    ]
+  },
+  {
+    "id": 50,
+    "entryId": "5fa4ba7f4b3b5917c9521b2a9e84034014eafa43",
+    "iso": "2026-06-26T03:47:46Z",
+    "when": "26 Jun 09:17 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "store",
+    "slug": "5fa4ba7",
+    "title": "buy school uniforms, books and supplies inside the app",
+    "summary": "",
+    "bullets": [
+      "School Store: Schools can now run their own online store inside the app — parents and students browse and buy uniforms, books and supplies, pay securely, and track orders, while the office manages stock and dues in one place.",
+      "Health & Fitness: A new CBSE Health Card and Fit India fitness tracker for every student — height, weight, vision, BMI and fitness scores — with a fun wellness hub for students and ready-to-share health reports for schools.",
+      "Class Tests: Teachers can run quick weekly and unit tests and enter marks even offline; students instantly see their test marks and progress on their phone.",
+      "Daily Briefings: Principals, accountants and school owners get a daily or weekly summary — student attendance, fee collection, defaulters and staff presence — on WhatsApp, email or push, with no dashboard login needed. Built on the school's parent and staff communication setup.",
+      "Faster and safer: A quicker app launch, many of your feedback and suggestions actioned, and a new one-tap \"log out of all devices\" so school staff and parents can keep their account secure."
+    ]
+  },
+  {
+    "id": 51,
+    "entryId": "a4a6396c16ef914f60d85c10c5e83ccfd170b9e3",
+    "iso": "2026-06-21T06:50:07Z",
+    "when": "21 Jun 12:20 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "health",
+    "slug": "a4a6396",
+    "title": "add student health records, clinic and fitness tracking",
+    "summary": "",
+    "bullets": [
+      "Health profiles: Every student gets a medical record — blood group, allergies, chronic conditions, medicines and emergency contacts. Teachers see only critical safety alerts while full details stay with the school nurse, keeping sensitive health data private in line with India's data-protection rules.",
+      "School clinic: The nurse logs sick-room visits in seconds, and parents get an instant WhatsApp, SMS or app alert when their child is sent home, referred or hospitalised.",
+      "Health checkups & CBSE Health Card: Schools run periodic checkups or visiting health camps with fast bulk entry of vision, dental, BMI and haemoglobin, then print the CBSE Health & Activity Card as a ready-to-share PDF.",
+      "FIT INDIA fitness: Record the FIT INDIA / Khelo India fitness tests, auto-grade every student against age and gender norms, and generate printable fitness report cards — built for CBSE schools meeting physical-education requirements.",
+      "Government health programmes: Track weekly iron-folic-acid (WIFS) and deworming doses, RBSK screenings and referrals, with the official health-department compliance registers and reports generated automatically — a real help for government and budget schools.",
+      "Immunisation, growth & student app: Keep vaccination records with due reminders and a height, weight and BMI growth chart over the years; students view their own health card, growth and fitness scores in a friendly gamified screen."
+    ]
+  },
+  {
+    "id": 52,
+    "entryId": "3f050c4d2650fb4d8a4365043a060079e977a497",
+    "iso": "2026-06-20T20:08:52Z",
+    "when": "21 Jun 01:38 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "store",
+    "slug": "3f050c4",
+    "title": "sell uniforms and books online with live inventory",
+    "summary": "",
+    "bullets": [
+      "School store: Parents buy uniforms, books and stationery from the school's own online store, pay by UPI, and skip the counter queue — each order gives a pickup QR code to collect at school. Every child sees the recommended class kit for one-tap buying.",
+      "Counter & stock: Office staff run a phone-based sales counter with barcode scanning, while live stock counts, low-stock alerts and a full supplier-to-goods-receipt purchase workflow keep the store stocked. GST-ready tax invoices and receipts are generated automatically.",
+      "Returns, refunds & reports: Size exchanges restock automatically, refunds flow back to the original payment, and a profit dashboard shows daily sales, margins and stock value — turning the school store into a revenue line schools can actually see."
+    ]
+  },
+  {
+    "id": 53,
+    "entryId": "00fee54760a280c41f8f19e78e1790714106fb6f",
+    "iso": "2026-06-20T18:09:36Z",
+    "when": "20 Jun 23:39 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "tests",
+    "slug": "00fee54",
+    "title": "add class tests with marks, grades and answer sheets",
+    "summary": "",
+    "bullets": [
+      "Tests: A dedicated module for the everyday class tests teachers run — weekly tests, unit tests, dictation, oral and more — separate from formal term exams. Teachers create a test for one or several class-sections at once, then record marks roll-by-roll in seconds, give a grade or symbol like A+ where marks don't apply, and attach a photo of each answer sheet.",
+      "Marks & results: Mark absentees in one tap, see each section's average, highest and lowest, export a printable mark-list for the staff room, and repeat last week's test with a single tap. Students see their marks in the app the moment results are published, with a push notification — built for CBSE, ICSE and State board schools across Tier-2 and Tier-3 cities. See the examinations module ."
+    ]
+  },
+  {
+    "id": 54,
+    "entryId": "33e4fe26e45c27a400d219e4818c16e95f14dbf7",
+    "iso": "2026-06-20T02:19:01Z",
+    "when": "20 Jun 07:49 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "communications",
+    "slug": "33e4fe2",
+    "title": "add promotional banners to the app home screen",
+    "summary": "",
+    "bullets": [
+      "Communications: Schools can now show an eye-catching, auto-sliding image banner at the top of the student and staff app home screens — ideal for promotions, fee reminders, event notices, holiday announcements and important circulars. Banners rotate automatically like the offers on popular apps, and tapping one can open a screen inside the app (such as fees or notices) or a website link.",
+      "Banner management: Office staff create and manage these banners from the communications section on both the web dashboard and the mobile app — upload an image, choose who sees it (students, staff or both), schedule start and end dates, drag to reorder, then publish. See the communications module ."
+    ]
+  },
+  {
+    "id": 55,
+    "entryId": "75dd26b5b2f642a51247de19f8868a4b059e3581",
+    "iso": "2026-06-18T03:45:41Z",
+    "when": "18 Jun 09:15 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "app",
+    "slug": "75dd26b",
+    "title": "report problems and send feedback from any screen",
+    "summary": "",
+    "bullets": [
+      "Feedback: Teachers, students and parents can now report a problem, send feedback or request a feature from anywhere in the app — shake the phone or open the Help menu. Attach a screenshot or record a quick voice note, and the app captures the screen and device details automatically so issues are easy to reproduce and fix.",
+      "Feedback: Everyone can track the status of their own requests and gets a notification the moment one is resolved, along with the reply — so reports never go into a black hole. Works smoothly even on patchy connections, queuing reports offline and sending them once the phone is back online."
+    ]
+  },
+  {
+    "id": 56,
+    "entryId": "b9b58ee80740da3ed4ceea0c14094111dfb4bb9e",
+    "iso": "2026-06-18T01:27:12Z",
+    "when": "18 Jun 06:57 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "app",
+    "slug": "b9b58ee",
+    "title": "post photo, video and text status updates across the school",
+    "summary": "",
+    "bullets": [
+      "Status updates: Teachers and staff can post quick photo, video or text \"status\" updates — like WhatsApp Status — that every student and staff member sees inside the app. Each one disappears after 24 hours, keeping the school feed fresh and lively.",
+      "Engagement: Members react with emojis, and the poster sees exactly who viewed each update — so a class teacher knows their reminder actually reached the family. Important updates can be pinned as Highlights that stay beyond a day.",
+      "Easy posting: A built-in photo and short-video editor (crop, draw, add text and stickers) lets staff create polished updates right on a budget Android phone. Posting is controlled per role, so the school stays in charge of its voice. Sits alongside parent communication ."
+    ]
+  },
+  {
+    "id": 57,
+    "entryId": "839d5d481057931c91b3d18d5b5d0f99d400d8b3",
+    "iso": "2026-06-17T23:48:25Z",
+    "when": "18 Jun 05:18 IST",
+    "type": "Speed",
+    "kind": "perf",
+    "scope": "app",
+    "slug": "839d5d4",
+    "title": "open the school app far faster on cold start",
+    "summary": "",
+    "bullets": [
+      "Speed: The app now opens to the login or profile screen almost instantly, instead of sitting on a loading screen for several seconds. The gain is largest on the budget Android phones common in Tier-2 and Tier-3 schools.",
+      "Smoother startup: Removed a slow security check that delayed every app open, and fixed a font glitch that was causing stutter across the app.",
+      "Launch screen: A new branded splash in light and dark mode replaces the blank white screen, and returning users land straight on their saved profile while their data refreshes in the background."
+    ]
+  },
+  {
+    "id": 58,
+    "entryId": "1a5be01a6ff3580d0fe1ad1a7fa7584bc3490c37",
+    "iso": "2026-06-16T05:25:11Z",
+    "when": "16 Jun 10:55 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "admissions",
+    "slug": "1a5be01",
+    "title": "download a print-ready admission form for any student",
+    "summary": "",
+    "bullets": [
+      "Admission form PDF: Schools can now download a professional, print-ready admission form for any student — newly admitted or admitted years ago — straight from the student profile on the web dashboard and the staff mobile app. It replaces the paper admission form that office staff fill in, sign, seal and file by hand.",
+      "Admission form PDF: The form pulls every detail already on file onto one neatly bordered sheet — student information, father, mother and guardian details with photos, all addresses, bank details, Aadhaar and PEN identifiers, siblings and previous schools — plus a documents checklist and ready space for parent and principal signatures and the school seal.",
+      "Admission form PDF: Designed to print cleanly on ordinary black-and-white office printers, and the letterhead — school address, phone, email, board and affiliation number — reuses the fee receipt template so schools maintain it in one place."
+    ]
+  },
+  {
+    "id": 59,
+    "entryId": "08a782228b70140e320cc26c66e77a69db65da27",
+    "iso": "2026-06-16T01:39:06Z",
+    "when": "16 Jun 07:09 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "admissions",
+    "slug": "08a7822",
+    "title": "preview the next student ID and admission number",
+    "summary": "",
+    "bullets": [
+      "Admissions numbering: The student-ID and admission-number setup screen now shows the exact next ID a new student will be given, with a colour-coded breakdown of each part — prefix, school code, year and serial number — so office staff understand the format at a glance. See the student records module .",
+      "Continue an existing series: Schools switching from another ERP can start the next number from any value and choose whether student IDs and admission numbers reset each academic year or keep counting continuously — making it easy to carry forward an existing admission register without a break in the sequence.",
+      "Admission form: When auto-numbering is on, the student ID and admission number now show read-only on both the web and mobile admission forms, displaying the exact number that will be assigned so office staff can't accidentally type over it."
+    ]
+  },
+  {
+    "id": 60,
+    "entryId": "fff872289afd9766f5e5c6db757c9094ce4fb524",
+    "iso": "2026-06-15T14:47:32Z",
+    "when": "15 Jun 20:17 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "student",
+    "slug": "fff8722",
+    "title": "share transfer certificate designs between schools",
+    "summary": "",
+    "bullets": [
+      "Transfer certificates: Schools can now export a transfer certificate design to a file and import it into any other school — logos, seals and watermarks travel inside the file and are recreated automatically, so the exact TC layout reappears in seconds. Useful for groups of CBSE, ICSE and State board schools that want one shared TC format. See the student records module ."
+    ]
+  },
+  {
+    "id": 61,
+    "entryId": "2f626f93fcc4f59d8c60f9508d9225089a574853",
+    "iso": "2026-06-13T23:02:49Z",
+    "when": "14 Jun 04:32 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "academic",
+    "slug": "2f626f9",
+    "title": "manage classes, subjects and timetable in the staff app",
+    "summary": "",
+    "bullets": [
+      "Academics: Teachers and office staff can now handle the school's academic setup from the Android and iOS app — browse classes, add subject offerings and teaching batches, and view, publish or set timetable substitutions — all on the current academic year automatically, with no year picker. Everyone only sees the parts their role permits. See the academics module ."
+    ]
+  },
+  {
+    "id": 62,
+    "entryId": "750be7ed49001e3d2b0ecdb3c269168f5c47b713",
+    "iso": "2026-06-13T07:49:11Z",
+    "when": "13 Jun 13:19 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "games",
+    "slug": "750be7e",
+    "title": "launch Mind Arena, a mind-sports program for students",
+    "summary": "",
+    "bullets": [
+      "Mind Arena: A new mind-sports program brings five skill-building challenges to students — Chess, Sudoku, Word Battle, Math Battle, and a Memory game. Students can play solo to practise, take on a friendly computer opponent, or compete head-to-head with classmates, with a daily puzzle that refreshes for everyone each day.",
+      "Progress and recognition: Every student builds a skill rating that grows as they improve, climbs through achievement tiers, and earns rewards in the same points wallet used across the learning platform. School-wide tournaments let classes and grades compete, turning practice into a fun, motivating routine.",
+      "School controls: Principals and administrators stay fully in charge from one settings screen — switch the program on or off, set the hours of the day when play is allowed, cap daily play time in minutes, pick which challenges are available for each grade, and choose how ratings are shown. An exam-time shield can pause play automatically so students stay focused during examinations.",
+      "Built for every school: The program runs smoothly on the inexpensive Android phones common in Tier-2 and Tier-3 schools, and suits day schools, boarding schools, and budget private schools across CBSE, ICSE, and State boards."
+    ]
+  },
+  {
+    "id": 63,
+    "entryId": "c68ab79af0d3791fa04a4335c37e1766f3e4d7a5",
+    "iso": "2026-06-12T05:02:03Z",
+    "when": "12 Jun 10:32 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "quiz",
+    "slug": "c68ab79",
+    "title": "add AI-powered quizzes with gamified learning journeys",
+    "summary": "",
+    "bullets": [
+      "Quiz Module: Introduces practice quizzes, scheduled assessments, daily challenges, and live competitions for continuous learning.",
+      "AI Assistance: Generate quizzes instantly from topics, chapters, notes, study material, homework, PDFs, and custom content.",
+      "Gamification: XP, levels, streaks, badges, achievements, rewards, and rankings keep students engaged and motivated.",
+      "Live Competitions: Students can join real-time quiz events with countdowns, leaderboards, and instant scoring.",
+      "Insights & Management: Employees can assign, monitor, and analyze quizzes while tracking participation and performance across the school."
+    ]
+  },
+  {
+    "id": 64,
+    "entryId": "8aa6695295b5bb614775f51de90fcf0239419475",
+    "iso": "2026-06-07T09:46:33Z",
+    "when": "07 Jun 15:16 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "id-cards",
+    "slug": "8aa6695",
+    "title": "ready-made ID card design library to pick and customise",
+    "summary": "",
+    "bullets": [
+      "ID cards: Schools can now start from a gallery of polished, ready-made student and staff ID card designs — pick one, then fine-tune it in the drag-and-drop designer instead of starting from a blank card. Ships with classic, modern, minimal, vertical lanyard, playful, elegant, and board-style looks for both students and staff.",
+      "ID cards: Schools can also propose one of their own card designs to the shared library for other schools to reuse, with the curated collection managed centrally.",
+      "ID cards: Fixed a problem where a school logo or background image added to a card disappeared after saving — uploaded images now appear reliably in the designer and on every card preview, and editing a saved design works smoothly again. Preview QR codes now render as real, scannable codes."
+    ]
+  },
+  {
+    "id": 65,
+    "entryId": "4f89f54370e0598baab48b8378678e977709ea02",
+    "iso": "2026-06-06T21:03:40Z",
+    "when": "07 Jun 02:33 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "transport",
+    "slug": "4f89f54",
+    "title": "automate bus-fee billing with concessions and late fees",
+    "summary": "",
+    "bullets": [
+      "Installments & auto-billing: Schools can split transport fees into installments with due dates, and bus-fee invoices now generate automatically each cycle instead of being run by hand. A daily catch-up also bills students who join mid-term, so office staff never miss a transport-fee cycle. See the transport module .",
+      "Concessions & discounts: Schools can now give a student a transport-fee concession — sibling, staff ward, EWS, or a custom percentage or fixed-amount discount — straight from the student's profile. The discount is applied automatically when their bus-fee invoices are generated.",
+      "Late fees: Overdue bus-fee invoices now charge late fees automatically by the school's own rules, with one-tap apply, partial waive, or full exemption per invoice and a complete action history. Parents are alerted on WhatsApp, SMS, email, and app push the moment a late fee is added.",
+      "Clearer invoices: Bill a single student's pending installments in one click, see exactly why some invoices were skipped (for example, already billed for that period), and every invoice now shows which installment it belongs to plus a clear breakdown of its discount and late fee.",
+      "Fixes: Bus-fee invoice numbers no longer clash after an invoice is deleted, unpaid and overdue invoices can now be removed, and the pickup and drop stops load correctly when editing a student's transport assignment."
+    ]
+  },
+  {
+    "id": 66,
+    "entryId": "d7ac9011dc58ed117752f877da7e0e31a6fd6f0a",
+    "iso": "2026-06-06T12:57:45Z",
+    "when": "06 Jun 18:27 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "transport",
+    "slug": "d7ac901",
+    "title": "online bus fee payment in the app with automatic receipts",
+    "summary": "",
+    "bullets": [
+      "Transport (app): Parents and students can now pay bus fees online straight from the Inkwelly app, not just the website — powered by Razorpay. Pay any outstanding transport invoice from the fee list or the invoice detail screen, in full or in part.",
+      "Transport (notifications): Every transport fee payment — paid online, through a shared payment link, or recorded by school office staff — now generates a receipt automatically and sends an instant confirmation on WhatsApp, SMS, email, and app push, with the receipt PDF attached. Reaches the student and falls back to parents. See the transport module .",
+      "Student Transport Profile (transport): We built a world-class student transport profile (fee-module-style: hero, route tabs, finance, and a Route & Journey map with satellite).",
+      "Transport (finance setup): Schools can now run transport billing their own way — set custom invoice, receipt and payment numbering with automatic financial-year sequences, auto-calculated due dates, partial-payment and minimum-amount rules, and automatic late fees on overdue dues. Plus fully branded invoice and receipt templates with logo, signature, bank details, GST, and thermal-printer layout.",
+      "Transport (receipts): Thermal (POS) receipts now print the full student name, admission number and class along with a QR code parents can scan to verify the receipt online."
+    ]
+  },
+  {
+    "id": 67,
+    "entryId": "d56c4806153798fe54538fbf876ab7d848ef23ee",
+    "iso": "2026-06-04T16:22:13Z",
+    "when": "04 Jun 21:52 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "location",
+    "slug": "d56c480",
+    "title": "implement prominent location consent dialog for drivers",
+    "summary": "",
+    "bullets": []
+  },
+  {
+    "id": 68,
+    "entryId": "d01b4c31444202ad75c6dbe168f3d530cece87cc",
+    "iso": "2026-06-04T12:42:00Z",
+    "when": "04 Jun 18:12 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "transport",
+    "slug": "d01b4c3",
+    "title": "smoother, more accurate live school-bus tracking",
+    "summary": "",
+    "bullets": [
+      "Parent live map: A redesigned \"where's my child's bus\" screen — your child's boarding status front and centre, live ETA and stops-away, the bus moving smoothly along the real roads, and one tap to call the driver.",
+      "Accurate route paths: Schools can now draw and save each route's exact road path, so the bus follows real streets on the map instead of a straight line — in both the driver and parent apps.",
+      "Driver trip map: Rebuilt with follow / overview / satellite views, next-stop guidance, arrival alerts, and tap-to-navigate.",
+      "Reliability & speed: Fixed parent live tracking so the bus now updates continuously, and made the maps noticeably smoother and lighter.",
+      "Driver app polish: \"Next run\" card always shows the right upcoming trip, stop names display in Hindi, and the language switch moved into the menu."
+    ]
+  },
+  {
+    "id": 69,
+    "entryId": "46b491a4805f46bf9847f5bf3ca31fd8b3986659",
+    "iso": "2026-06-04T08:53:43Z",
+    "when": "04 Jun 14:23 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "transport",
+    "slug": "46b491a",
+    "title": "show parents why the live bus tracking pauses",
+    "summary": "",
+    "bullets": [
+      "Live bus tracking: Parents watching the school bus on the live map now see the real reason it stops moving — \"driver is offline\", \"weak GPS signal\", or \"driver's location is turned off\" — instead of one vague grey dot. A small \"updated 8s ago\" freshness indicator shows exactly how current the bus position is, reassuring parents on patchy 2G/3G connections in Tier-2 and Tier-3 towns. See transport tracking .",
+      "Driver app: The bus driver now gets a clear on-screen prompt the moment GPS weakens or location is switched off, so they can fix it themselves without anyone having to call."
+    ]
+  },
+  {
+    "id": 70,
+    "entryId": "91e95c7c6a2113559e978879dc2e9988924682e7",
+    "iso": "2026-06-03T13:35:10Z",
+    "when": "03 Jun 19:05 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "transport",
+    "slug": "91e95c7",
+    "title": "alert parents instantly when a child misses the bus",
+    "summary": "",
+    "bullets": [
+      "Transport alerts: When a driver marks a child absent at their stop, parents now get an instant WhatsApp, SMS and push alert in English and Hindi — so families know at once if their child wasn't on the school bus. See transport tracking .",
+      "Driver app: Redesigned the bus boarding screen with large, clearly labelled Boarded and Absent buttons plus a one-tap Undo for every child — built for non-technical drivers, with no hidden gestures.",
+      "Parent app: A completed bus trip now always appears in the child's transport history, monthly calendar and today view — even when the driver forgot to mark attendance — shown as \"Not recorded\" instead of vanishing, and a missed mark no longer dents the attendance percentage.",
+      "Fix: Corrected a date-handling issue that sometimes showed \"No trip today\" to parents even after the bus had finished its run."
+    ]
+  },
+  {
+    "id": 71,
+    "entryId": "428370c2c4dd9ba8421d07e2cabec32f3bce17dc",
+    "iso": "2026-05-31T21:32:32Z",
+    "when": "01 Jun 03:02 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "transport",
+    "slug": "428370c",
+    "title": "live bus GPS tracking with stop-by-stop progress",
+    "summary": "",
+    "bullets": [
+      "Live tracking: Parents follow their child's school bus on a live map with a stop-by-stop timeline — which stops are done, how many are left, an honest ETA, and a truthful \"X stops away\" to their own stop. WhatsApp and push alerts fire when the bus starts, is near the stop, and is next. The live stream now connects instantly and self-heals through patchy network without restarting the app.",
+      "Driver app: A dedicated bus driver app built for non-technical drivers — one-tap start of the morning pickup or evening drop (picked by the time of day, or from any route card), guided stop-by-stop boarding by tapping a child's photo, a live route map showing where to go next, and full Hindi and English with an in-app language switch.",
+      "Stop progress: Stops are marked automatically by GPS as the bus reaches and leaves them; the driver can mark or correct any stop by hand, and undo a mistakenly started or finished trip."
+    ]
+  },
+  {
+    "id": 72,
+    "entryId": "01a7e072a10cc669fa855ccb4c5e50da245eb5fa",
+    "iso": "2026-05-31T18:05:22Z",
+    "when": "31 May 23:35 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "transport",
+    "slug": "01a7e07",
+    "title": "one-tap bus start and live student boarding for drivers",
+    "summary": "",
+    "bullets": [
+      "Driver app: A dedicated bus driver app with a simple Home, Routes, and Trips layout, built for non-technical drivers — big buttons, faces instead of forms, and full Hindi and English support.",
+      "One-tap start: Drivers now start their morning pickup or afternoon drop in a single tap; the day's run is set up automatically, GPS turns on, and parents get a \"bus has started\" alert on WhatsApp and push.",
+      "Live boarding: A guided, stop-by-stop boarding screen — tap a child's photo to mark them on the bus, mark a whole stop at once, watch live progress, and a safety check at the end so no child is ever left behind. Works even on patchy rural network and syncs when back online.",
+      "Route map: Each route shows every stop on a map with the road path the bus takes, arrival times, and the list of children waiting at each stop."
+    ]
+  },
+  {
+    "id": 73,
+    "entryId": "3ac845131b748fbec7df302f3cb2b3cd602379d4",
+    "iso": "2026-05-20T15:16:28Z",
+    "when": "20 May 20:46 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "3ac8451",
+    "title": "pay school fees online from the parent mobile app",
+    "summary": "",
+    "bullets": [
+      "Fees: Parents and students can now pay school fees online from the Inkwelly mobile app — by UPI (Google Pay, PhonePe, Paytm), card, or netbanking, with instant receipts. Brings mobile fee payment to parents in Tier-2 and Tier-3 cities who live on their phones; the web portal already supported it. See online fee collection ."
+    ]
+  },
+  {
+    "id": 74,
+    "entryId": "8a0e5cd5cf74988412cf787a09b80b1c9466a9eb",
+    "iso": "2026-05-17T15:07:50Z",
+    "when": "17 May 20:37 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "8a0e5cd",
+    "title": "receipt PDF reaches parents automatically with every fee payment",
+    "summary": "",
+    "bullets": [
+      "Receipts: Every fee payment now sends the parent a WhatsApp message and email that already carry the GST-ready receipt PDF — no more \"kya aap receipt bhej do\" follow-ups. WhatsApp shows it as a tap-to-open document chip; email has a \"Download Receipt PDF\" button; SMS now also calls out the receipt number. Hindi variants added for email and app notifications too, so Hindi-medium schools across Tier-2 and Tier-3 cities get the same parent-facing copy. Works for CBSE, ICSE, and State board schools out of the box..",
+      "Receipts: The Send button on the receipt page now actually re-shares the receipt to parents across WhatsApp, SMS, email, and the parent app in one click — with an optional personal note from the office. Office staff can pick channels, switch the recipient between parent and student, and override the contact for one-off sends. Each share is tracked on the receipt for audit. Useful for parents who lost the original message or asked for a duplicate copy."
+    ]
+  },
+  {
+    "id": 75,
+    "entryId": "8b918fe5fcf38c9c838651735343d96f53def7f0",
+    "iso": "2026-05-17T14:14:51Z",
+    "when": "17 May 19:44 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "8b918fe",
+    "title": "A4 fee receipts with QR verification and thermal printer settings",
+    "summary": "",
+    "bullets": [
+      "A4 receipts: Schools can now print or share a polished A4 fee receipt with their own logo, signature, amount in words, and a tamper-proof verification QR. Labels render in English, Hindi, or both — useful for Hindi-medium schools. Part of the fee management module .",
+      "Receipt Template settings: A single screen controls every aspect of how receipts look — branding, signature, visibility toggles, language, and the full thermal printer setup (paper size, header and footer text, copies, auto-cut, native QR). Live preview updates as the cashier types.",
+      "Public verification: Parents and auditors scan the QR on any receipt to confirm it's genuine. Privacy-by-design — student name is masked, only the payment mode and status (Active / Cancelled / Void) are revealed. Rate-limited and access-logged.",
+      "Thermal printer: Olivetti PRT80 thermal receipts now render the school name reliably across rapid-fire prints, print the verification QR alongside the cashier signature, and include student ID, admission number, and father's name. Hindi org names no longer print as garbled characters."
+    ]
+  },
+  {
+    "id": 76,
+    "entryId": "3aed2c41b64887f53db94d35adabec3d67e382b5",
+    "iso": "2026-05-17T00:44:39Z",
+    "when": "17 May 06:14 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "payments",
+    "slug": "3aed2c4",
+    "title": "share UPI payment links with parents for unpaid fees",
+    "summary": "",
+    "bullets": [
+      "Payment links: School office staff can generate a Razorpay UPI payment link for any unpaid fee invoice and share it instantly over WhatsApp, SMS, email or app push, bilingual in English and Hindi. Parents tap once and pay via UPI (PhonePe, GPay, Paytm), cards or netbanking — the invoice is marked paid and the receipt fires automatically. Useful for Tier-2 and Tier-3 city schools chasing fees without phone calls. See online fee collection .",
+      "Razorpay setup: Schools can now complete the entire Razorpay onboarding from inside Inkwelly. A step-by-step wizard on the payment-gateways page walks office staff through finding their API keys, copying the webhook URL and secret, and selecting the six events to subscribe to. Available at platform, organisation and school level, and built to match the rest of the fee-configuration design."
+    ]
+  },
+  {
+    "id": 77,
+    "entryId": "37fc77a06dcfa9f67d457654c0d62d385987d72f",
+    "iso": "2026-05-16T15:43:31Z",
+    "when": "16 May 21:13 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "37fc77a",
+    "title": "notify parents on all 4 channels when a fine is added",
+    "summary": "",
+    "bullets": [
+      "Fees: When a school adds a fine to a student's fee account, parents now receive an instant alert on WhatsApp, SMS, email, and push notification — bilingual in English and Hindi out of the box. Saves school office staff from explaining the charge over phone and matches the parent communicationflow parents already trust for fee receipts."
+    ]
+  },
+  {
+    "id": 78,
+    "entryId": "5453b59d871896b92fa6b2e9072f2935b21cb15c",
+    "iso": "2026-05-16T14:45:55Z",
+    "when": "16 May 20:15 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "payments",
+    "slug": "5453b59",
+    "title": "show Razorpay MDR and GST per online fee payment",
+    "summary": "",
+    "bullets": [
+      "Reports: New Gateway Charges report at Student Fees → Reports. Shows exactly what Razorpay deducted per transaction — MDR + GST per method, net settlement to the school's bank, and any shortfall between what parents paid and what landed. Fee and transport online payments combined; filterable by date range, drill-down to each payment. Saves Indian school accountants the monthly Razorpay-vs-bank-statement reconciliation. See fee management module .",
+      "Admin payment detail: Each online-gateway payment row now shows the full money breakdown — invoice credit, convenience fee charged to parent, total parent paid at Razorpay, Razorpay's MDR + GST deduction, and the net amount that lands in the school's bank. Visible on every fee payment record alongside the existing receipt details.",
+      "Configurable rate: Convenience-fee rate (0–10%) is now editable on the payment-gateway settings form at all three scopes — super-admin, organisation, and individual school. Previously hardcoded at 2%, leaving every Razorpay account at the same gross-up. Schools handling mostly UPI can drop it to 0.5%; those expecting card-heavy traffic can raise it.",
+      "Fix: Online-gateway payments were being saved with status PENDING in the admin payments ledger even after Razorpay captured the money. The invoice always flipped to PAID correctly — only the badge on the payments page was wrong. Existing rows backfilled to SUCCESS."
+    ]
+  },
+  {
+    "id": 79,
+    "entryId": "16f3c1756c988412cb1888fdbd8abfc9bed9e752",
+    "iso": "2026-05-16T12:39:50Z",
+    "when": "16 May 18:09 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "payments",
+    "slug": "16f3c17",
+    "title": "parents can pay fees and transport online via Razorpay",
+    "summary": "",
+    "bullets": [
+      "Payments: Parents can now pay fee and transport invoices online from the student portal using Razorpay — cards, UPI, netbanking, or wallets. Partial payments allowed; receipts and WhatsApp / SMS / email confirmations to parents continue to fire automatically. See fee management module .",
+      "Configuration: Three-tier setup — super-admin sets an Inkwelly default account that any new school inherits, org admins can configure one Razorpay account for every school in the organisation, and individual schools can override with their own Razorpay merchant. Each account chooses whether the parent pays the convenience fee on top or the school absorbs it from settlement.",
+      "Reliability: Each Razorpay payment is verified by signature on the browser return and again by webhook, so duplicate deliveries or network drops never charge a parent twice or double-credit an invoice. Stored merchant credentials are encrypted in the database — Inkwelly never holds Razorpay secret keys in plain text."
+    ]
+  },
+  {
+    "id": 80,
+    "entryId": "94334258bd726f40e406cba80bf5eed8a6c619d3",
+    "iso": "2026-05-16T10:14:29Z",
+    "when": "16 May 15:44 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "communications",
+    "slug": "9433425",
+    "title": "built-in app push for every school from day one",
+    "summary": "",
+    "bullets": [
+      "Push notifications: Parents on the Inkwelly Android app now receive instant alerts for fees, attendance, homework, and marksheets the moment they happen. Schools never configure Firebase or service-account keys — push is built into the platform from day one, alongside the parent communication module.",
+      "Multi-device: A parent with both phone and tablet, or two parents sharing a child, can each receive every notification — tokens register per device so nobody misses an update.",
+      "Android first: The parent Android app now ships with Firebase Cloud Messaging integrated. iOS follows once APNs is configured."
+    ]
+  },
+  {
+    "id": 81,
+    "entryId": "874936374b2b8c2e2c655b3b94ae91ac35e0e713",
+    "iso": "2026-05-15T09:52:03Z",
+    "when": "15 May 15:22 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "notifications",
+    "slug": "8749363",
+    "title": "built-in email for every school from day one",
+    "summary": "",
+    "bullets": [
+      "Email notifications: Every Inkwelly school now sends transactional email — fee receipts, attendance updates, admission confirmations, exam results — without setting up an AWS account, DKIM keys, or DNS records. Messages go out as \"<school name>\" < [email protected] > with the school's chosen Reply-To address, so parents reply straight back to the school."
+    ]
+  },
+  {
+    "id": 82,
+    "entryId": "3cc8c56dd95ffdd308beed91c5b06f3721818bea",
+    "iso": "2026-05-13T20:42:19Z",
+    "when": "14 May 02:12 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "3cc8c56",
+    "title": "one-click thermal receipt printing at the fee counter",
+    "summary": "",
+    "bullets": [
+      "Fee receipts: Cashiers can now print the school fee receipt directly to an 80mm or 58mm thermal printer (Olivetti PRT80, Epson TM-T82, similar) — no browser dialog, no PDF detour. A visual paper-size picker shows both widths side-by-side, and the workstation remembers the last choice for next time. Built for busy fee counters in Tier-2 and Tier-3 schools printing dozens of receipts a day.",
+      "Cross-platform: Works on Windows, macOS, and Linux through QZ Tray — no driver fights, no CUPS rasterisation, and no school-side IT setup beyond installing the free QZ Tray app once per machine. An on-demand A4 PDF option is wired in as the next step."
+    ]
+  },
+  {
+    "id": 83,
+    "entryId": "ff4f2f9f7e2b42233f00ed4682b4141b40a91ad9",
+    "iso": "2026-05-11T03:47:02Z",
+    "when": "11 May 09:17 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "attendance",
+    "slug": "ff4f2f9",
+    "title": "employee attendance reports for HR and payroll",
+    "summary": "",
+    "bullets": [
+      "Employee attendance reports: Five new built-in reports for school HR — monthly register, salary-ready summary, late and short-leave tracker, leave balance with carry-forward, and a raw audit export. Replaces the manual Excel work office staff did every month.",
+      "Payroll-ready summary: The salary report computes LOP days and net payable days per employee, so accountants at CBSE, ICSE, and State board schools can paste straight into the payroll sheet. Each report exports to polished Excel and A3 / A4 PDF with HR-Head and Principal signatures. See Employee Attendance ."
+    ]
+  },
+  {
+    "id": 84,
+    "entryId": "30620d7e4a7c64b91a1adefff6310f68caa0d844",
+    "iso": "2026-05-09T00:15:54Z",
+    "when": "09 May 05:45 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "hr",
+    "slug": "30620d7",
+    "title": "unified staff departments shared with attendance and payroll",
+    "summary": "",
+    "bullets": [
+      "HR: Schools now maintain Teaching, Admin, and Support staff departments in a single list with code, short name, colour, and display order. Per-department attendance behaviour — in/out timings, week-offs, work-from-home, short-leave rules, and leave approval chains — attaches to the same record. No more entering the same department twice for HR and attendance.",
+      "Attendance: Configure each department's clock-in rules, weekly off pattern, and multi-level approver chain from a single screen, then assign staff from each employee's profile in the HR module . Useful for CBSE, ICSE, IB, and State board schools running multi-shift teaching and office operations.",
+      "Codes: Department codes are uppercase-only (TEACH, ADMIN_OPS, PRE_PRIMARY) so they read cleanly in salary registers and Tally exports without manual cleanup."
+    ]
+  },
+  {
+    "id": 85,
+    "entryId": "b3439ea286198d6ac58448437d54477d74476563",
+    "iso": "2026-05-08T18:46:00Z",
+    "when": "09 May 24:16 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "b3439ea",
+    "title": "annual promotion carries unpaid fees as one opening balance",
+    "summary": "",
+    "bullets": [
+      "Fees: Unpaid fees now roll forward into one \"Opening Balance\" invoice on the new profile when a student is promoted. Previous-session invoices freeze automatically so the same dues cannot be collected twice. CBSE / ICSE / State-board schools running annual promotions with parents in arrears get a clean carry-forward with full undo support. See student promotion .",
+      "Transport: Bus and van dues now carry forward across promotion the same way. Unpaid transport invoices on the previous-year assignment roll into one Opening Balance invoice on the new-session assignment instead of getting stranded on the closed assignment. See transport module .",
+      "Reporting: Fee dashboards (defaulters, revenue, outstanding) now exclude carried-forward source invoices, so totals reconcile cleanly across sessions at year-end audit. The dashboard's carried-forward total is computed live from the underlying ledger, removing the cache drift that occasionally inflated displayed dues. See student information module ."
+    ]
+  },
+  {
+    "id": 86,
+    "entryId": "c57731722c3dced75d7d824e0334ee7d6c2b04d6",
+    "iso": "2026-05-07T16:11:25Z",
+    "when": "07 May 21:41 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "student",
+    "slug": "c577317",
+    "title": "student promotion — guided wizard with eligibility checks, capacity caps, soft-undo, hard reverse, carry-forward, and exam-end reports",
+    "summary": "",
+    "bullets": [
+      "Six-step promotion wizard: Promotion now happens in a clearly labelled flow — pick scope and target session, select students (search by name or admission number, or pick whole class rosters), check eligibility, place each student into a target class, review the diff, then execute. Nothing hits the database until the principal explicitly clicks \"Save as draft\" or \"Submit\" — no orphan drafts left behind from exploration. Drafts are auto-saved to the browser so a power cut never loses progress.",
+      "Marks-aware eligibility: Before promoting a class, every student gets a pass / warn / block readiness card from real exam marks, attendance percentage, outstanding fees, library and transport clearance, and whether a transfer is already in progress. Pass thresholds for CBSE (33% theory + 33% practical, both required), ICSE / CISCE (35%), state boards (33%), and IB (30%) ship out of the box and can be edited per school. When a warning fires, the principal can promote anyway by recording a 10+ character override reason which lands in the audit ledger pointing at exactly which rules were waived. Hard blocks like an open transfer, a terminal status, or a graduating class can never be silently overridden — they require resolving the underlying state first.",
+      "Suggested decision per student: For each student the system suggests Promote, Detain, Compartment, or TC-Out (when it's the graduating class) based on the rules and the school's own policy. The principal still decides; the suggestion just removes the guesswork.",
+      "Live capacity heatmap: While shuffling students between target sections each class tile shows 47 / 50 and turns green / amber / red as it crosses 80% / 95%. The wizard refuses to over-fill a section and the system re-checks capacity at the moment of execute so no race can quietly bust the cap.",
+      "Stream election for Class 9 → 10 and 10 → 11: When the school is promoting into one of those transitions, a dedicated wizard step opens up where Science / Commerce / Arts groups, mandatory subjects, electives, and seat caps are configured per student. A \"Quick assign top N\" link picks students by source-class roll order in one click. Subject enrolments for the new academic year are written automatically when the run executes — no separate \"now please add subjects\" step the next morning.",
+      "Carry-forward at promotion time: Transport route (carry / re-survey / drop), fee dues (carry as opening balance / write off / hold promotion), and scholarships (continue / re-evaluate / suspend) are picked once at the run level and overridden per student where needed. The run page surfaces every outcome — applied with the exact ₹ amount, pending fee onboarding with a clear \"you'll see this resolve once you set up fees for the new session\" hint, skipped with the reason (\"no transport allotment to carry\"), and failed with the reason (\"Held back — ₹4,800 outstanding. Clear dues then re-run.\"). Pending fee carries auto-resolve the moment a fee profile lands in the new session, and the run page reflects that live.",
+      "Find a student by name, not by id: The Selection step searches the source roster by name or admission number; matching students appear inline with their photo, current class and roll, and a status chip — already promoted, transferred, graduated and other non-active states are visible but greyed out so principals always understand why a name they expected isn't pickable. Class-roster mode shows the whole class with the same status chips and excludes non-promotable students from the run automatically while still listing them with a \"will be skipped\" tag.",
+      "One-tap \"undo\" for 24 hours: Every completed promotion has a sticky red Undo button on the run page with a live countdown (\"Undo for 23h 14m\"). One click → confirm modal listing exactly what reverts → byte-identical restoration in under two seconds. If a teacher has already entered attendance, marks, fee invoices, or any other downstream data, the button greys out and a sticky inline card lists exactly what's blocking (\"Fee invoices: 1 · Attendance entries: 12\") so the principal knows what to clean before retrying. This removes the most common \"we hit the wrong button on 2nd April\" anxiety entirely.",
+      "Hard Reverse for cases beyond the 24-hour window: A senior with the elevated permission can still revert a wrong promotion by recording a categorical reason (data error / parent complaint / board mandate / other) and a justification of at least 10 characters. The dialog probes the run first and shows exactly which downstream rows already exist, refuses to silently delete that data, and asks for an explicit second confirmation. The student's old enrolment is restored to active and carry-forward is cleanly undone, while the original promotion event, audit trail, and soft-voided new academic stay on file for compliance.",
+      "Per-row Hard Reverse on the records tab: The Records tab shows a Hard Reverse button on each completed row whose Soft-Undo path is closed, mirroring the run-level controls. Useful when one student's promotion needs to be reversed long after the rest of the class has settled.",
+      "Audit-grade run pages: Every promotion run has its own page with a workflow stepper, per-student records (status pill, eligibility snapshot, override reason, failure reason inline when something fails), and a full immutable audit ledger showing who did what and when. Failure reasons are surfaced both on the failed row and in the History tab in red callouts — never hidden behind \"show details\".",
+      "One-click reports for the office: Once a run completes, the Reports tab exposes four downloads — promoted Excel for the office register, detained Excel for the parent-meeting list, A5 allocation-slips PDF for parent communication, and an A4 audit PDF for inspection records. The audit PDF works on any run status (handy for a parent meeting log before execute); the operational reports light up only after the run completes.",
+      "Year-over-year on the run page: A coloured \"YoY +1.1%\" chip next to the run title plus a \"Compare to last year\" drawer show last year's promoted / detained / total alongside this year's headline counters, so the principal sees the detention-rate delta at a glance. Computed automatically from the school's prior runs and refreshed once a day.",
+      "Per-school policy editor: A dedicated screen lets the principal flip approval-on-execute, change the soft-undo window from minutes to days, switch the roll-number strategy, and edit pass-mark rules per board (CBSE / ICSE / CISCE / State / IB) as JSON. A separate Stream Setup screen configures per-grade-transition stream groups, mandatory subjects, electives, and seat caps. Required vs Optional vs Disabled is a single dropdown so a school can dry-run the step before enforcing it. All changes apply to the very next promotion run.",
+      "Hindi UI: Every promotion screen, button, error message, eligibility-rule label, and report column reads naturally in Devanagari Hindi for principals and teachers running the UI in Hindi — covering the hub, the six-step wizard, run detail tabs, policy editor, stream setup, carry-forward dropdowns, hard-reverse dialog, undo blockers, and reports tab."
+    ]
+  },
+  {
+    "id": 87,
+    "entryId": "archive-260422-student-stats",
+    "iso": "2026-04-22T10:15:00+05:30",
+    "when": "22 Apr 10:15 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "student",
+    "slug": "260422-",
+    "title": "Student performance overview with progress and attendance trends",
+    "summary": "Students: Each student now has a single-screen overview showing exam scores, attendance trends, fee status, and co-scholastic grades across the academic year. Built for parent-teacher meetings at CBSE, ICSE, and State board schools.",
+    "bullets": []
+  },
+  {
+    "id": 88,
+    "entryId": "archive-260421-media",
+    "iso": "2026-04-21T11:30:00+05:30",
+    "when": "21 Apr 11:30 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "media",
+    "slug": "260421-",
+    "title": "School-wide media library for logos, photos, certificates, and ID cards",
+    "summary": "Media: One organised place for every visual asset across the school. Folder hierarchy, duplicate detection, and direct integration with marksheet, ID card, and admit card flows. Office staff stop emailing the same logo around to teachers.",
+    "bullets": []
+  },
+  {
+    "id": 89,
+    "entryId": "archive-260420-substitute",
+    "iso": "2026-04-20T15:30:00+05:30",
+    "when": "20 Apr 15:30 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "timetable",
+    "slug": "260420-",
+    "title": "Substitute teacher assignment with one-click swap on absences",
+    "summary": "Timetable: When a teacher applies for leave, the timetable suggests free substitute teachers across the school for every affected period. One click to swap. Saves 30 minutes a day for office staff at large schools.",
+    "bullets": []
+  },
+  {
+    "id": 90,
+    "entryId": "archive-260418-reports",
+    "iso": "2026-04-18T16:10:00+05:30",
+    "when": "18 Apr 16:10 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "examinations",
+    "slug": "260418-",
+    "title": "Examination reports — class-wise, student-wise, subject-wise",
+    "summary": "Reports: Principals can slice exam performance any way they want. Class topper lists, subject-level analytics, printable summary reports — all with one-click PDF export. Built for CBSE schools running large examination cycles.",
+    "bullets": []
+  },
+  {
+    "id": 91,
+    "entryId": "archive-260417-parent-portal",
+    "iso": "2026-04-17T11:45:00+05:30",
+    "when": "17 Apr 11:45 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "parent",
+    "slug": "260417-",
+    "title": "Parent portal redesigned for cheap Android phones",
+    "summary": "Parents: Faster app on entry-level Android phones used in Tier-2 and Tier-3 cities. Single-tap access to attendance, fees, marksheets, and homework — no app install required, accessible on the same WhatsApp chat where reminders arrive.",
+    "bullets": []
+  },
+  {
+    "id": 92,
+    "entryId": "archive-260415-timetable",
+    "iso": "2026-04-15T10:05:00+05:30",
+    "when": "15 Apr 10:05 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "timetable",
+    "slug": "260415-",
+    "title": "Automatic timetable generation with conflict detection",
+    "summary": "Timetable: Generate a full school timetable in seconds. Detects teacher clashes, room conflicts, and subject distribution rules across CBSE, ICSE, and State board patterns. Manual overrides preserved across regenerations.",
+    "bullets": []
+  },
+  {
+    "id": 93,
+    "entryId": "archive-260414-upi",
+    "iso": "2026-04-14T13:20:00+05:30",
+    "when": "14 Apr 13:20 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "260414-",
+    "title": "UPI QR code on every fee receipt for instant smartphone payment",
+    "summary": "Fees: Every printed fee receipt now carries a UPI QR. Parents pay from any UPI app — PhonePe, Google Pay, Paytm, BHIM — by scanning at home. Auto-reconciled to the student account in the fee management module .",
+    "bullets": []
+  },
+  {
+    "id": 94,
+    "entryId": "archive-260412-comms",
+    "iso": "2026-04-12T14:50:00+05:30",
+    "when": "12 Apr 14:50 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "whatsapp",
+    "slug": "260412-",
+    "title": "Parent communication via WhatsApp Business API",
+    "summary": "WhatsApp: Inkwelly is WhatsApp-native . Attendance updates, fee reminders, marksheet links, and emergency notices reach parents on the channel they actually use — no app install required. See parent communication .",
+    "bullets": []
+  },
+  {
+    "id": 95,
+    "entryId": "archive-260411-homework",
+    "iso": "2026-04-11T09:50:00+05:30",
+    "when": "11 Apr 09:50 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "homework",
+    "slug": "260411-",
+    "title": "Class teacher dashboard for daily homework tracking",
+    "summary": "Homework: Teachers post daily homework once on the class dashboard — students and parents see it on web and on the parent app, and a WhatsApp summary goes to parents at the end of every school day.",
+    "bullets": []
+  },
+  {
+    "id": 96,
+    "entryId": "archive-260410-verify",
+    "iso": "2026-04-10T09:25:00+05:30",
+    "when": "10 Apr 09:25 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "marksheets",
+    "slug": "260410-",
+    "title": "Public marksheet verification page with QR code scanning",
+    "summary": "Marksheets: Universities, employers, and parents verify any Inkwelly-issued marksheet by scanning its QR. Anti-tampering signature with full audit trail. Useful for ICSE/ISC and CBSE schools whose students apply to universities abroad.",
+    "bullets": []
+  },
+  {
+    "id": 97,
+    "entryId": "archive-260409-tally",
+    "iso": "2026-04-09T15:00:00+05:30",
+    "when": "09 Apr 15:00 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "260409-",
+    "title": "Tally export improvements with per-line GST split for accountants",
+    "summary": "Fees: Fee receipts export to Tally with proper GST line-item splits — service tax, GST, head-wise breakup. Schools with multiple fee heads (tuition, transport, lab, exam) reconcile in minutes instead of the month-end Excel chaos.",
+    "bullets": []
+  },
+  {
+    "id": 98,
+    "entryId": "archive-260408-whatsapp-fix",
+    "iso": "2026-04-08T18:00:00+05:30",
+    "when": "08 Apr 18:00 IST",
+    "type": "Fix",
+    "kind": "fix",
+    "scope": "whatsapp",
+    "slug": "260408-",
+    "title": "Improved WhatsApp delivery reliability for low-signal areas",
+    "summary": "WhatsApp: Retry logic, exponential backoff, and message queue improvements for schools in Tier-2 and Tier-3 cities with patchy connectivity. Reliably delivers attendance and fee reminders even on 2G fallback.",
+    "bullets": []
+  },
+  {
+    "id": 99,
+    "entryId": "archive-260406-leave-carry",
+    "iso": "2026-04-06T12:30:00+05:30",
+    "when": "06 Apr 12:30 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "hr",
+    "slug": "260406-",
+    "title": "Employee leave balance carry-forward across financial years",
+    "summary": "HR: Leave balances now carry forward from FY 2025-26 to FY 2026-27 with configurable rules per leave type. Casual, earned, sick, and compensatory leaves each follow your school's policy automatically.",
+    "bullets": []
+  },
+  {
+    "id": 100,
+    "entryId": "archive-260405-student-profile",
+    "iso": "2026-04-05T12:15:00+05:30",
+    "when": "05 Apr 12:15 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "student",
+    "slug": "260405-",
+    "title": "Student profile with full academic history and achievements timeline",
+    "summary": "Students: Every test, every assessment, every co-curricular achievement — preserved across academic years and visible to parents and class teachers. Data follows the student for the full school journey, board to board.",
+    "bullets": []
+  },
+  {
+    "id": 101,
+    "entryId": "archive-260403-2fa",
+    "iso": "2026-04-03T10:45:00+05:30",
+    "when": "03 Apr 10:45 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "security",
+    "slug": "260403-",
+    "title": "Two-factor authentication for school principals and org admins",
+    "summary": "Security: TOTP-based 2FA (Google Authenticator, Authy, Microsoft Authenticator) for principals and organisation admins. Critical for schools storing student records, fee data, and parent contact information.",
+    "bullets": []
+  },
+  {
+    "id": 102,
+    "entryId": "archive-260402-session",
+    "iso": "2026-04-02T15:30:00+05:30",
+    "when": "02 Apr 15:30 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "security",
+    "slug": "260402-",
+    "title": "Active session management for organisation admins",
+    "summary": "Security: See who's logged in, from which device, and revoke any session in one click. Critical for Indian schools with rotating administrative staff or shared computers in the office. March 2026 19 changes",
+    "bullets": []
+  },
+  {
+    "id": 103,
+    "entryId": "archive-260331-admission-bulk",
+    "iso": "2026-03-31T11:15:00+05:30",
+    "when": "31 Mar 11:15 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "admissions",
+    "slug": "260331-",
+    "title": "Bulk admission CSV import for board exam takers",
+    "summary": "Admissions: Schools that take 200+ board exam students every year can now bulk-import the admission list from a CSV. Auto-creates student records, generates roll numbers per CBSE / ICSE / State board conventions, and links to the admit card flow.",
+    "bullets": []
+  },
+  {
+    "id": 104,
+    "entryId": "archive-260330-biometric",
+    "iso": "2026-03-30T11:00:00+05:30",
+    "when": "30 Mar 11:00 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "attendance",
+    "slug": "260330-",
+    "title": "IoT biometric device integration for staff attendance",
+    "summary": "Attendance: Plug-and-play support for ESSL, Mantra, and other biometric devices used in Indian schools. Live sync to staff attendance with shift, late, and overtime rules feeding directly into payroll.",
+    "bullets": []
+  },
+  {
+    "id": 105,
+    "entryId": "archive-260328-installment",
+    "iso": "2026-03-28T14:00:00+05:30",
+    "when": "28 Mar 14:00 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "260328-",
+    "title": "Instalment plans per student with auto-reminders for each instalment",
+    "summary": "Fees: Set up custom instalment plans per student or per fee head. Each instalment triggers its own WhatsApp reminder schedule. Used by boarding schools, IGCSE schools, and budget private schools running flexible payment terms.",
+    "bullets": []
+  },
+  {
+    "id": 106,
+    "entryId": "archive-260327-subject-order",
+    "iso": "2026-03-27T14:20:00+05:30",
+    "when": "27 Mar 14:20 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "subjects",
+    "slug": "260327-",
+    "title": "Drag-and-drop subject reordering across teaching batches",
+    "summary": "Subjects: Subject order on report cards, marksheets, and dashboards now matches your school's preferred convention — board sequence, alphabetical, or custom. Set once, applies everywhere.",
+    "bullets": []
+  },
+  {
+    "id": 107,
+    "entryId": "archive-260325-late-fee",
+    "iso": "2026-03-25T16:10:00+05:30",
+    "when": "25 Mar 16:10 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "260325-",
+    "title": "Late fee rules with grace period configuration per fee head",
+    "summary": "Fees: Different late-fee policies for tuition, transport, and exam fees. Configurable grace period, percentage / fixed amount, and capping rules. Auto-applied on the fee receipt without manual intervention.",
+    "bullets": []
+  },
+  {
+    "id": 108,
+    "entryId": "archive-260324-bulk-marks",
+    "iso": "2026-03-24T10:40:00+05:30",
+    "when": "24 Mar 10:40 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "examinations",
+    "slug": "260324-",
+    "title": "Bulk Excel marks editor for fast class-wide entry",
+    "summary": "Examinations: Class teachers paste marks directly from Excel — Inkwelly auto-validates against grade scales and flags out-of-range entries before saving. Saves hours on board exam result-day workloads.",
+    "bullets": []
+  },
+  {
+    "id": 109,
+    "entryId": "archive-260322-marksheet-lock",
+    "iso": "2026-03-22T13:00:00+05:30",
+    "when": "22 Mar 13:00 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "marksheets",
+    "slug": "260322-",
+    "title": "Bulk lock and unlock marksheets with explicit status workflow",
+    "summary": "Marksheets: Once marksheets are issued they're locked from edits — only the principal can unlock with a written reason that's logged for audit. Critical for ICSE/ISC and IB schools who must maintain examination integrity.",
+    "bullets": []
+  },
+  {
+    "id": 110,
+    "entryId": "archive-260321-image-editor",
+    "iso": "2026-03-21T16:00:00+05:30",
+    "when": "21 Mar 16:00 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "media",
+    "slug": "260321-",
+    "title": "Inline image editor — crop, filter, resize, drop shadow",
+    "summary": "Media: Edit student photos, school logos, and certificate images directly in Inkwelly without bouncing to Photoshop or Canva. Background removal included. Saves the office staff at most schools a separate Canva subscription.",
+    "bullets": []
+  },
+  {
+    "id": 111,
+    "entryId": "archive-260319-bulk-id",
+    "iso": "2026-03-19T10:30:00+05:30",
+    "when": "19 Mar 10:30 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "media",
+    "slug": "260319-",
+    "title": "Bulk ID card printing with reusable templates per academic year",
+    "summary": "ID cards: Design once at the start of the academic year, print for the entire school in one job. Front-back layout, photo placement, QR code with verification link, and academic-year-aware data binding.",
+    "bullets": []
+  },
+  {
+    "id": 112,
+    "entryId": "archive-260318-exam-config",
+    "iso": "2026-03-18T09:50:00+05:30",
+    "when": "18 Mar 09:50 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "examinations",
+    "slug": "260318-",
+    "title": "Per-exam class configuration with custom grade scales",
+    "summary": "Examinations: Different exams use different grade scales — board pattern, internal CCE, scholastic vs co-scholastic. Each exam stands on its own. Useful for schools running both CBSE and IGCSE patterns side by side.",
+    "bullets": []
+  },
+  {
+    "id": 113,
+    "entryId": "archive-260316-events",
+    "iso": "2026-03-16T15:30:00+05:30",
+    "when": "16 Mar 15:30 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "events",
+    "slug": "260316-",
+    "title": "Multi-day event scheduling with parent RSVP via WhatsApp",
+    "summary": "Events: Plan annual day, sports day, parent-teacher meetings, and school trips on a unified calendar. Parents RSVP directly through WhatsApp — confirmations auto-collected for headcount and lunch planning.",
+    "bullets": []
+  },
+  {
+    "id": 114,
+    "entryId": "archive-260315-exam-clone",
+    "iso": "2026-03-15T13:25:00+05:30",
+    "when": "15 Mar 13:25 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "examinations",
+    "slug": "260315-",
+    "title": "Exam clone — duplicate full exam config across grades and sections",
+    "summary": "Examinations: Set up Mid-Term once, clone for every section in seconds. Subject mappings, grade scales, and weightages copied with one click. Saves a full afternoon of work for examination committees at large schools.",
+    "bullets": []
+  },
+  {
+    "id": 115,
+    "entryId": "archive-260313-cms",
+    "iso": "2026-03-13T11:00:00+05:30",
+    "when": "13 Mar 11:00 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "cms",
+    "slug": "260313-",
+    "title": "School website CMS with photo galleries and announcements",
+    "summary": "Website: Run your school's public website from inside Inkwelly — announcements, photo galleries, principal's message, admission notices. Auto-pushes to WhatsApp and notifies parents of new posts.",
+    "bullets": []
+  },
+  {
+    "id": 116,
+    "entryId": "archive-260312-marksheet-perf",
+    "iso": "2026-03-12T17:10:00+05:30",
+    "when": "12 Mar 17:10 IST",
+    "type": "Speed",
+    "kind": "perf",
+    "scope": "marksheets",
+    "slug": "260312-",
+    "title": "Marksheet PDF generation now 3x faster on large batches",
+    "summary": "Marksheets: Switched the rendering engine for board-result-day workloads. A 500-student class now exports in under 30 seconds . Critical for CBSE and State board schools running examination cycles for thousands of students.",
+    "bullets": []
+  },
+  {
+    "id": 117,
+    "entryId": "archive-260309-coscholastic",
+    "iso": "2026-03-09T11:45:00+05:30",
+    "when": "09 Mar 11:45 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "marksheets",
+    "slug": "260309-",
+    "title": "Co-scholastic assessments with CBSE-compliant grade scales",
+    "summary": "Marksheets: Discipline, work education, art education, and health & physical education each get their own grade scales as required by CBSE board guidelines. Keeps CBSE schools compliant without manual workarounds.",
+    "bullets": []
+  },
+  {
+    "id": 118,
+    "entryId": "archive-260307-dashboard-perf",
+    "iso": "2026-03-07T16:45:00+05:30",
+    "when": "07 Mar 16:45 IST",
+    "type": "Speed",
+    "kind": "perf",
+    "scope": "dashboard",
+    "slug": "260307-",
+    "title": "Principal dashboard widgets cached for instant load on large schools",
+    "summary": "Dashboard: Fee collection, attendance summary, and teacher activity widgets now load in under 500 milliseconds even at 5,000+ student schools. The first thing a principal sees when they log in shouldn't be a spinner.",
+    "bullets": []
+  },
+  {
+    "id": 119,
+    "entryId": "archive-260306-marksheet-pdf",
+    "iso": "2026-03-06T15:00:00+05:30",
+    "when": "06 Mar 15:00 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "marksheets",
+    "slug": "260306-",
+    "title": "One-click marksheet PDF generation with QR verification",
+    "summary": "Marksheets: Every marksheet ships with a tamper-proof QR code linking to a public verification page — universities and employers verify authenticity instantly. Standard issue for CBSE, ICSE, and IB school marksheets.",
+    "bullets": []
+  },
+  {
+    "id": 120,
+    "entryId": "archive-260303-bulk-marksheet",
+    "iso": "2026-03-03T10:15:00+05:30",
+    "when": "03 Mar 10:15 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "marksheets",
+    "slug": "260303-",
+    "title": "Bulk marksheet CSV upload for board exam results",
+    "summary": "Marksheets: Import board results in CSV format and Inkwelly maps them to your students automatically. Generate the entire batch of marksheets — for the whole school — in one click. Built for the CBSE / ICSE / State board result-day rush.",
+    "bullets": []
+  },
+  {
+    "id": 121,
+    "entryId": "archive-260301-marksheet-design",
+    "iso": "2026-03-01T14:30:00+05:30",
+    "when": "01 Mar 14:30 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "marksheets",
+    "slug": "260301-",
+    "title": "Marksheet design templates with school branding controls",
+    "summary": "Marksheets: Pixel-perfect designer. Upload your school crest, set fonts and colours, position fields where your board requires. Templates are reusable across exams and academic years — designed once, used forever. February 2026 15 changes",
+    "bullets": []
+  },
+  {
+    "id": 122,
+    "entryId": "archive-260226-shift",
+    "iso": "2026-02-26T11:30:00+05:30",
+    "when": "26 Feb 11:30 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "attendance",
+    "slug": "260226-",
+    "title": "Employee attendance with shift, late, and half-day rules",
+    "summary": "Attendance: Configurable shift timings, grace periods, and half-day rules — automatically applied to monthly payroll. Used by schools running double shifts or pre-primary morning sessions.",
+    "bullets": []
+  },
+  {
+    "id": 123,
+    "entryId": "archive-260224-onboarding",
+    "iso": "2026-02-24T13:45:00+05:30",
+    "when": "24 Feb 13:45 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "employee",
+    "slug": "260224-",
+    "title": "Employee onboarding with document collection and verification",
+    "summary": "HR: Standardised onboarding flow for new teachers — Aadhaar, PAN, qualification certificates, prior employment proof, joining letter. Documents stored in the employee profile for the full tenure.",
+    "bullets": []
+  },
+  {
+    "id": 124,
+    "entryId": "archive-260222-notifications",
+    "iso": "2026-02-22T16:20:00+05:30",
+    "when": "22 Feb 16:20 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "notifications",
+    "slug": "260222-",
+    "title": "In-app notification centre across web and mobile apps",
+    "summary": "Notifications: Centralised inbox for school-wide announcements, fee reminders, attendance alerts, and homework updates. Read receipts for parent communication so principals know exactly what reached parents and what didn't.",
+    "bullets": []
+  },
+  {
+    "id": 125,
+    "entryId": "archive-260220-homework-module",
+    "iso": "2026-02-20T10:00:00+05:30",
+    "when": "20 Feb 10:00 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "homework",
+    "slug": "260220-",
+    "title": "Homework module with parent acknowledgement on WhatsApp",
+    "summary": "Homework: Class teachers post homework once. Students see it in the portal, parents get a WhatsApp summary at end of school day, and parent acknowledgement is tracked for accountability — solving the daily 'did you do your homework?' battle.",
+    "bullets": []
+  },
+  {
+    "id": 126,
+    "entryId": "archive-260218-leave",
+    "iso": "2026-02-18T10:00:00+05:30",
+    "when": "18 Feb 10:00 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "hr",
+    "slug": "260218-",
+    "title": "Leave management for teaching and non-teaching staff",
+    "summary": "HR: Leave types, balances, application workflow, and substitute teacher assignment — all linked to attendance and payroll. Casual, earned, sick, maternity, and compensatory leaves all configurable per school policy.",
+    "bullets": []
+  },
+  {
+    "id": 127,
+    "entryId": "archive-260216-sms-fallback",
+    "iso": "2026-02-16T14:30:00+05:30",
+    "when": "16 Feb 14:30 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "notifications",
+    "slug": "260216-",
+    "title": "SMS gateway integration as WhatsApp delivery fallback",
+    "summary": "Notifications: When WhatsApp delivery fails (parent has no internet, blocked the number, or device offline), Inkwelly auto-falls-back to SMS. Schools never miss reaching a parent on a fee due date or attendance alert.",
+    "bullets": []
+  },
+  {
+    "id": 128,
+    "entryId": "archive-260214-payroll",
+    "iso": "2026-02-14T13:40:00+05:30",
+    "when": "14 Feb 13:40 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "payroll",
+    "slug": "260214-",
+    "title": "Payroll module — PF, ESI, TDS, and Form 16 generation",
+    "summary": "Payroll: Compliant with Indian statutory requirements. One-click monthly payroll, salary slips with school letterhead, and Form 16 generated automatically at end of financial year. Eliminates the need for a separate payroll software subscription.",
+    "bullets": []
+  },
+  {
+    "id": 129,
+    "entryId": "archive-260213-id-cards",
+    "iso": "2026-02-13T11:30:00+05:30",
+    "when": "13 Feb 11:30 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "media",
+    "slug": "260213-",
+    "title": "ID card generation with school template designer",
+    "summary": "ID cards: Design student and staff ID cards with photo, QR verification, school logo, and academic year. Print-ready PDF for the standard PVC card sizes used by Indian printers.",
+    "bullets": []
+  },
+  {
+    "id": 130,
+    "entryId": "archive-260211-transport",
+    "iso": "2026-02-11T09:25:00+05:30",
+    "when": "11 Feb 09:25 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "transport",
+    "slug": "260211-",
+    "title": "Transport module — route assignment, GPS tracking, parent app",
+    "summary": "Transport: Manage bus routes, assign students to stops, and let parents track the bus live on their phone. Works with any GPS device. Used by day schools across Mumbai, Delhi, Pune, and Bangalore.",
+    "bullets": []
+  },
+  {
+    "id": 131,
+    "entryId": "archive-260210-barcode",
+    "iso": "2026-02-10T15:00:00+05:30",
+    "when": "10 Feb 15:00 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "library",
+    "slug": "260210-",
+    "title": "Phone-based barcode scanning for library issue and return",
+    "summary": "Library: Librarians issue and return books by scanning the barcode with their phone camera. No dedicated scanner required — runs on any cheap Android phone with WhatsApp installed.",
+    "bullets": []
+  },
+  {
+    "id": 132,
+    "entryId": "archive-260209-attendance-perf",
+    "iso": "2026-02-09T17:50:00+05:30",
+    "when": "09 Feb 17:50 IST",
+    "type": "Speed",
+    "kind": "perf",
+    "scope": "attendance",
+    "slug": "260209-",
+    "title": "Faster attendance marking for schools with 5,000+ students",
+    "summary": "Attendance: Optimised database access patterns. Class-section attendance now loads in under a second even at peak morning traffic. Tested on the largest schools in Maharashtra and Karnataka.",
+    "bullets": []
+  },
+  {
+    "id": 133,
+    "entryId": "archive-260207-library",
+    "iso": "2026-02-07T11:15:00+05:30",
+    "when": "07 Feb 11:15 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "library",
+    "slug": "260207-",
+    "title": "Library module — book catalog, issue/return, overdue fines",
+    "summary": "Library: Full library management with ISBN lookup, hold queues, and automated overdue fine calculation. Replaces the legacy software most Indian schools have been using since 2010.",
+    "bullets": []
+  },
+  {
+    "id": 134,
+    "entryId": "archive-260205-driver",
+    "iso": "2026-02-05T10:45:00+05:30",
+    "when": "05 Feb 10:45 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "transport",
+    "slug": "260205-",
+    "title": "Driver app with route navigation and student boarding tracking",
+    "summary": "Transport: Drivers see the next stop, the students assigned, and confirm boarding with a tap. Parents get a WhatsApp notification when their child boards or alights. Ends 'where is the bus?' calls to the school office.",
+    "bullets": []
+  },
+  {
+    "id": 135,
+    "entryId": "archive-260203-attendance-whatsapp",
+    "iso": "2026-02-03T10:30:00+05:30",
+    "when": "03 Feb 10:30 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "attendance",
+    "slug": "260203-",
+    "title": "Daily attendance with automatic WhatsApp parent notifications",
+    "summary": "Attendance: Class teachers mark attendance in under a minute on a cheap Android phone. Absent students trigger a WhatsApp message to parents within 30 seconds . Built for the Tier-2 and Tier-3 cities where SMS still costs ₹0.15 per message.",
+    "bullets": []
+  },
+  {
+    "id": 136,
+    "entryId": "archive-260202-offline",
+    "iso": "2026-02-02T16:00:00+05:30",
+    "when": "02 Feb 16:00 IST",
+    "type": "Fix",
+    "kind": "fix",
+    "scope": "attendance",
+    "slug": "260202-",
+    "title": "Class teacher attendance saves offline on patchy connectivity",
+    "summary": "Attendance: Lost network in the middle of marking? No problem. The mobile app buffers attendance offline and syncs the moment connectivity returns. Solves the daily 9am internet-outage problem at most North-Indian schools in winter. January 2026 12 changes",
+    "bullets": []
+  },
+  {
+    "id": 137,
+    "entryId": "archive-260131-admission-docs",
+    "iso": "2026-01-31T15:30:00+05:30",
+    "when": "31 Jan 15:30 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "admissions",
+    "slug": "260131-",
+    "title": "Online admission with document upload and verification workflow",
+    "summary": "Admissions: Parents upload Aadhaar, birth certificate, and previous school records during the admission application. Admission committee reviews and approves online. Cuts in-person paperwork at most Indian schools by 80% .",
+    "bullets": []
+  },
+  {
+    "id": 138,
+    "entryId": "archive-260129-multitenant",
+    "iso": "2026-01-29T15:45:00+05:30",
+    "when": "29 Jan 15:45 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "platform",
+    "slug": "260129-",
+    "title": "Multi-tenant SaaS architecture with org-level data isolation",
+    "summary": "Platform: Every school gets its own isolated tenant. Data, users, and configuration never leak across organisations — built for scale from day one. Supports day schools, residential schools, and multi-branch school networks.",
+    "bullets": []
+  },
+  {
+    "id": 139,
+    "entryId": "archive-260127-sso",
+    "iso": "2026-01-27T11:00:00+05:30",
+    "when": "27 Jan 11:00 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "security",
+    "slug": "260127-",
+    "title": "Single sign-on for school principals via Google and Microsoft",
+    "summary": "Security: Principals and admins log in with their Google Workspace or Microsoft 365 accounts — no separate password to remember. Critical for schools already standardised on Google for Education or Microsoft Education.",
+    "bullets": []
+  },
+  {
+    "id": 140,
+    "entryId": "archive-260125-dashboards",
+    "iso": "2026-01-25T12:00:00+05:30",
+    "when": "25 Jan 12:00 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "dashboard",
+    "slug": "260125-",
+    "title": "Role-based dashboards for principal, teacher, parent, and student",
+    "summary": "Dashboards: Each role sees the metrics they actually need on the home screen. Principal sees fee collection and attendance trends; teachers see today's classes and pending marks; parents see their child's day at a glance.",
+    "bullets": []
+  },
+  {
+    "id": 141,
+    "entryId": "archive-260123-bg-removal",
+    "iso": "2026-01-23T14:15:00+05:30",
+    "when": "23 Jan 14:15 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "media",
+    "slug": "260123-",
+    "title": "Student photo upload with automatic background removal",
+    "summary": "Photos: Drop in a phone-camera selfie at admission, Inkwelly removes the background and produces a clean ID-card-ready photo. No more reshooting at a studio for the school's records.",
+    "bullets": []
+  },
+  {
+    "id": 142,
+    "entryId": "archive-260122-admissions",
+    "iso": "2026-01-22T10:20:00+05:30",
+    "when": "22 Jan 10:20 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "admissions",
+    "slug": "260122-",
+    "title": "Online admission form with document upload and tracking",
+    "summary": "Admissions: Public admission form with custom fields per board, document upload, application status tracking, and one-click conversion to enrolled student. Used by schools running CBSE, ICSE, IB, and State board admission patterns.",
+    "bullets": []
+  },
+  {
+    "id": 143,
+    "entryId": "archive-260120-audit",
+    "iso": "2026-01-20T16:30:00+05:30",
+    "when": "20 Jan 16:30 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "security",
+    "slug": "260120-",
+    "title": "Audit log viewer for organisation admins",
+    "summary": "Audit: Every sensitive action — fee waiver, marksheet edit, student deletion, admin role change — logged with who, when, and what. Filterable by user, module, and date range. Required for ISO-style data integrity reviews.",
+    "bullets": []
+  },
+  {
+    "id": 144,
+    "entryId": "archive-260118-fee-receipt",
+    "iso": "2026-01-18T14:10:00+05:30",
+    "when": "18 Jan 14:10 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "260118-",
+    "title": "Auto-generated fee receipts with school logo and Tally export",
+    "summary": "Fees: Every payment generates a GST-ready receipt with your school's branding. Reconciliation export for Tally is one click — no more month-end Excel chaos for the accountant.",
+    "bullets": []
+  },
+  {
+    "id": 145,
+    "entryId": "archive-260117-events",
+    "iso": "2026-01-17T11:00:00+05:30",
+    "when": "17 Jan 11:00 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "events",
+    "slug": "260117-",
+    "title": "School calendar with event creation and parent notifications",
+    "summary": "Events: Annual day, parent-teacher meetings, sports day, school trips — one calendar visible to staff, students, and parents. Auto-WhatsApps a reminder to parents 24 hours and 2 hours before each event.",
+    "bullets": []
+  },
+  {
+    "id": 146,
+    "entryId": "archive-260115-fees-gateways",
+    "iso": "2026-01-15T09:30:00+05:30",
+    "when": "15 Jan 09:30 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "fees",
+    "slug": "260115-",
+    "title": "Fee management with Razorpay, PayU, Cashfree, and Paytm integration",
+    "summary": "Fees: Online fee collection with automatic reconciliation, partial payments, instalment plans, and late-fee rules. Pick whichever payment gateway your school already has an account with. Full setup at the fee management module .",
+    "bullets": []
+  },
+  {
+    "id": 147,
+    "entryId": "archive-260112-reports-custom",
+    "iso": "2026-01-12T13:30:00+05:30",
+    "when": "12 Jan 13:30 IST",
+    "type": "New",
+    "kind": "feat",
+    "scope": "reports",
+    "slug": "260112-",
+    "title": "Custom date-range reporting across attendance, fees, and exams",
+    "summary": "Reports: Slice any module by any date range — quarterly attendance for Class 10, board-exam fee collection by section, teacher attendance for the financial year. One screen, every report a principal could ever want.",
+    "bullets": []
+  },
+  {
+    "id": 148,
+    "entryId": "archive-260110-multitenant-perf",
+    "iso": "2026-01-10T15:00:00+05:30",
+    "when": "10 Jan 15:00 IST",
+    "type": "Speed",
+    "kind": "perf",
+    "scope": "platform",
+    "slug": "260110-",
+    "title": "Multi-tenant query isolation 2x faster on large org workloads",
+    "summary": "Platform: Database query patterns rewritten for the largest school groups running 10+ branches under one parent organisation. Reduces page loads from 2.5 seconds to under a second across the board.",
+    "bullets": []
+  }
+]
