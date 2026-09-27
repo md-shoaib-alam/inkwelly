@@ -1,0 +1,178 @@
+export const academicTypeDefs = `#graphql
+  type TenantDetail {
+    tenant: Tenant!
+    students: [TenantStudent!]!
+    teachers: [TenantTeacher!]!
+    parents: [TenantParent!]!
+    classes: [TenantClass!]!
+    notices: [NoticeInfo!]!
+    fees: [TenantFee!]!
+    attendance: [TenantAttendance!]!
+  }
+
+  type TenantStudent {
+    id: String!
+    name: String!
+    email: String!
+    username: String
+    phone: String
+    rollNumber: String!
+    className: String!
+    gender: String!
+    dateOfBirth: String
+    status: String!
+    classId: String
+    parentId: String
+    parentName: String
+    admissionDate: String
+    academicYear: String
+    class: TenantClass
+    parent: TenantParent
+  }
+
+  type TenantTeacher {
+    id: String!
+    name: String!
+    email: String!
+    phone: String
+    qualification: String
+    experience: String
+    status: String!
+    subjects: [String!]
+    classes: [String!]
+    joiningDate: String
+  }
+
+  type TenantParent {
+    id: String!
+    userId: String!
+    name: String!
+    email: String!
+    username: String
+    phone: String
+    address: String
+    role: String
+    isActive: Boolean
+    occupation: String
+    status: String!
+    children: [TenantStudent!]
+    subscription: Subscription
+  }
+
+  type TenantClass {
+    id: String!
+    name: String!
+    section: String!
+    grade: String!
+    capacity: Int!
+    studentCount: Int!
+    classTeacher: String
+  }
+
+  type TenantFee {
+    id: String!
+    studentName: String!
+    type: String!
+    amount: Float!
+    status: String!
+    dueDate: String!
+    paidAmount: Float!
+  }
+
+  type TenantAttendance {
+    id: String!
+    studentName: String!
+    date: String!
+    status: String!
+    className: String!
+  }
+
+  type StaffAttendance {
+    id: String!
+    staffName: String!
+    role: String!
+    date: String!
+    status: String!
+    checkIn: String
+    checkOut: String
+    remarks: String
+  }
+
+  type Subject {
+    id: String!
+    name: String!
+    code: String!
+    classId: String!
+    teacherId: String
+    className: String
+    teacherName: String
+  }
+
+  type StaffMember {
+    id: String!
+    name: String!
+    email: String!
+    role: String!
+    phone: String
+    address: String
+    isActive: Boolean!
+    customRole: CustomRole
+    createdAt: String!
+  }
+  type Event {
+    id: ID!
+    tenantId: String!
+    title: String!
+    description: String
+    date: String!
+    endDate: String
+    type: String!
+    targetRole: String!
+    color: String!
+    allDay: Boolean!
+    location: String
+    createdAt: String!
+  }
+
+  input EventInput {
+    title: String!
+    description: String
+    date: String!
+    endDate: String
+    type: String
+    targetRole: String
+    color: String
+    allDay: Boolean
+    location: String
+  }
+
+  type AcademicYear {
+    id: String!
+    name: String!
+    startDate: String!
+    endDate: String!
+    status: String!
+    isCurrent: Boolean!
+    createdAt: String!
+  }
+
+  input CreateAcademicYearInput {
+    name: String!
+    startDate: String!
+    endDate: String!
+    status: String
+    isCurrent: Boolean
+  }
+
+  extend type Query {
+    academicYears: [AcademicYear!]!
+    currentAcademicYear: AcademicYear
+  }
+
+  extend type Mutation {
+    createAcademicYear(input: CreateAcademicYearInput!): AcademicYear!
+    updateAcademicYear(id: String!, input: CreateAcademicYearInput!): AcademicYear!
+    deleteAcademicYear(id: String!): Boolean!
+    setCurrentAcademicYear(id: String!): AcademicYear!
+  }
+`;

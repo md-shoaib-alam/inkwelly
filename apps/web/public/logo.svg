@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="100%" height="100%">
+  <defs>
+    <!-- Soft glowing gold gradient for the face/emblem -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFB020" />
+      <stop offset="100%" stop-color="#FD5E0F" />
+    </linearGradient>
+    
+    <!-- Dark slate gradient for the graduation cap -->
+    <linearGradient id="capGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(10, 10)">
+    <!-- ================= Emblem ================= -->
+    <!-- Circular face/emblem -->
+    <circle cx="50" cy="65" r="28" fill="url(#goldGrad)" />
+    
+    <!-- Graduation Cap on top -->
+    <!-- Cap rhomboid -->
+    <path d="M50 22 L82 34 L50 46 L18 34 Z" fill="url(#capGrad)" />
+    <!-- Cap underpart/skullcap -->
+    <path d="M30 38 L30 48 C30 54, 70 54, 70 48 L70 38 Z" fill="url(#capGrad)" opacity="0.9" />
+    <!-- Tassel -->
+    <path d="M50 34 L76 43 L76 56" fill="none" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+    <circle cx="76" cy="57" r="2" fill="#FFD700" />
+
+    <!-- Glasses/Circles inside the emblem containing S and A -->
+    <!-- Left Glass Ring -->
+    <circle cx="39" cy="68" r="8" fill="none" stroke="#FFFFFF" stroke-width="2.5" />
+    <text x="39" y="71" font-family="'Inter', sans-serif" font-size="9" font-weight="900" fill="#FFFFFF" text-anchor="middle">S</text>
+
+    <!-- Right Glass Ring -->
+    <circle cx="61" cy="68" r="8" fill="none" stroke="#FFFFFF" stroke-width="2.5" />
+    <text x="61" y="71" font-family="'Inter', sans-serif" font-size="9" font-weight="900" fill="#FFFFFF" text-anchor="middle">A</text>
+    
+    <!-- Connector bridge for glasses -->
+    <path d="M47 68 L53 68" stroke="#FFFFFF" stroke-width="2.5" />
+
+    <!-- ================= Typography ================= -->
+    <!-- SCHOOL text -->
+    <text x="96" y="52" font-family="'Outfit', 'Inter', sans-serif" font-size="34" font-weight="900" letter-spacing="4" fill="#E68A00">SCH</text>
+    
+    <!-- Circle O's in SCHOOL -->
+    <!-- First O (with S) -->
+    <circle cx="190" cy="42" r="10" fill="none" stroke="#E68A00" stroke-width="3" />
+    <circle cx="190" cy="42" r="7" fill="#E68A00" />
+    <text x="190" y="45" font-family="'Inter', sans-serif" font-size="8" font-weight="900" fill="#FFFFFF" text-anchor="middle">S</text>
+    
+    <!-- Second O (with A) -->
+    <circle cx="218" cy="42" r="10" fill="none" stroke="#E68A00" stroke-width="3" />
+    <circle cx="218" cy="42" r="7" fill="#E68A00" />
+    <text x="218" y="45" font-family="'Inter', sans-serif" font-size="8" font-weight="900" fill="#FFFFFF" text-anchor="middle">A</text>
+
+    <!-- L text -->
+    <text x="238" y="52" font-family="'Outfit', 'Inter', sans-serif" font-size="34" font-weight="900" letter-spacing="4" fill="#E68A00">L</text>
+
+    <!-- AURA text underneath -->
+    <text x="96" y="92" font-family="'Outfit', 'Inter', sans-serif" font-size="44" font-weight="700" letter-spacing="10" fill="#0F172A">AURA</text>
+    
+    <!-- Stylized line under AURA -->
+    <line x1="96" y1="102" x2="250" y2="102" stroke="#0F172A" stroke-width="4" stroke-linecap="round" />
+  </g>
+</svg>

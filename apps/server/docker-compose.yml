@@ -1,0 +1,152 @@
+services:
+  # ─── PostgreSQL Database ───────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: school-db
+    restart: always
+    command: postgres -c max_connections=200 -c shared_buffers=256MB
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set (no default password is provided)}
+      POSTGRES_DB: appdb
+    volumes:
+      # Persists your database data even if the container is restarted
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Expose to host only if you need direct access via pgAdmin/TablePlus
+      - "5432:5432"
+    networks:
+      - app-network
+
+  # ─── Redis Cache ───────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: school-cache
+    restart: always
+    # noeviction is REQUIRED: this Redis is shared with BullMQ. An LRU/LFU
+    # policy would evict queue/job keys under memory pressure and lose jobs.
+    # appendonly: the token denylist must survive a Redis restart (spec §6).
+    command: redis-server --maxmemory 512mb --maxmemory-policy noeviction --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
+  # ─── PgBouncer Connection Pooler ───────────────────
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: school-db-bouncer
+    restart: always
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD must be set (no default password is provided)}
+      - DB_NAME=appdb
+      - POOL_MODE=transaction
+      - MAX_CLIENT_CONN=2000
+      - DEFAULT_POOL_SIZE=50
+      - MIN_POOL_SIZE=10
+      - RESERVE_POOL_SIZE=5
+      - SHOW_ACTIVE_CLIENTS=true
+    ports:
+      - "6432:6432"
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+
+  # ─── Backend API ───────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: school-backend:secure   # Use the pre-built secure image
+    container_name: school-saas-api
+    restart: always
+    ports:
+      - "4000:4000"
+    depends_on:
+      - postgres   # Wait for DB to start before backend
+      - redis   # Wait for Redis to start before backend
+      - pgbouncer
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=warn
+      - TZ=Asia/Kolkata
+      - START_WORKERS=false
+      # XFF is trusted only from these proxies (Traefik's network); empty = trust nobody.
+      - TRUSTED_PROXY_IPS=${TRUSTED_PROXY_IPS:-}
+      # ⬇️ Configurable URLs with safe defaults for local Docker container runs
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:${DB_PASSWORD}@pgbouncer:6432/appdb?sslmode=disable}
+      - DIRECT_URL=${DIRECT_URL:-postgresql://postgres:${DB_PASSWORD}@postgres:5432/appdb?sslmode=disable}
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=4000
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
+      - RAZORPAY_WEBHOOK_SECRET=${RAZORPAY_WEBHOOK_SECRET}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_BUCKET_NAME=${R2_BUCKET_NAME}
+      - R2_ENDPOINT=${R2_ENDPOINT}
+      - R2_PUBLIC_URL=${R2_PUBLIC_URL}
+      - POSTHOG_API_KEY=${POSTHOG_API_KEY}
+      - POSTHOG_HOST=${POSTHOG_HOST}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL}
+      - FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY}
+    networks:
+      - app-network
+
+  # ─── Background Worker (BullMQ) ───────────────────
+  worker:
+    image: school-backend:secure
+    container_name: school-saas-worker
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+      - pgbouncer
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=warn
+      - TZ=Asia/Kolkata
+      - START_WORKERS=true
+      - TRUSTED_PROXY_IPS=${TRUSTED_PROXY_IPS:-}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:${DB_PASSWORD}@pgbouncer:6432/appdb?sslmode=disable}
+      - DIRECT_URL=${DIRECT_URL:-postgresql://postgres:${DB_PASSWORD}@postgres:5432/appdb?sslmode=disable}
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=4000
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
+      - RAZORPAY_WEBHOOK_SECRET=${RAZORPAY_WEBHOOK_SECRET}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_BUCKET_NAME=${R2_BUCKET_NAME}
+      - R2_ENDPOINT=${R2_ENDPOINT}
+      - R2_PUBLIC_URL=${R2_PUBLIC_URL}
+      - POSTHOG_API_KEY=${POSTHOG_API_KEY}
+      - POSTHOG_HOST=${POSTHOG_HOST}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL}
+      - FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY}
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  # Named volume so database data survives container restarts/rebuilds
+  postgres_data:
+  redis_data:
+

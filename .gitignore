@@ -1,0 +1,39 @@
+# dependencies
+node_modules/
+
+# turborepo
+.turbo/
+
+# env + credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.p8
+*.jks
+*.mobileprovision
+*.dump
+
+# builds
+.next/
+dist/
+build/
+web-build/
+*.tsbuildinfo
+
+# expo / native
+.expo/
+.kotlin/
+
+# local tool state and local-only backups
+.qoder/
+locks-premonorepo/
+
+# os / logs
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun-debug.log*

@@ -1,0 +1,39 @@
+{
+  "$schema": "./node_modules/turbo/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+    },
+    "start": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "interruptible": true
+    },
+    "lint": {},
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"]
+    },
+    "@inkwelly/server#dev": {
+      "cache": false,
+      "persistent": true,
+      "interruptible": true,
+      "passThroughEnv": ["DATABASE_URL", "REDIS_URL"]
+    },
+    "@inkwelly/web#build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": ["NEXT_PUBLIC_*"]
+    }
+  },
+  "globalDependencies": ["**/.env.*local", "bun.lock"],
+  "globalEnv": ["NODE_ENV"]
+}

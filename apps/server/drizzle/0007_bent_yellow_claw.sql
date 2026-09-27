@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "Class_tenantId_name_section_unique" ON "Class" USING btree ("tenantId","name","section");
