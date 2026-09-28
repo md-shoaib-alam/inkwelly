@@ -5,8 +5,7 @@ import { checkAuth, paginate, requireModule, requireSchoolAdmin, assertTenantOwn
 import { invalidateUserPermissions, invalidateRolePermissions } from '../../lib/permissions'
 import { dataCache } from '../../lib/cache'
 import { formatDate } from '../../lib/date-utils'
-import { StudentService } from '../people/student.service'
-import { TeacherService } from '../people/teacher.service'
+import { StudentService, TeacherService } from '../people'
 import { ClassService } from './class.service'
 import { SubjectService } from './subject.service'
 
