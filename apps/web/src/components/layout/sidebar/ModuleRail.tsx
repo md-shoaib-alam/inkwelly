@@ -47,7 +47,7 @@ export function ModuleRail({
       {/* Rail list: 6px gap, 8px margin-top, 4px padding-x */}
       <div
         data-lenis-scroll-container
-        className="flex-1 flex flex-col gap-[6px] mt-2 px-1 overflow-y-auto overflow-x-hidden sidebar-scrollbar overscroll-contain touch-pan-y"
+        className="flex-1 flex flex-col gap-[6px] mt-2 px-1 overflow-y-auto overflow-x-hidden no-scrollbar overscroll-contain touch-pan-y"
       >
         {items.map((item) => {
           const isActive = item.key === activeModuleKey;

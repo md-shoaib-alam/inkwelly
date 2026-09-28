@@ -140,9 +140,10 @@ export function ModuleSidebar({
   const activeModule = items.find((i) => i.key === activeModuleKey) ?? items[0];
   if (!activeModule) return null;
 
-  // On mobile: always show both rail and panel side-by-side (matches reference).
+  // On mobile the drawer shows the rail and panel side-by-side, except on the
+  // dashboard, where the module grid behind the drawer is already the navigation.
   // On desktop: toggle via collapsed state.
-  const showPanel = isMobile ? true : !collapsed;
+  const showPanel = isMobile ? activeModule.key !== "dashboard" : !collapsed;
 
   return (
     <aside
@@ -172,10 +173,10 @@ export function ModuleSidebar({
       <div
         className={cn(
           "h-full overflow-hidden transition-[width,opacity] duration-300 ease-in-out shrink-0",
-          isMobile
-            ? "w-full"
-            : !collapsed
-            ? "w-[210px] opacity-100"
+          showPanel
+            ? isMobile
+              ? "w-full"
+              : "w-[210px] opacity-100"
             : "w-0 opacity-0 pointer-events-none"
         )}
       >
