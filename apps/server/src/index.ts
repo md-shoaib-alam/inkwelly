@@ -33,7 +33,7 @@ import { serverMetrics } from './lib/server-metrics';
 // Route modules
 import { authRoutes } from './modules/auth/index';
 import { dashboardRoutes } from './modules/dashboard/dashboard.routes';
-import { studentsRoutes } from './modules/people/students.routes';
+import { studentsRoutes } from './modules/students/students.routes';
 import { teachersRoutes } from './modules/people/teachers.routes';
 import { classesRoutes } from './modules/academics/classes.routes';
 import { attendanceRoutes } from './modules/attendance/attendance.routes';
@@ -56,7 +56,7 @@ import { tenantsRoutes } from './modules/tenancy/tenants.routes';
 import { superAdminsRoutes } from './modules/platform/superAdmins.routes';
 import { platformRoutes } from './modules/platform/platform.routes';
 import { tenantSettingsRoutes } from './modules/tenancy/tenantSettings.routes';
-import { promotionsRoutes } from './modules/academics/promotions.routes';
+import { promotionsRoutes } from './modules/students/promotions.routes';
 import { certificatesRoutes } from './modules/certificates/certificates.routes';
 import { leavesRoutes } from './modules/attendance/leaves.routes';
 import { staffAttendanceRoutes } from './modules/attendance/staffAttendance.routes';

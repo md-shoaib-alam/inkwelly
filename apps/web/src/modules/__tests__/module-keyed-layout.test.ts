@@ -21,3 +21,11 @@ describe("iam", () => {
     }
   });
 });
+
+describe("students", () => {
+  test("every students row lives under modules/students/", () => {
+    for (const row of ["students", "promotions", "bulk-promote", "graduated", "certificates"]) {
+      expect(rowHasScreen("students", row)).toBe(true);
+    }
+  });
+});

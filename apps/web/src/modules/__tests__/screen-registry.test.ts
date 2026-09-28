@@ -17,13 +17,14 @@ function resolvesToAFile(specifier: string): boolean {
 // Counts measured on the pre-move tree, 2026-09-28; raised to 69/60 on 2026-09-29 for the
 // IAM landing screen and Permissions Catalog, to 70/61 for Role Assignments, then dropped to
 // 69/60 and 25/19 when the profile screen was removed; raised to 62 on 2026-09-29 for the two
-// dispatcher cases 67bc4ab added without a test update. Changing one of these numbers must be a
-// deliberate act in a task step, never a side effect of a rewrite.
+// dispatcher cases 67bc4ab added without a test update; raised to 71 on 2026-09-29 by folder-layout
+// Task 5, which gave bulk-promote and graduated their own entries. Changing one of these numbers
+// must be a deliberate act in a task step, never a side effect of a rewrite.
 const REGISTRIES = [
   {
     name: "tenant-screen-dispatcher",
     path: "src/app/(authenticated)/[slug]/[screen]/tenant-screen-dispatcher.tsx",
-    specifiers: 69,
+    specifiers: 71,
     keys: 62,
   },
   {

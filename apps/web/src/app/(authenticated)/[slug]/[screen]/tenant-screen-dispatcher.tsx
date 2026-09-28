@@ -21,7 +21,7 @@ const ParentDashboard = dynamic(() => import('@/modules/dashboard/components/Par
 const StaffDashboard = dynamic(() => import('@/modules/dashboard/components/staffDashboard/index').then(m => m.StaffDashboard), { loading: LoadingScreen });
 const AdminDashboard = dynamic(() => import('@/modules/dashboard/components/adminDashboard/index').then(m => m.AdminDashboard), { loading: DashboardLoadingScreen });
 const SuperAdminDashboard = dynamic(() => import('@/modules/dashboard/components/SuperAdminDashboard').then(m => m.SuperAdminDashboard), { loading: LoadingScreen });
-const AdminStudents = dynamic(() => import('@/modules/people/components/AdminStudents').then(m => m.AdminStudents), { loading: LoadingScreen });
+const AdminStudents = dynamic(() => import('@/modules/students/students').then(m => m.AdminStudents), { loading: LoadingScreen });
 const AdminTeachers = dynamic(() => import('@/modules/people/components/AdminTeachers').then(m => m.AdminTeachers), { loading: LoadingScreen });
 const AdminParents = dynamic(() => import('@/modules/people/components/AdminParents').then(m => m.AdminParents), { loading: LoadingScreen });
 const AdminClasses = dynamic(() => import('@/modules/academics/components/AdminClasses').then(m => m.AdminClasses), { loading: LoadingScreen });
@@ -39,8 +39,10 @@ const AdminRoleAssignments = dynamic(() => import('@/modules/iam/role-assignment
 const AdminStaff = dynamic(() => import('@/modules/people/components/AdminStaff').then(m => m.AdminStaff), { loading: LoadingScreen });
 const AdminTickets = dynamic(() => import('@/modules/support/components/AdminTickets').then(m => m.AdminTickets), { loading: LoadingScreen });
 const AdminSchoolSettings = dynamic(() => import('@/modules/tenancy/components/AdminSchoolSettings').then(m => m.AdminSchoolSettings), { loading: LoadingScreen });
-const AdminPromotions = dynamic(() => import('@/modules/academics/components/AdminPromotions').then(m => m.AdminPromotions), { loading: LoadingScreen });
-const AdminCertificates = dynamic(() => import('@/modules/certificates/components/AdminCertificates').then(m => m.AdminCertificates), { loading: LoadingScreen });
+const AdminPromotions = dynamic(() => import('@/modules/students/promotions').then(m => m.AdminPromotions), { loading: LoadingScreen });
+const StudentsBulkPromote = dynamic(() => import('@/modules/students/bulk-promote').then(m => m.StudentsBulkPromote), { loading: LoadingScreen });
+const StudentsGraduated = dynamic(() => import('@/modules/students/graduated').then(m => m.StudentsGraduated), { loading: LoadingScreen });
+const AdminCertificates = dynamic(() => import('@/modules/students/certificates').then(m => m.AdminCertificates), { loading: LoadingScreen });
 const AdminLeaves = dynamic(() => import('@/modules/attendance/components/AdminLeaves').then(m => m.AdminLeaves), { loading: LoadingScreen });
 const StaffAttendance = dynamic(() => import('@/modules/attendance/components/AdminStaffAttendance').then(m => m.StaffAttendance), { loading: LoadingScreen });
 const AdminExams = dynamic(() => import('@/modules/assessment/components/AdminExams').then(m => m.AdminExams), { loading: LoadingScreen });
@@ -233,8 +235,8 @@ export default function TenantScreenDispatcherClient() {
       case 'school-subscription': return <AdminSubscription />;
       case 'manage-plan': return <ManagePlanScreen />;
       case 'promotions': return <AdminPromotions key="individual-prom" initialTab="individual" />;
-      case 'bulk-promote': return <AdminPromotions key="bulk-prom" initialTab="bulk" />;
-      case 'graduated': return <AdminPromotions key="graduated-prom" initialTab="graduated" />;
+      case 'bulk-promote': return <StudentsBulkPromote key="bulk-prom" />;
+      case 'graduated': return <StudentsGraduated key="graduated-prom" />;
       case 'certificates': return <AdminCertificates />;
       case 'leaves': return <AdminLeaves key="teacher-leaves-main" initialTab="teacher" />;
       case 'student-leaves': return <AdminLeaves key="student-leaves" initialTab="student" />;

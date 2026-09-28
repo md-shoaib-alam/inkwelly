@@ -1,9 +1,6 @@
-export { studentsRoutes } from './students.routes';
 export { teachersRoutes } from './teachers.routes';
 export { staffRoutes } from './staff.routes';
 export { parentsRoutes } from './parents.routes';
-export { StudentService } from './student.service';
-export type { StudentListParams, StudentListItem, StudentListResult } from './student.service';
 export { TeacherService } from './teacher.service';
 export type { TeacherListParams } from './teacher.service';
 export { ParentService } from './parent.service';
