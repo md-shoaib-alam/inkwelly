@@ -37,6 +37,11 @@ import {
   Calendar,
   BarChart3,
   UserPlus,
+  Code2,
+  BookMarked,
+  LayoutGrid,
+  Map,
+  Settings,
 } from "lucide-react";
 import type { AppUser, UserRole } from "@/store/use-app-store";
 import { hasPermission } from "@/lib/permissions";
@@ -51,6 +56,8 @@ export interface ModuleNavEntry {
   icon: React.ReactNode;
   badge?: string;
   permModule?: string | null;
+  /** A link that exists in the shipped IA but has no screen here yet. Rendered, never navigable. */
+  disabled?: boolean;
 }
 
 export interface ModuleNavSection {
@@ -376,7 +383,8 @@ export function findModuleForScreen(
 }
 
 export function getDefaultScreen(item: ModuleNavItem): string {
-  return item.defaultScreen ?? item.sections[0]?.items[0]?.key ?? item.key;
+  const firstLive = item.sections.flatMap((s) => s.items).find((i) => !i.disabled);
+  return item.defaultScreen ?? firstLive?.key ?? item.key;
 }
 
 /* --------------------------------------------------------------------------
@@ -391,18 +399,41 @@ export function getDefaultScreen(item: ModuleNavItem): string {
 export const adminPanelSections: Record<string, ModuleNavSection[]> = {
   academics: [
     {
+      label: "Overview",
+      items: [
+        { key: "academics-dashboard", label: "Dashboard", icon: <LayoutDashboard className={iconCls} />, disabled: true },
+      ],
+    },
+    {
       label: "Structure",
       items: [
-        { key: "academic-years", label: "Academic Years", icon: <CalendarDays className={iconCls} /> },
+        { key: "academic-years", label: "Sessions", icon: <CalendarDays className={iconCls} /> },
         { key: "classes", label: "Classes", icon: <School className={iconCls} /> },
+      ],
+    },
+    {
+      label: "Subjects",
+      items: [
         { key: "subjects", label: "Subjects", icon: <BookOpen className={iconCls} /> },
+        { key: "board-codes", label: "Board Codes", icon: <Code2 className={iconCls} />, disabled: true },
+        { key: "offerings", label: "Offerings", icon: <BookMarked className={iconCls} />, disabled: true },
+        { key: "groups", label: "Groups", icon: <Layers className={iconCls} />, disabled: true },
+        { key: "teaching-batches", label: "Teaching Batches", icon: <Users className={iconCls} />, disabled: true },
       ],
     },
     {
       label: "Timetable",
       items: [
-        { key: "timetable", label: "Timetable", icon: <Clock className={iconCls} /> },
+        { key: "timetable", label: "Timetables", icon: <Clock className={iconCls} /> },
+        { key: "timetable-templates", label: "Templates", icon: <LayoutGrid className={iconCls} />, disabled: true },
+        { key: "timetable-by-class", label: "By Class", icon: <Map className={iconCls} />, disabled: true },
         { key: "calendar", label: "Calendar", icon: <Calendar className={iconCls} /> },
+      ],
+    },
+    {
+      label: "Admin",
+      items: [
+        { key: "school-settings", label: "Settings", icon: <Settings className={iconCls} />, permModule: "settings" },
       ],
     },
   ],

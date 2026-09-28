@@ -2,7 +2,7 @@ import { test, expect, describe } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { moduleCatalogue } from "../dashboard/components/adminDashboard/moduleCatalogue";
-import { adminPanelSections, buildAdminRail } from "@/components/layout/sidebar/module-nav-config";
+import { adminPanelSections, buildAdminRail, getDefaultScreen } from "@/components/layout/sidebar/module-nav-config";
 
 const APP_ROOT = resolve(import.meta.dir, "..", "..", "..");
 
@@ -34,17 +34,19 @@ describe("admin module rail", () => {
 
   test("every rail module opens on a screen that routes", () => {
     const dead = rail
-      .map((m) => ({ key: m.key, screen: m.defaultScreen ?? m.sections[0]?.items[0]?.key }))
-      .filter((m) => !m.screen || !routable.has(m.screen))
+      .map((m) => ({ key: m.key, screen: getDefaultScreen(m) }))
+      .filter((m) => !routable.has(m.screen))
       .map((m) => `${m.key} -> ${m.screen}`);
     expect(dead).toEqual([]);
   });
 
   test("every contextual sub-link routes", () => {
+    // A `disabled` entry is a deliberate placeholder for shipped-but-unbuilt
+    // screens, so it is labelled "Soon" and never navigates.
     const dead = rail.flatMap((m) =>
       m.sections
         .flatMap((s) => s.items)
-        .filter((i) => !routable.has(i.key))
+        .filter((i) => !i.disabled && !routable.has(i.key))
         .map((i) => `${m.key} / ${i.key}`),
     );
     expect(dead).toEqual([]);

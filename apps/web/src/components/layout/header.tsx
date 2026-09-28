@@ -5,7 +5,7 @@ import { useAppStore } from "@/store/use-app-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Menu, ShieldCheck, School, Calendar, PanelLeftClose, PanelLeftOpen, LayoutDashboard, User, Crown, Settings as SettingsIcon, KeyRound, LogOut, ChevronDown } from "lucide-react";
+import { Menu, ShieldCheck, School, Calendar, PanelLeftClose, PanelLeftOpen, LayoutDashboard, User, Crown, Settings as SettingsIcon, KeyRound, LogOut, ChevronDown, Sparkles } from "lucide-react";
 import { NotificationBell } from "./notification-bell";
 import { ThemeToggle } from "./theme-toggle";
 import { type NavItem, roleColors, roleLabels } from "./nav-config";
@@ -181,6 +181,17 @@ export function Header({ items, resolvedScreen, layoutPref = "comprehensive", on
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+        {/* The reference build ships an AI assistant here; the connector isn't built
+            in this app, so the control announces itself but stays inert. */}
+        <button
+          type="button"
+          disabled
+          aria-label="Ask AI — coming soon"
+          className="hidden lg:flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-amber-200 bg-amber-50 text-[13px] font-semibold text-amber-700 cursor-not-allowed select-none dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-400/70"
+        >
+          <Sparkles className="size-3.5" />
+          Ask AI
+        </button>
         <NotificationBell />
         <ThemeToggle />
 

@@ -59,6 +59,24 @@ export function ModulePanel({
             <div className="space-y-0.5">
               {section.items.map((entry) => {
                 const isActive = resolvedScreen === entry.key;
+                if (entry.disabled) {
+                  return (
+                    <div
+                      key={entry.key}
+                      aria-disabled
+                      title={`${entry.label} is coming soon`}
+                      className="flex w-full items-center gap-2.5 h-9 px-2.5 rounded-xl text-[13px] font-medium text-slate-400 dark:text-zinc-600 cursor-not-allowed select-none"
+                    >
+                      <span className="shrink-0 [&>svg]:size-5 text-slate-300 dark:text-zinc-700">
+                        {entry.icon}
+                      </span>
+                      <span className="flex-1 text-left truncate">{entry.label}</span>
+                      <span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[8.5px] font-bold uppercase tracking-wide text-slate-400 dark:bg-zinc-800 dark:text-zinc-500">
+                        Soon
+                      </span>
+                    </div>
+                  );
+                }
                 return (
                   <button
                     key={entry.key}
