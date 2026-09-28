@@ -23,16 +23,13 @@ export default function AuthenticatedLayout({
   const hydrated = useHydrated();
   const [maintenanceActive, setMaintenanceActive] = useState(false);
   const [maintenanceMessage, setMaintenanceMessage] = useState("");
-  const [maintenanceLoading, setMaintenanceLoading] = useState(true);
 
-  // Check maintenance mode for non-super_admin users
+  // Check maintenance mode for non-super_admin users in the background
   useEffect(() => {
     if (!isLoggedIn || !currentUser || currentUser.role === "super_admin") {
-      setMaintenanceLoading(false);
       return;
     }
     
-    setMaintenanceLoading(true);
     let cancelled = false;
     
     apiFetch("/api/platform-settings")
@@ -47,26 +44,20 @@ export default function AuthenticatedLayout({
           }
         }
       })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setMaintenanceLoading(false);
-      });
+      .catch(() => {});
       
     return () => {
       cancelled = true;
     };
   }, [isLoggedIn, currentUser?.role]);
 
-  if (!hydrated) return <FullPageSkeleton />;
+  if (!hydrated) return null;
 
   if (!isLoggedIn) {
     return <LoginScreen />;
   }
 
   const isSuperAdmin = currentUser?.role === "super_admin";
-  if (!isSuperAdmin && maintenanceLoading) {
-    return <FullPageSkeleton />;
-  }
 
   if (!isSuperAdmin && maintenanceActive) {
     return <MaintenanceScreen message={maintenanceMessage} />;

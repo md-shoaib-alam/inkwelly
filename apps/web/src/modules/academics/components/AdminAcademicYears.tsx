@@ -37,7 +37,7 @@ import { useAcademicYears } from "@/modules/academics/hooks/use-academic-years";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { formatLocalDate, parseLocalDate } from "@/lib/utils";
+import { cn, formatLocalDate, parseLocalDate } from "@/lib/utils";
 
 function formatSessionDate(dateStr: string): string {
   if (!dateStr) return "—";
@@ -130,6 +130,11 @@ export function AcademicYearsScreen() {
   };
 
   const handleDelete = async (id: string) => {
+    const target = academicYears.find((y: any) => y.id === id);
+    if (target?.isCurrent) {
+      toast.error("The current academic session cannot be deleted");
+      return;
+    }
     if (confirm("Are you sure you want to delete this academic year?")) {
       try {
         await deleteAcademicYear(id);
@@ -181,7 +186,7 @@ export function AcademicYearsScreen() {
       {/* Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-50">
+          <h1 className="text-[22px] font-medium tracking-tight font-[family-name:var(--font-lexend)] text-[#0F172A] dark:text-zinc-50">
             Academic Sessions
           </h1>
           <p className="text-xs sm:text-[13px] text-slate-500 dark:text-zinc-400 mt-0.5">
@@ -262,70 +267,71 @@ export function AcademicYearsScreen() {
       {/* 3 Stat Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {/* Total Sessions */}
-        <div className="rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] p-4 flex items-center justify-between">
+        <div className="ink-kpi-tile rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] px-4 py-3.5 flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-500">
+            <p className="text-[11px] font-medium tracking-wider uppercase text-slate-500 dark:text-zinc-400">
               Total Sessions
             </p>
-            <p className="text-2xl font-black text-slate-900 dark:text-zinc-100 mt-1">
+            <p className="mt-1.5 text-sm font-semibold font-[family-name:var(--font-lexend)] leading-tight text-[#0F172A] dark:text-zinc-100">
               {academicYears.length}
             </p>
           </div>
-          <div className="size-9 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <Calendar className="size-4.5" />
+          <div className="size-8 rounded-lg bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+            <Calendar className="size-4" />
           </div>
         </div>
 
         {/* Active Sessions */}
-        <div className="rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] p-4 flex items-center justify-between">
+        <div className="ink-kpi-tile rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] px-4 py-3.5 flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-500">
+            <p className="text-[11px] font-medium tracking-wider uppercase text-slate-500 dark:text-zinc-400">
               Active
             </p>
-            <p className="text-2xl font-black text-slate-900 dark:text-zinc-100 mt-1">
+            <p className="mt-1.5 text-sm font-semibold font-[family-name:var(--font-lexend)] leading-tight text-[#0F172A] dark:text-zinc-100">
               {activeCount}
             </p>
           </div>
-          <div className="size-9 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <Activity className="size-4.5" />
+          <div className="size-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Activity className="size-4" />
           </div>
         </div>
 
         {/* Current Session */}
-        <div className="rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] p-4 flex items-center justify-between">
+        <div className="ink-kpi-tile rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] px-4 py-3.5 flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-500">
+            <p className="text-[11px] font-medium tracking-wider uppercase text-slate-500 dark:text-zinc-400">
               Current Session
             </p>
-            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-zinc-100 mt-1 truncate">
+            <p className="mt-1.5 text-sm font-semibold font-[family-name:var(--font-lexend)] leading-tight text-[#0F172A] dark:text-zinc-100 truncate">
               {currentYear?.name || "Not Set"}
             </p>
           </div>
-          <div className="size-9 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-            <Check className="size-4.5" />
+          <div className="size-8 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+            <Check className="size-4" />
           </div>
         </div>
       </div>
 
       {/* Filter / Search Bar */}
-      <div className="flex flex-wrap items-center gap-2.5">
+      <div className="flex flex-wrap items-center gap-2">
         {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="size-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <Input 
+        <div className="flex items-center gap-2 h-9 px-3 w-full sm:w-96 rounded-md border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-[#0D1526] transition-shadow duration-150 focus-within:ring-2 focus-within:ring-slate-400/20 focus-within:border-slate-300 dark:focus-within:border-zinc-700">
+          <Search className="size-4 text-slate-400 shrink-0 pointer-events-none" />
+          <input 
+            type="text"
             placeholder="Search sessions..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 pr-3 py-1.5 h-9.5 text-xs sm:text-sm rounded-xl border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526]"
+            className="w-full bg-transparent border-0 p-0 text-xs sm:text-[13px] text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 outline-none focus:ring-0"
           />
         </div>
 
         {/* All Sessions Filter */}
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="h-9.5 w-[130px] rounded-xl text-xs sm:text-sm border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526]">
+          <SelectTrigger className="h-9 w-[125px] rounded-md text-xs sm:text-[13px] border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-[#0D1526]">
             <SelectValue placeholder="All sessions" />
           </SelectTrigger>
-          <SelectContent className="rounded-xl">
+          <SelectContent className="rounded-md">
             <SelectItem value="all">All sessions</SelectItem>
             <SelectItem value="current">Current only</SelectItem>
             <SelectItem value="non-current">Other sessions</SelectItem>
@@ -334,10 +340,10 @@ export function AcademicYearsScreen() {
 
         {/* Status Filter */}
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="h-9.5 w-[120px] rounded-xl text-xs sm:text-sm border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526]">
+          <SelectTrigger className="h-9 w-[115px] rounded-md text-xs sm:text-[13px] border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-[#0D1526]">
             <SelectValue placeholder="All status" />
           </SelectTrigger>
-          <SelectContent className="rounded-xl">
+          <SelectContent className="rounded-md">
             <SelectItem value="all">All status</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="inactive">Inactive</SelectItem>
@@ -346,10 +352,10 @@ export function AcademicYearsScreen() {
 
         {/* Start Date Sort */}
         <Select value={sortOrder} onValueChange={(val: any) => setSortOrder(val)}>
-          <SelectTrigger className="h-9.5 w-[120px] rounded-xl text-xs sm:text-sm border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526]">
+          <SelectTrigger className="h-9 w-[115px] rounded-md text-xs sm:text-[13px] border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-[#0D1526]">
             <SelectValue placeholder="Start date" />
           </SelectTrigger>
-          <SelectContent className="rounded-xl">
+          <SelectContent className="rounded-md">
             <SelectItem value="desc">Start date ↓</SelectItem>
             <SelectItem value="asc">Start date ↑</SelectItem>
           </SelectContent>
@@ -362,14 +368,14 @@ export function AcademicYearsScreen() {
           size="icon"
           onClick={() => setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))}
           aria-label="Toggle sort order"
-          className="size-9.5 rounded-xl border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] shrink-0"
+          className="size-9 rounded-md border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-[#0D1526] shrink-0"
         >
           <ArrowUpDown className="size-4 text-slate-500" />
         </Button>
       </div>
 
       {/* Sessions Data Table Card */}
-      <div className="rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] overflow-hidden shadow-2xs">
+      <div className="rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] overflow-hidden shadow-2xs">
         {isLoading ? (
           <div className="p-6 space-y-3">
             {[1, 2, 3].map((i) => (
@@ -397,7 +403,7 @@ export function AcademicYearsScreen() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-[13px]">
               <thead>
-                <tr className="bg-slate-50/70 dark:bg-zinc-900/40 border-b border-slate-100 dark:border-zinc-800/80 text-[10.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
+                <tr className="bg-slate-50/70 dark:bg-zinc-900/40 border-b border-slate-100 dark:border-zinc-800/80 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
                   <th className="py-3 px-4">Session</th>
                   <th className="py-3 px-4">Start Date</th>
                   <th className="py-3 px-4">End Date</th>
@@ -417,12 +423,12 @@ export function AcademicYearsScreen() {
                     <tr key={year.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-900/30 transition-colors">
                       {/* Session Name with Mint Calendar Icon */}
                       <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="size-8.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                        <div className="flex items-center gap-2.5">
+                          <div className="size-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                             <Calendar className="size-4" />
                           </div>
                           <div className="min-w-0">
-                            <p className="font-bold text-slate-900 dark:text-zinc-100 leading-tight">
+                            <p className="font-semibold text-slate-900 dark:text-zinc-100 leading-tight">
                               {year.name}
                             </p>
                             <p className="text-[11px] text-slate-400 leading-tight mt-0.5">
@@ -444,12 +450,14 @@ export function AcademicYearsScreen() {
 
                       {/* Duration */}
                       <td className="py-3.5 px-4 text-slate-600 dark:text-zinc-300 font-medium whitespace-nowrap">
-                        {duration}
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                          {duration}
+                        </span>
                       </td>
 
                       {/* Status */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           isActive 
                             ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
                             : "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400"
@@ -462,7 +470,7 @@ export function AcademicYearsScreen() {
                       {/* Current Status / Button */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         {isCurrent ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
                             <Check className="size-3" />
                             <span>Current</span>
                           </span>
@@ -490,9 +498,16 @@ export function AcademicYearsScreen() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleDelete(year.id)}
-                            aria-label={`Delete ${year.name}`}
-                            className="size-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center justify-center transition-colors cursor-pointer"
+                            disabled={isCurrent}
+                            onClick={() => !isCurrent && handleDelete(year.id)}
+                            title={isCurrent ? "Current session cannot be deleted" : `Delete ${year.name}`}
+                            aria-label={isCurrent ? "Current session cannot be deleted" : `Delete ${year.name}`}
+                            className={cn(
+                              "size-7 rounded-lg flex items-center justify-center transition-colors",
+                              isCurrent
+                                ? "text-slate-300 dark:text-zinc-700 cursor-not-allowed opacity-40"
+                                : "text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 cursor-pointer"
+                            )}
                           >
                             <Trash2 className="size-3.5" />
                           </button>

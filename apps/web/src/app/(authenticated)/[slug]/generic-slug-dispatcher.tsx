@@ -78,7 +78,7 @@ export default function GenericSlugDispatcherClient() {
     }
   }
 
-  if (!mounted || !currentUser || typeof slug !== 'string') return <LoadingScreen />;
+  if (!mounted || !currentUser || typeof slug !== 'string') return <DashboardLoadingScreen />;
 
   // 1. Platform Screens (Super Admin only)
   if (currentUser.role === "super_admin") {

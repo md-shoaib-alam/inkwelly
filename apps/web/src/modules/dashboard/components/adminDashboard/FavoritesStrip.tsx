@@ -72,52 +72,77 @@ export function FavoritesStrip({ cards, onNavigate, onUnpin, onClearAll }: Favor
 
       {/* Grid: 1 col mobile → 2 col sm → 4 col lg */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-        {cards.map((card) => (
-          <div
-            key={card.id}
-            className="group/card relative flex items-center gap-3 rounded-xl border border-white/8 bg-white/5 px-3.5 py-3"
-          >
-            {/* Unpin button — top-right on hover */}
-            <button
-              type="button"
-              onClick={() => onUnpin(card.id)}
-              aria-label={`Unpin ${card.title}`}
-              className="absolute -top-2 -right-2 flex size-5 items-center justify-center rounded-full bg-slate-700 text-slate-300 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-slate-600 hover:text-white outline-none focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white/40 z-10 shadow-sm"
-            >
-              <PinOff className="size-3" />
-            </button>
+        {cards.map((card) => {
+          const isComingSoon = card.screen === null;
 
-            {/* Icon bubble — dark mode tint (no white background) */}
-            <span
+          return (
+            <div
+              key={card.id}
+              role={isComingSoon ? "note" : "button"}
+              tabIndex={isComingSoon ? undefined : 0}
+              aria-disabled={isComingSoon || undefined}
+              aria-label={isComingSoon ? `${card.title} (coming soon)` : `Open ${card.title}`}
+              onClick={() => {
+                if (!isComingSoon && card.screen) {
+                  onNavigate(card.screen);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (!isComingSoon && card.screen && (e.key === "Enter" || e.key === " ")) {
+                  e.preventDefault();
+                  onNavigate(card.screen);
+                }
+              }}
               className={cn(
-                "flex size-9 shrink-0 items-center justify-center rounded-xl",
-                FAVORITE_TINT_CLASSES[card.tint],
+                "group/card relative flex items-center gap-3 rounded-xl border border-white/8 bg-white/5 px-3.5 py-3 transition-all select-none",
+                isComingSoon
+                  ? "cursor-not-allowed opacity-60"
+                  : "cursor-pointer hover:bg-white/10 hover:border-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50"
               )}
             >
-              <card.icon className="size-4.5" />
-            </span>
+              {/* Unpin button — top-right on hover */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUnpin(card.id);
+                }}
+                aria-label={`Unpin ${card.title}`}
+                className="absolute -top-2 -right-2 flex size-5 items-center justify-center rounded-full bg-slate-700 text-slate-300 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-slate-600 hover:text-white outline-none focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white/40 z-10 shadow-sm cursor-pointer"
+              >
+                <PinOff className="size-3" />
+              </button>
 
-            {/* Text */}
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-bold leading-tight text-amber-400">
-                {card.title}
-              </p>
-              <p className="truncate text-[11px] text-slate-400 mt-0.5">
-                {card.subtitle}
-              </p>
+              {/* Icon bubble — dark mode tint (no white background) */}
+              <span
+                className={cn(
+                  "flex size-9 shrink-0 items-center justify-center rounded-xl",
+                  FAVORITE_TINT_CLASSES[card.tint],
+                )}
+              >
+                <card.icon className="size-4.5" />
+              </span>
+
+              {/* Text */}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-bold leading-tight text-amber-400">
+                  {card.title}
+                </p>
+                <p className="truncate text-[11px] text-slate-400 mt-0.5">
+                  {card.subtitle}
+                </p>
+              </div>
+
+              {/* Arrow indicator */}
+              <span
+                aria-hidden="true"
+                className="flex size-7 shrink-0 items-center justify-center rounded-full border border-white/15 text-slate-400 transition-all group-hover/card:bg-white/10 group-hover/card:text-white group-hover/card:translate-x-0.5"
+              >
+                <ArrowRight className="size-3.5" />
+              </span>
             </div>
-
-            {/* Arrow */}
-            <button
-              type="button"
-              onClick={() => onNavigate(card.screen as string)}
-              aria-label={`Open ${card.title}`}
-              className="flex size-7 shrink-0 items-center justify-center rounded-full border border-white/15 text-slate-400 outline-none transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/30"
-            >
-              <ArrowRight className="size-3.5" />
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

@@ -153,6 +153,9 @@ export default function TenantScreenDispatcherClient() {
   }
 
   if (!mounted || !currentUser || typeof slug !== 'string' || typeof screen !== 'string') {
+    if (screen === 'dashboard') {
+      return <DashboardLoadingScreen />;
+    }
     return <LoadingScreen />;
   }
 
@@ -162,6 +165,9 @@ export default function TenantScreenDispatcherClient() {
   const isTenantMatch = (urlSlug === userTenantId || urlSlug === userTenantSlug);
 
   if (currentUser.role !== 'super_admin' && !isTenantMatch) {
+    if (screen === 'dashboard') {
+      return <DashboardLoadingScreen />;
+    }
     return <LoadingScreen />;
   }
   

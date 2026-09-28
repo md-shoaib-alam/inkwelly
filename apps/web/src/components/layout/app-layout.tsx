@@ -25,6 +25,7 @@ function LoadingProgress() {
 }
 
 import { FullPageSkeleton } from "@/components/ui/full-page-skeleton";
+import { AdminDashboardSkeleton } from "@/modules/dashboard/components/adminDashboard/DashboardSkeleton";
 
 const PLATFORM_ROUTES = new Set([
   "dashboard",
@@ -379,7 +380,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("open-change-password", handleOpenPasswordModal);
   }, []);
 
-  if (!currentUser) return <FullPageSkeleton />;
+  if (!currentUser) {
+    if (resolvedScreen === "dashboard") {
+      return <AdminDashboardSkeleton />;
+    }
+    return <FullPageSkeleton />;
+  }
 
   return (
     <NotificationProvider>
