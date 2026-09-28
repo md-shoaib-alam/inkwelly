@@ -1,10 +1,10 @@
 import { Elysia, t } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, desc, inArray, count, asc } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { dataCache } from '../lib/cache';
-import { posthog, captureError } from '../lib/monitoring/posthog';
+import { requireAuth } from '../../lib/auth';
+import { dataCache } from '../../lib/cache';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
 
 export const admitCardsRoutes = new Elysia({ prefix: '/admit-cards' })
   .use(requireAuth)

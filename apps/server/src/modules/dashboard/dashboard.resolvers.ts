@@ -1,7 +1,7 @@
 import { db } from '../../lib/db'
 import * as schema from '../../db/schema'
 import { eq, and, desc, count, sql, sum, inArray, or, gte, lte, avg, ilike } from 'drizzle-orm'
-import { checkAuth, resolveScopedTenantId, tenantFromArg } from './helpers'
+import { checkAuth, resolveScopedTenantId, tenantFromArg } from '../../graphql/resolvers/helpers'
 import { formatDate } from '../../lib/date-utils'
 
 export const dashboardResolvers = {

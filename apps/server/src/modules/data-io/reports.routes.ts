@@ -1,14 +1,14 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, sql, count, lt, ne, asc } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { requirePermission } from '../lib/permissions';
-import { dataCache } from '../lib/cache';
-import { redis } from '../lib/redis';
-import { notificationQueue } from '../lib/queue';
-import { chunked } from '../lib/batch';
-import { captureError } from '../lib/monitoring/posthog';
+import { requireAuth } from '../../lib/auth';
+import { requirePermission } from '../../lib/permissions';
+import { dataCache } from '../../lib/cache';
+import { redis } from '../../lib/redis';
+import { notificationQueue } from '../../lib/queue';
+import { chunked } from '../../lib/batch';
+import { captureError } from '../../lib/monitoring/posthog';
 
 const GRADE_RANK: Record<string, number> = { 'A+': 6, A: 5, 'B+': 4, B: 3, C: 2, D: 1 };
 const GRADE_ORDER = ['A+', 'A', 'B+', 'B', 'C', 'D'];

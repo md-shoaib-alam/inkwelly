@@ -1,15 +1,15 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, sql } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { dataCache } from '../lib/cache';
-import { formatDate } from '../lib/date-utils';
-import { invalidateFeeCaches } from '../lib/fees-cache';
+import { requireAuth } from '../../lib/auth';
+import { dataCache } from '../../lib/cache';
+import { formatDate } from '../../lib/date-utils';
+import { invalidateFeeCaches } from '../../lib/fees-cache';
 import {
   CreateTransportAssignmentSchema,
   formatZodError,
-} from '../lib/validation/fees';
+} from '../../lib/validation/fees';
 
 export const transportRoutes = new Elysia()
   .use(requireAuth)

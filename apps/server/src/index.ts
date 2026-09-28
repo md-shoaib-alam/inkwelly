@@ -32,7 +32,7 @@ import { serverMetrics } from './lib/server-metrics';
 
 // Route modules
 import { authRoutes } from './routes/auth';
-import { dashboardRoutes } from './routes/dashboard';
+import { dashboardRoutes } from './modules/dashboard/dashboard.routes';
 import { studentsRoutes } from './modules/people/students.routes';
 import { teachersRoutes } from './modules/people/teachers.routes';
 import { classesRoutes } from './modules/academics/classes.routes';
@@ -40,8 +40,8 @@ import { attendanceRoutes } from './modules/attendance/attendance.routes';
 import { homeworkRoutes } from './modules/assessment/homework.routes';
 import { gradesRoutes } from './modules/assessment/grades.routes';
 import { feesRoutes } from './modules/finance/fees.routes';
-import { reportsRoutes } from './routes/reports';
-import { transportRoutes } from './routes/transport';
+import { reportsRoutes } from './modules/data-io/reports.routes';
+import { transportRoutes } from './modules/transport/transport.routes';
 import { eventsRoutes } from './modules/communication/events.routes';
 import { noticesRoutes } from './modules/communication/notices.routes';
 import { parentsRoutes } from './modules/people/parents.routes';
@@ -57,18 +57,18 @@ import { superAdminsRoutes } from './routes/super-admins';
 import { platformRoutes } from './routes/platform';
 import { tenantSettingsRoutes } from './routes/tenant-settings';
 import { promotionsRoutes } from './modules/academics/promotions.routes';
-import { certificatesRoutes } from './routes/certificates';
+import { certificatesRoutes } from './modules/certificates/certificates.routes';
 import { leavesRoutes } from './modules/attendance/leaves.routes';
 import { staffAttendanceRoutes } from './modules/attendance/staffAttendance.routes';
 import { examsRoutes } from './modules/assessment/exams.routes';
-import { admitCardsRoutes } from './routes/admit-cards';
+import { admitCardsRoutes } from './modules/certificates/admitCards.routes';
 import { platformSettingsRoutes } from './routes/platform-settings';
 import { integrationsRoutes } from './routes/integrations';
 import { notificationsRoutes } from './modules/communication/notifications.routes';
 import { assessmentsRoutes } from './modules/assessment/assessments.routes';
 
 
-import { exportsRoutes, importsRoutes, importRoute } from './routes/exports';
+import { exportsRoutes, importsRoutes, importRoute } from './modules/data-io/exports.routes';
 import { performanceRoutes, healthRoutes } from './routes/performance';
 import { graphqlRoutes } from './graphql/route';
 

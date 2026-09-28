@@ -1,7 +1,7 @@
 import { test, expect } from 'bun:test';
 import { Elysia } from 'elysia';
 import { performanceRoutes, healthRoutes } from './routes/performance';
-import { transportRoutes } from './routes/transport';
+import { transportRoutes } from './modules/transport/transport.routes';
 
 // Mirrors the post-edit mount structure of src/index.ts:
 // /api/v1 group (with healthRoutes + performanceRoutes + transportRoutes), legacy /api
@@ -72,7 +72,7 @@ test('transport resolves under both mounts', async () => {
 // resolves after the move. requireAuth is mounted inside feesRoutes, so 401 proves the
 // route matched — 404 would mean the mount vanished.
 test('fees resolves from its module barrel under both mounts', async () => {
-  const { feesRoutes } = await import('./modules/finance');
+  const { feesRoutes } = await import('./modules/finance/index');
   const feesApp = new Elysia()
     .group('/api/v1', (a) => a.use(feesRoutes))
     .group('/api', (a) => a.use(feesRoutes))

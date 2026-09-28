@@ -1,6 +1,6 @@
 import { commonTypeDefs } from '../../modules/support/common.typeDefs'
 import { platformTypeDefs } from './platform.typeDefs'
-import { dashboardTypeDefs } from './dashboard.typeDefs'
+import { dashboardTypeDefs } from '../../modules/dashboard/dashboard.typeDefs'
 import { academicTypeDefs } from './academic.typeDefs'
 import { financeTypeDefs } from '../../modules/finance/finance.typeDefs'
 import { responseTypeDefs } from './responses.typeDefs'

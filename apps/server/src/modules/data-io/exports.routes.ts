@@ -1,15 +1,15 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import { hashPassword } from '../lib/passwords';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import { hashPassword } from '../../lib/passwords';
+import * as schema from '../../db/schema';
 import { eq, and, sql, inArray } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { requirePermission } from '../lib/permissions';
-import { posthog, captureError } from '../lib/monitoring/posthog';
+import { requireAuth } from '../../lib/auth';
+import { requirePermission } from '../../lib/permissions';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
 import * as XLSX from 'xlsx';
-import { formatDate } from '../lib/date-utils';
-import { resolveTenantId } from '../lib/resolve-tenant';
-import { dataCache } from '../lib/cache';
+import { formatDate } from '../../lib/date-utils';
+import { resolveTenantId } from '../../lib/resolve-tenant';
+import { dataCache } from '../../lib/cache';
 
 
 export const exportsRoutes = new Elysia({ prefix: '/exports' })
@@ -400,7 +400,7 @@ export const importRoute = new Elysia({ prefix: '/import' })
         }
       }
 
-      const { generalQueue } = await import('../lib/queue');
+      const { generalQueue } = await import('../../lib/queue');
       const job = await generalQueue.getJob(jobId);
       if (!job) {
         set.status = 404;
@@ -692,7 +692,7 @@ export const importRoute = new Elysia({ prefix: '/import' })
 
         // If the upload size is large, process it asynchronously using BullMQ
         if (validRows.length > 200) {
-          const { generalQueue } = await import('../lib/queue');
+          const { generalQueue } = await import('../../lib/queue');
           const routeMapObj = Object.fromEntries(routeMap);
 
           const job = await generalQueue.add(
