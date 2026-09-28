@@ -248,6 +248,35 @@
   scrollbar-width: thin;
 }
 
+/* Active-row indicator: the rear chevron leads and the front follows, which
+   reads as motion without either arrow leaving its slot. */
+@keyframes chevron-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.6;
+  }
+  45% {
+    transform: translateX(2px);
+    opacity: 1;
+  }
+}
+
+.chevron-run > svg {
+  animation: chevron-nudge 1.4s ease-in-out infinite;
+}
+
+.chevron-run > svg:last-child {
+  animation-delay: 0.14s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron-run > svg {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 .sidebar-scrollbar::-webkit-scrollbar {
   width: 4px;
 }

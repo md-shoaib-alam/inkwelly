@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronsRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import type { ModuleNavItem } from "./module-nav-config";
@@ -92,7 +92,13 @@ export function ModulePanel({
                         {entry.badge}
                       </Badge>
                     ) : isActive ? (
-                      <ChevronsRight className="size-4 shrink-0 text-brand" />
+                      <span
+                        aria-hidden
+                        className="chevron-run flex shrink-0 items-center gap-[3px] text-brand"
+                      >
+                        <ChevronRight className="size-3.5" />
+                        <ChevronRight className="size-3.5" />
+                      </span>
                     ) : null}
                   </button>
                 );
