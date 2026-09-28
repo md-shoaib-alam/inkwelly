@@ -94,7 +94,7 @@ export function ModulePanel({
                     ) : isActive ? (
                       <span
                         aria-hidden
-                        className="chevron-run flex shrink-0 items-center gap-[3px] text-brand"
+                        className="chevron-run flex shrink-0 items-center gap-[2px] text-brand"
                       >
                         <ChevronRight className="size-3.5" />
                         <ChevronRight className="size-3.5" />
