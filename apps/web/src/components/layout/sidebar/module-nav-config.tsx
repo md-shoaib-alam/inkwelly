@@ -44,6 +44,14 @@ import {
   LayoutGrid,
   Map,
   Settings,
+  ArrowLeftRight,
+  MessageSquare,
+  MoveRight,
+  Trash2,
+  Upload,
+  SlidersHorizontal,
+  Plus,
+  Lock,
 } from "lucide-react";
 import type { AppUser, UserRole } from "@/store/use-app-store";
 import { hasPermission } from "@/lib/permissions";
@@ -467,15 +475,39 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
   students: [
     {
       label: "Overview",
-      items: [{ key: "students", label: "All Students", icon: <Users className={iconCls} /> }],
+      items: [
+        { key: "students-dashboard", label: "Dashboard", icon: <LayoutDashboard className={iconCls} />, disabled: true },
+        { key: "students", label: "All Students", icon: <Users className={iconCls} /> },
+        { key: "classes", label: "Classes", icon: <School className={iconCls} />, permModule: "classes" },
+      ],
     },
     {
       label: "Operations",
       items: [
-        { key: "promotions", label: "Promotions", icon: <ArrowRight className={iconCls} /> },
+        { key: "admissions", label: "Admissions", icon: <UserPlus className={iconCls} />, disabled: true },
+        { key: "student-documents", label: "Documents", icon: <FileText className={iconCls} />, disabled: true },
+        { key: "bulk-update", label: "Bulk Update", icon: <Layers className={iconCls} />, disabled: true },
+        { key: "class-change", label: "Class Change", icon: <MoveRight className={iconCls} />, disabled: true },
+        { key: "promotions", label: "Promotion", icon: <TrendingUp className={iconCls} />, permModule: "promotions" },
+        { key: "transfers", label: "Transfer", icon: <ArrowLeftRight className={iconCls} />, disabled: true },
+        { key: "student-requests", label: "Requests", icon: <MessageSquare className={iconCls} />, disabled: true },
         { key: "bulk-promote", label: "Bulk Promote", icon: <Zap className={iconCls} /> },
         { key: "graduated", label: "Graduated", icon: <GraduationCap className={iconCls} /> },
         { key: "certificates", label: "Certificates", icon: <Award className={iconCls} />, permModule: "students" },
+      ],
+    },
+    {
+      label: "Data",
+      items: [
+        { key: "student-import", label: "Import", icon: <Upload className={iconCls} />, disabled: true },
+        { key: "reports", label: "Reports", icon: <BarChart3 className={iconCls} />, permModule: "reports" },
+      ],
+    },
+    {
+      label: "Admin",
+      items: [
+        { key: "student-settings", label: "Settings", icon: <Settings className={iconCls} />, disabled: true },
+        { key: "student-trash", label: "Trash", icon: <Trash2 className={iconCls} />, disabled: true },
       ],
     },
   ],
@@ -483,9 +515,31 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
     {
       label: "Overview",
       items: [
-        { key: "teachers", label: "Teachers", icon: <Users className={iconCls} /> },
-        { key: "staff", label: "Staff", icon: <UserPlus className={iconCls} /> },
-        { key: "parents", label: "Parents", icon: <Heart className={iconCls} /> },
+        { key: "employees-dashboard", label: "Dashboard", icon: <LayoutDashboard className={iconCls} />, disabled: true },
+        { key: "staff", label: "All Employees", icon: <Users className={iconCls} /> },
+        { key: "teachers", label: "Teachers", icon: <UserCheck className={iconCls} />, permModule: "teachers" },
+        { key: "parents", label: "Parents", icon: <Heart className={iconCls} />, permModule: "parents" },
+      ],
+    },
+    {
+      label: "Operations",
+      items: [
+        { key: "enrollment", label: "Enrollment", icon: <UserPlus className={iconCls} />, disabled: true },
+        { key: "employee-change-requests", label: "Change Requests", icon: <ListChecks className={iconCls} />, disabled: true },
+      ],
+    },
+    {
+      label: "Data",
+      items: [
+        { key: "employee-import", label: "Import", icon: <Upload className={iconCls} />, disabled: true },
+        { key: "reports", label: "Reports", icon: <BarChart3 className={iconCls} />, permModule: "reports" },
+      ],
+    },
+    {
+      label: "Admin",
+      items: [
+        { key: "employee-settings", label: "Settings", icon: <Settings className={iconCls} />, disabled: true },
+        { key: "employee-trash", label: "Trash", icon: <Trash2 className={iconCls} />, disabled: true },
       ],
     },
   ],
@@ -493,7 +547,28 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
     {
       label: "Overview",
       items: [
-        { key: "attendance", label: "Mark Attendance", icon: <CalendarCheck className={iconCls} /> },
+        { key: "attendance-dashboard", label: "Dashboard", icon: <LayoutDashboard className={iconCls} />, disabled: true },
+        { key: "attendance", label: "Class Register", icon: <BookOpen className={iconCls} /> },
+      ],
+    },
+    {
+      label: "Marking",
+      items: [
+        { key: "attendance-today", label: "Today", icon: <CalendarDays className={iconCls} />, disabled: true },
+        { key: "attendance-past-days", label: "Past Days", icon: <History className={iconCls} />, disabled: true },
+      ],
+    },
+    {
+      label: "Inbox",
+      items: [
+        { key: "student-leaves", label: "Leave Applications", icon: <FileText className={iconCls} /> },
+      ],
+    },
+    {
+      label: "Data",
+      items: [
+        { key: "reports", label: "Reports", icon: <BarChart3 className={iconCls} />, permModule: "reports" },
+        { key: "attendance-import", label: "Import", icon: <Upload className={iconCls} />, disabled: true },
       ],
     },
   ],
@@ -501,8 +576,38 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
     {
       label: "Overview",
       items: [
+        { key: "employee-attendance-dashboard", label: "Dashboard", icon: <LayoutDashboard className={iconCls} />, disabled: true },
+        { key: "employee-attendance-register", label: "Register", icon: <ListChecks className={iconCls} />, disabled: true },
+        { key: "staff", label: "Employees", icon: <Users className={iconCls} />, permModule: "staff" },
+      ],
+    },
+    {
+      label: "Marking",
+      items: [
+        { key: "staff-attendance", label: "Daily Attendance", icon: <CalendarCheck className={iconCls} /> },
         { key: "teacher-attendance", label: "Teacher Attendance", icon: <GraduationCap className={iconCls} /> },
-        { key: "staff-attendance", label: "Staff Attendance", icon: <Briefcase className={iconCls} /> },
+      ],
+    },
+    {
+      label: "Inbox",
+      items: [
+        { key: "staff-leaves", label: "Leave Applications", icon: <FileText className={iconCls} /> },
+        { key: "self-requests", label: "Self Requests", icon: <MessageSquare className={iconCls} />, disabled: true },
+      ],
+    },
+    {
+      label: "Reports",
+      items: [
+        { key: "reports", label: "Reports", icon: <BarChart3 className={iconCls} />, permModule: "reports" },
+        { key: "employee-attendance-import", label: "Import", icon: <Upload className={iconCls} />, disabled: true },
+      ],
+    },
+    {
+      label: "Setup",
+      items: [
+        { key: "attendance-assignments", label: "Assignments", icon: <ClipboardList className={iconCls} />, disabled: true },
+        { key: "attendance-adjustments", label: "Adjustments", icon: <SlidersHorizontal className={iconCls} />, disabled: true },
+        { key: "employee-attendance-settings", label: "Settings", icon: <Settings className={iconCls} />, disabled: true },
       ],
     },
   ],
@@ -587,7 +692,28 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
   "money-book": [
     {
       label: "Overview",
-      items: [{ key: "expenses", label: "Money Book", icon: <Wallet className={iconCls} /> }],
+      items: [{ key: "expenses", label: "Dashboard", icon: <LayoutDashboard className={iconCls} /> }],
+    },
+    {
+      label: "Daily work",
+      items: [
+        { key: "expense-entry", label: "New Entry", icon: <Plus className={iconCls} />, disabled: true },
+        { key: "voucher-register", label: "Voucher Register", icon: <FileCheck className={iconCls} />, disabled: true },
+        { key: "day-close", label: "Day Close", icon: <Lock className={iconCls} />, disabled: true },
+        { key: "close-history", label: "Close History", icon: <History className={iconCls} />, disabled: true },
+        { key: "day-book", label: "Day Book", icon: <BookOpen className={iconCls} />, disabled: true },
+      ],
+    },
+    {
+      label: "Reports",
+      items: [
+        { key: "money-flow", label: "Money Flow", icon: <TrendingUp className={iconCls} />, disabled: true },
+        { key: "reports", label: "Reports", icon: <BarChart3 className={iconCls} />, permModule: "reports" },
+      ],
+    },
+    {
+      label: "Setup",
+      items: [{ key: "money-book-setup", label: "Setup", icon: <Settings className={iconCls} />, disabled: true }],
     },
   ],
   transport: [
