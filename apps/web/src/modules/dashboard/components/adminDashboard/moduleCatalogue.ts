@@ -81,21 +81,27 @@ export interface ModuleCard {
   screen: string | null;
   /** Permission module gating visibility. Must be a name the role permissions map uses. */
   permModule?: string;
+  /**
+   * Also a top-level module on the dark global rail. The rail reads its names, icons
+   * and order from this catalogue so the two can never drift; a card without it is
+   * reachable from the grid and from its parent module's panel, but not from the rail.
+   */
+  inRail?: boolean;
 }
 
 export const moduleCatalogue: ModuleCard[] = [
-  { id: "academics", title: "Academics", subtitle: "Subjects & syllabus", icon: GraduationCap, tint: "emerald", screen: "subjects", permModule: "subjects" },
-  { id: "students", title: "Students", subtitle: "Admissions & records", icon: Users, tint: "emerald", screen: "students", permModule: "students" },
-  { id: "employees", title: "Employees", subtitle: "Staff directory", icon: Briefcase, tint: "violet", screen: "staff", permModule: "staff" },
-  { id: "student-attendance", title: "Students Attendance", subtitle: "Daily attendance", icon: CalendarCheck, tint: "amber", screen: "attendance", permModule: "attendance" },
-  { id: "employee-attendance", title: "Employees Attendance", subtitle: "Staff attendance", icon: IdCard, tint: "blue", screen: "staff-attendance", permModule: "attendance" },
-  { id: "money-book", title: "Money Book", subtitle: "Income & expenses", icon: Wallet, tint: "green", screen: "expenses", permModule: "expenses" },
+  { id: "academics", title: "Academics", subtitle: "Subjects & syllabus", icon: GraduationCap, tint: "emerald", screen: "subjects", permModule: "subjects", inRail: true },
+  { id: "students", title: "Students", subtitle: "Admissions & records", icon: Users, tint: "emerald", screen: "students", permModule: "students", inRail: true },
+  { id: "employees", title: "Employees", subtitle: "Staff directory", icon: Briefcase, tint: "violet", screen: "staff", permModule: "staff", inRail: true },
+  { id: "student-attendance", title: "Students Attendance", subtitle: "Daily attendance", icon: CalendarCheck, tint: "amber", screen: "attendance", permModule: "attendance", inRail: true },
+  { id: "employee-attendance", title: "Employees Attendance", subtitle: "Staff attendance", icon: IdCard, tint: "blue", screen: "staff-attendance", permModule: "attendance", inRail: true },
+  { id: "money-book", title: "Money Book", subtitle: "Income & expenses", icon: Wallet, tint: "green", screen: "expenses", permModule: "expenses", inRail: true },
 
   { id: "payroll", title: "Employee Payroll", subtitle: "Salary & payslips", icon: Banknote, tint: "violet", screen: null },
-  { id: "student-fees", title: "Student Fees", subtitle: "Fees & receipts", icon: IndianRupee, tint: "cyan", screen: "fees", permModule: "fees" },
+  { id: "student-fees", title: "Student Fees", subtitle: "Fees & receipts", icon: IndianRupee, tint: "cyan", screen: "fees", permModule: "fees", inRail: true },
   { id: "transport", title: "Transport", subtitle: "Routes & tracking", icon: Bus, tint: "orange", screen: null },
   { id: "school-store", title: "School Store", subtitle: "Uniforms & supplies", icon: Store, tint: "amber", screen: null },
-  { id: "examinations", title: "Examinations", subtitle: "Exams & results", icon: ClipboardList, tint: "rose", screen: "exams", permModule: "exams" },
+  { id: "examinations", title: "Examinations", subtitle: "Exams & results", icon: ClipboardList, tint: "rose", screen: "exams", permModule: "exams", inRail: true },
   { id: "tests", title: "Tests", subtitle: "Quick class tests", icon: SquarePen, tint: "rose", screen: "assessments", permModule: "exams" },
 
   { id: "homework", title: "Homework/Assignment", subtitle: "Assign & track", icon: BookOpen, tint: "violet", screen: "homework" },
@@ -114,7 +120,7 @@ export const moduleCatalogue: ModuleCard[] = [
 
   // Not in the reference grid, but live screens that would otherwise have no entry point here.
   { id: "timetable", title: "Timetable", subtitle: "Periods & schedule", icon: Clock, tint: "cyan", screen: "timetable", permModule: "timetable" },
-  { id: "leaves", title: "Leaves", subtitle: "Apply & approve", icon: CalendarDays, tint: "teal", screen: "leaves", permModule: "leaves" },
+  { id: "leaves", title: "Leaves", subtitle: "Apply & approve", icon: CalendarDays, tint: "teal", screen: "leaves", permModule: "leaves", inRail: true },
   { id: "notices", title: "Notices", subtitle: "Announcements", icon: Bell, tint: "indigo", screen: "notices", permModule: "notices" },
   { id: "certificates", title: "Certificates", subtitle: "Bonafide & transfer", icon: Award, tint: "emerald", screen: "certificates", permModule: "certificates" },
   { id: "promotions", title: "Promotions", subtitle: "Class promotions", icon: School, tint: "purple", screen: "promotions", permModule: "promotions" },

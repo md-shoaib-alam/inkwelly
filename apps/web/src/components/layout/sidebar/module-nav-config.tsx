@@ -38,7 +38,9 @@ import {
   BarChart3,
   UserPlus,
 } from "lucide-react";
-import type { UserRole } from "@/store/use-app-store";
+import type { AppUser, UserRole } from "@/store/use-app-store";
+import { hasPermission } from "@/lib/permissions";
+import { moduleCatalogue, type ModuleCard } from "@/modules/dashboard/components/adminDashboard/moduleCatalogue";
 
 // Dual-sidebar navigation model:
 // - ModuleNavItem = one entry in the dark primary rail (global module)
@@ -62,6 +64,8 @@ export interface ModuleNavItem {
   icon: React.ReactNode;
   permModule?: string | null;
   rootOnly?: boolean;
+  /** Where the rail sends you when this module is selected. Falls back to the first sub-link. */
+  defaultScreen?: string;
   sections: ModuleNavSection[];
 }
 
@@ -72,179 +76,6 @@ function direct(key: string, label: string, icon: React.ReactNode, permModule?: 
 }
 
 export const moduleNavItems: Partial<Record<UserRole, ModuleNavItem[]>> = {
-  admin: [
-    direct("dashboard", "Dashboard", <LayoutDashboard className={iconCls} />),
-    direct("profile", "Me", <UserRound className={iconCls} />),
-    {
-      key: "academics",
-      label: "Academics",
-      icon: <GraduationCap className={iconCls} />,
-      sections: [
-        {
-          label: "Structure",
-          items: [
-            { key: "academic-years", label: "Academic Years", icon: <CalendarDays className={iconCls} /> },
-            { key: "classes", label: "Classes", icon: <School className={iconCls} /> },
-            { key: "subjects", label: "Subjects", icon: <BookOpen className={iconCls} /> },
-          ],
-        },
-        {
-          label: "Timetable",
-          items: [
-            { key: "timetable", label: "Timetable", icon: <Clock className={iconCls} /> },
-            { key: "calendar", label: "Calendar", icon: <Calendar className={iconCls} /> },
-          ],
-        },
-      ],
-    },
-    {
-      key: "students",
-      label: "Students",
-      icon: <Users className={iconCls} />,
-      sections: [
-        {
-          label: "Overview",
-          items: [{ key: "students", label: "All Students", icon: <Users className={iconCls} /> }],
-        },
-        {
-          label: "Operations",
-          items: [
-            { key: "promotions", label: "Promotions", icon: <ArrowRight className={iconCls} /> },
-            { key: "bulk-promote", label: "Bulk Promote", icon: <Zap className={iconCls} /> },
-            { key: "graduated", label: "Graduated", icon: <GraduationCap className={iconCls} /> },
-            { key: "certificates", label: "Certificates", icon: <Award className={iconCls} />, permModule: "students" },
-          ],
-        },
-      ],
-    },
-    {
-      key: "employees",
-      label: "Employees",
-      icon: <Briefcase className={iconCls} />,
-      sections: [
-        {
-          label: "Overview",
-          items: [
-            { key: "teachers", label: "Teachers", icon: <Users className={iconCls} /> },
-            { key: "staff", label: "Staff", icon: <UserPlus className={iconCls} /> },
-            { key: "parents", label: "Parents", icon: <Heart className={iconCls} /> },
-          ],
-        },
-      ],
-    },
-    direct("attendance", "Students Attendance", <CalendarCheck className={iconCls} />),
-    {
-      key: "employee-attendance",
-      label: "Employee Attendance",
-      icon: <IdCard className={iconCls} />,
-      sections: [
-        {
-          label: "Overview",
-          items: [
-            { key: "teacher-attendance", label: "Teacher Attendance", icon: <GraduationCap className={iconCls} /> },
-            { key: "staff-attendance", label: "Staff Attendance", icon: <Briefcase className={iconCls} /> },
-          ],
-        },
-      ],
-    },
-    {
-      key: "exams",
-      label: "Exams",
-      icon: <ClipboardList className={iconCls} />,
-      sections: [
-        {
-          label: "Overview",
-          items: [{ key: "exams", label: "Exams", icon: <ClipboardList className={iconCls} /> }],
-        },
-        {
-          label: "Operations",
-          items: [
-            { key: "results-entry", label: "Results Entry", icon: <FileText className={iconCls} /> },
-            { key: "admit-cards", label: "Admit Cards", icon: <IdCard className={iconCls} /> },
-            { key: "print-marksheet", label: "Print Marksheet", icon: <Award className={iconCls} /> },
-          ],
-        },
-        {
-          label: "Data",
-          items: [{ key: "published-results", label: "Published Results", icon: <Trophy className={iconCls} /> }],
-        },
-      ],
-    },
-    {
-      key: "leaves",
-      label: "Leaves",
-      icon: <CalendarDays className={iconCls} />,
-      sections: [
-        {
-          label: "Operations",
-          items: [
-            { key: "student-leaves", label: "Student Leaves", icon: <GraduationCap className={iconCls} /> },
-            { key: "teacher-leaves", label: "Teacher Leaves", icon: <Briefcase className={iconCls} /> },
-            { key: "staff-leaves", label: "Staff Leaves", icon: <Users className={iconCls} /> },
-          ],
-        },
-      ],
-    },
-    {
-      key: "student-fees",
-      label: "Student Fees",
-      icon: <IndianRupee className={iconCls} />,
-      sections: [
-        {
-          label: "Operations",
-          items: [
-            { key: "fees", label: "Set Fees", icon: <Layers className={iconCls} /> },
-            { key: "fee-categories", label: "Fee Categories", icon: <Tag className={iconCls} /> },
-            { key: "fee-concessions", label: "Add Concession", icon: <Percent className={iconCls} /> },
-            { key: "transport-fee", label: "Transport Fee", icon: <Bus className={iconCls} /> },
-          ],
-        },
-        {
-          label: "Actions",
-          items: [
-            { key: "make-payment", label: "Make Payment", icon: <Banknote className={iconCls} /> },
-            { key: "check-receipt", label: "Check Receipt", icon: <FileCheck className={iconCls} /> },
-          ],
-        },
-        {
-          label: "Data",
-          items: [
-            { key: "fee-status", label: "Fee Status", icon: <UserSearch className={iconCls} /> },
-            { key: "check-payments", label: "Check Payments", icon: <History className={iconCls} /> },
-          ],
-        },
-      ],
-    },
-    direct("expenses", "Money Book", <Wallet className={iconCls} />),
-    {
-      key: "communication",
-      label: "Communication",
-      icon: <Bell className={iconCls} />,
-      sections: [
-        {
-          label: "Overview",
-          items: [
-            { key: "notices", label: "Notices", icon: <Bell className={iconCls} /> },
-            { key: "tickets", label: "Support Tickets", icon: <TicketCheck className={iconCls} /> },
-          ],
-        },
-      ],
-    },
-    {
-      key: "administration",
-      label: "Administration",
-      icon: <Shield className={iconCls} />,
-      sections: [
-        {
-          label: "Overview",
-          items: [
-            { key: "roles", label: "Roles & Permissions", icon: <Shield className={iconCls} /> },
-            { key: "reports", label: "Reports & Exports", icon: <BarChart3 className={iconCls} /> },
-          ],
-        },
-      ],
-    },
-  ],
 
   teacher: [
     direct("dashboard", "Dashboard", <LayoutDashboard className={iconCls} />),
@@ -545,5 +376,178 @@ export function findModuleForScreen(
 }
 
 export function getDefaultScreen(item: ModuleNavItem): string {
-  return item.sections[0]?.items[0]?.key ?? item.key;
+  return item.defaultScreen ?? item.sections[0]?.items[0]?.key ?? item.key;
+}
+
+/* --------------------------------------------------------------------------
+ * Admin rail + contextual panels.
+ *
+ * The module list itself deliberately lives in moduleCatalogue.ts, not here, so
+ * the dark rail and the dashboard grid can never disagree on a name, an icon or
+ * the order. What this file owns is only the per-module sub-links, keyed by the
+ * same ids the grid uses.
+ * -------------------------------------------------------------------------- */
+
+export const adminPanelSections: Record<string, ModuleNavSection[]> = {
+  academics: [
+    {
+      label: "Structure",
+      items: [
+        { key: "academic-years", label: "Academic Years", icon: <CalendarDays className={iconCls} /> },
+        { key: "classes", label: "Classes", icon: <School className={iconCls} /> },
+        { key: "subjects", label: "Subjects", icon: <BookOpen className={iconCls} /> },
+      ],
+    },
+    {
+      label: "Timetable",
+      items: [
+        { key: "timetable", label: "Timetable", icon: <Clock className={iconCls} /> },
+        { key: "calendar", label: "Calendar", icon: <Calendar className={iconCls} /> },
+      ],
+    },
+  ],
+  students: [
+    {
+      label: "Overview",
+      items: [{ key: "students", label: "All Students", icon: <Users className={iconCls} /> }],
+    },
+    {
+      label: "Operations",
+      items: [
+        { key: "promotions", label: "Promotions", icon: <ArrowRight className={iconCls} /> },
+        { key: "bulk-promote", label: "Bulk Promote", icon: <Zap className={iconCls} /> },
+        { key: "graduated", label: "Graduated", icon: <GraduationCap className={iconCls} /> },
+        { key: "certificates", label: "Certificates", icon: <Award className={iconCls} />, permModule: "students" },
+      ],
+    },
+  ],
+  employees: [
+    {
+      label: "Overview",
+      items: [
+        { key: "teachers", label: "Teachers", icon: <Users className={iconCls} /> },
+        { key: "staff", label: "Staff", icon: <UserPlus className={iconCls} /> },
+        { key: "parents", label: "Parents", icon: <Heart className={iconCls} /> },
+      ],
+    },
+  ],
+  "student-attendance": [
+    {
+      label: "Overview",
+      items: [
+        { key: "attendance", label: "Mark Attendance", icon: <CalendarCheck className={iconCls} /> },
+      ],
+    },
+  ],
+  "employee-attendance": [
+    {
+      label: "Overview",
+      items: [
+        { key: "teacher-attendance", label: "Teacher Attendance", icon: <GraduationCap className={iconCls} /> },
+        { key: "staff-attendance", label: "Staff Attendance", icon: <Briefcase className={iconCls} /> },
+      ],
+    },
+  ],
+  examinations: [
+    {
+      label: "Overview",
+      items: [{ key: "exams", label: "Exams", icon: <ClipboardList className={iconCls} /> }],
+    },
+    {
+      label: "Operations",
+      items: [
+        { key: "results-entry", label: "Results Entry", icon: <FileText className={iconCls} /> },
+        { key: "admit-cards", label: "Admit Cards", icon: <IdCard className={iconCls} /> },
+        { key: "print-marksheet", label: "Print Marksheet", icon: <Award className={iconCls} /> },
+      ],
+    },
+    {
+      label: "Data",
+      items: [{ key: "published-results", label: "Published Results", icon: <Trophy className={iconCls} /> }],
+    },
+  ],
+  leaves: [
+    {
+      label: "Operations",
+      items: [
+        { key: "student-leaves", label: "Student Leaves", icon: <GraduationCap className={iconCls} /> },
+        { key: "teacher-leaves", label: "Teacher Leaves", icon: <Briefcase className={iconCls} /> },
+        { key: "staff-leaves", label: "Staff Leaves", icon: <Users className={iconCls} /> },
+      ],
+    },
+  ],
+  "student-fees": [
+    {
+      label: "Operations",
+      items: [
+        { key: "fees", label: "Set Fees", icon: <Layers className={iconCls} /> },
+        { key: "fee-categories", label: "Fee Categories", icon: <Tag className={iconCls} /> },
+        { key: "fee-concessions", label: "Add Concession", icon: <Percent className={iconCls} /> },
+        { key: "transport-fee", label: "Transport Fee", icon: <Bus className={iconCls} /> },
+      ],
+    },
+    {
+      label: "Actions",
+      items: [
+        { key: "make-payment", label: "Make Payment", icon: <Banknote className={iconCls} /> },
+        { key: "check-receipt", label: "Check Receipt", icon: <FileCheck className={iconCls} /> },
+      ],
+    },
+    {
+      label: "Data",
+      items: [
+        { key: "fee-status", label: "Fee Status", icon: <UserSearch className={iconCls} /> },
+        { key: "check-payments", label: "Check Payments", icon: <History className={iconCls} /> },
+      ],
+    },
+  ],
+  "money-book": [
+    {
+      label: "Overview",
+      items: [{ key: "expenses", label: "Money Book", icon: <Wallet className={iconCls} /> }],
+    },
+  ],
+};
+
+// Rail rows that aren't purchasable modules, so they aren't in the catalogue either.
+const adminRailChrome: ModuleNavItem[] = [
+  direct("dashboard", "Dashboard", <LayoutDashboard className={iconCls} />),
+  direct("profile", "Me", <UserRound className={iconCls} />),
+];
+
+function moduleFromCard(card: ModuleCard): ModuleNavItem {
+  const Icon = card.icon;
+  const icon = <Icon className={iconCls} />;
+  const screen = card.screen as string;
+  return {
+    key: card.id,
+    label: card.title,
+    icon,
+    permModule: card.permModule ?? null,
+    defaultScreen: screen,
+    // A module with no sub-links of its own still needs one item so the panel
+    // and the mobile drill-in have somewhere to land.
+    sections: adminPanelSections[card.id] ?? [{ items: [{ key: screen, label: card.title, icon }] }],
+  };
+}
+
+// Rail before permission filtering, so a test can assert the whole shape of it.
+export function buildAdminRail(): ModuleNavItem[] {
+  return [...adminRailChrome, ...moduleCatalogue.filter((c) => c.inRail).map(moduleFromCard)];
+}
+
+export function getAdminRail(user: AppUser | null): ModuleNavItem[] {
+  if (!user) return [];
+
+  const visible = (perm: string | null | undefined) => !perm || hasPermission(user, perm, "view");
+
+  return buildAdminRail()
+    .filter((m) => visible(m.permModule))
+    .map((m) => ({
+      ...m,
+      sections: m.sections
+        .map((s) => ({ ...s, items: s.items.filter((i) => visible(i.permModule ?? m.permModule)) }))
+        .filter((s) => s.items.length > 0),
+    }))
+    .filter((m) => m.sections.length > 0);
 }
