@@ -9,7 +9,6 @@ interface ModuleRailProps {
   activeModuleKey: string | null;
   tenantLogo: string | null;
   tenantName: string | null;
-  /** Only reachable on desktop: the mobile drawer never collapses. */
   collapsed?: boolean;
   onExpand?: () => void;
   onSelect: (item: ModuleNavItem) => void;
@@ -27,11 +26,11 @@ export function ModuleRail({
   return (
     <nav
       aria-label="Modules"
-      className="flex w-[92px] shrink-0 flex-col items-stretch overflow-hidden border-r border-slate-200/80 bg-white py-3 dark:border-zinc-800/80 dark:bg-[#0A0A0A] h-full"
+      className="flex w-[92px] shrink-0 flex-col items-stretch overflow-hidden bg-[#06231D] py-3 h-full"
     >
       {/* Brand / school mark */}
       <div className="flex justify-center pb-3 shrink-0">
-        <div className="size-11 rounded-2xl bg-slate-100 ring-1 ring-slate-200/80 dark:bg-zinc-900 dark:ring-zinc-800 overflow-hidden flex items-center justify-center">
+        <div className="size-11 rounded-2xl bg-white/[0.07] ring-1 ring-white/10 overflow-hidden flex items-center justify-center">
           {tenantLogo ? (
             <img
               src={tenantLogo}
@@ -40,14 +39,14 @@ export function ModuleRail({
               loading="eager"
             />
           ) : (
-            <GraduationCap className="size-6 text-brand" />
+            <GraduationCap className="size-5 text-[#F2B33D]" />
           )}
         </div>
       </div>
 
       <div
         data-lenis-scroll-container
-        className="flex-1 overflow-y-auto sidebar-scrollbar overscroll-contain touch-pan-y space-y-1"
+        className="flex-1 overflow-y-auto sidebar-scrollbar overscroll-contain touch-pan-y px-2 space-y-1"
       >
         {items.map((item) => {
           const isActive = item.key === activeModuleKey;
@@ -58,27 +57,30 @@ export function ModuleRail({
               onClick={() => onSelect(item)}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "group flex w-full flex-col items-center gap-1.5 rounded-xl px-1 pt-1 pb-2 outline-none transition-colors cursor-pointer",
-                "focus-visible:ring-2 focus-visible:ring-brand/50",
-                !isActive && "hover:bg-slate-100/80 dark:hover:bg-zinc-800/60"
+                "group flex w-full flex-col items-center gap-1.5 rounded-2xl py-2 px-1 outline-none transition-all duration-200 cursor-pointer",
+                "focus-visible:ring-2 focus-visible:ring-[#F2B33D]/60",
+                !isActive && "hover:bg-white/[0.04]"
               )}
             >
+              {/* Icon capsule */}
               <span
                 className={cn(
-                  "flex h-10 w-full items-center justify-center rounded-2xl transition-all duration-200",
+                  "flex size-11 items-center justify-center rounded-2xl transition-all duration-200 [&>svg]:size-5",
                   isActive
-                    ? "bg-brand-solid text-white shadow-sm"
-                    : "bg-transparent text-slate-600 group-hover:bg-slate-100 dark:text-zinc-400 dark:group-hover:bg-zinc-800"
+                    ? "bg-[#F2B33D] text-[#06231D] shadow-lg shadow-black/25"
+                    : "text-[#8FCEAD] group-hover:bg-white/[0.06] group-hover:text-[#CDEBDA]"
                 )}
               >
                 {item.icon}
               </span>
+
+              {/* Label */}
               <span
                 className={cn(
-                  "text-[10.5px] leading-tight text-center transition-colors",
+                  "text-[9.5px] leading-tight text-center transition-colors w-full line-clamp-2",
                   isActive
-                    ? "font-semibold text-slate-900 dark:text-zinc-50"
-                    : "font-medium text-slate-600 group-hover:text-slate-900 dark:text-zinc-400 dark:group-hover:text-zinc-100"
+                    ? "font-bold text-white"
+                    : "font-medium text-[#7FB69E] group-hover:text-[#CDEBDA]"
                 )}
               >
                 {item.label}
@@ -87,15 +89,16 @@ export function ModuleRail({
           );
         })}
       </div>
+
       {collapsed && onExpand && (
         <button
           type="button"
           onClick={onExpand}
           aria-label="Show module navigation"
-          className="hidden lg:flex mx-2 h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-100 text-slate-600 ring-1 ring-slate-200/80 transition-colors hover:bg-slate-200/70 hover:text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-brand/50 cursor-pointer dark:bg-zinc-900 dark:text-zinc-400 dark:ring-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-white"
+          className="hidden lg:flex mx-2 h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-white/[0.07] text-[#8FCEAD] ring-1 ring-white/10 transition-colors hover:bg-white/[0.12] hover:text-white outline-none focus-visible:ring-2 focus-visible:ring-[#F2B33D]/60 cursor-pointer"
         >
           <PanelLeftOpen className="size-4" />
-          <span className="text-[11px] font-semibold">Menu</span>
+          <span className="text-[10px] font-semibold">Menu</span>
         </button>
       )}
     </nav>
