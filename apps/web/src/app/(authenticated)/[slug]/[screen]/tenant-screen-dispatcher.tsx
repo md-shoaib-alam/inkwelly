@@ -32,6 +32,7 @@ const AdminReports = dynamic(() => import('@/modules/data-io/components/AdminRep
 const AdminRoles = dynamic(() => import('@/modules/access-control/components/AdminRoles').then(m => m.AdminRoles), { loading: LoadingScreen });
 const AdminIamDashboard = dynamic(() => import('@/modules/access-control/components/AdminIamDashboard').then(m => m.AdminIamDashboard), { loading: LoadingScreen });
 const AdminPermissionsCatalog = dynamic(() => import('@/modules/access-control/components/AdminPermissionsCatalog').then(m => m.AdminPermissionsCatalog), { loading: LoadingScreen });
+const AdminRoleAssignments = dynamic(() => import('@/modules/access-control/components/AdminRoleAssignments').then(m => m.AdminRoleAssignments), { loading: LoadingScreen });
 const AdminStaff = dynamic(() => import('@/modules/people/components/AdminStaff').then(m => m.AdminStaff), { loading: LoadingScreen });
 const AdminTickets = dynamic(() => import('@/modules/support/components/AdminTickets').then(m => m.AdminTickets), { loading: LoadingScreen });
 const AdminSchoolSettings = dynamic(() => import('@/modules/tenancy/components/AdminSchoolSettings').then(m => m.AdminSchoolSettings), { loading: LoadingScreen });
@@ -124,6 +125,7 @@ const STAFF_SCREEN_MODULES: Record<string, string> = (() => {
  */
 const STAFF_FORBIDDEN_SCREENS = new Set([
   'roles',
+  'role-assignments',
   'iam-dashboard',
   'permissions-catalog',
   'school-settings',
@@ -203,6 +205,7 @@ export default function TenantScreenDispatcherClient() {
       case 'roles': return <AdminRoles />;
       case 'iam-dashboard': return <AdminIamDashboard />;
       case 'permissions-catalog': return <AdminPermissionsCatalog />;
+      case 'role-assignments': return <AdminRoleAssignments />;
       case 'staff': return <AdminStaff />;
       case 'school-settings': return <AdminSchoolSettings />;
       case 'academic-years': return <AcademicYearsScreen />;

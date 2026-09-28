@@ -410,7 +410,7 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
       label: "Access Control",
       items: [
         { key: "roles", label: "Roles", icon: <Shield className={iconCls} /> },
-        { key: "role-assignments", label: "Assignments", icon: <Users className={iconCls} />, disabled: true },
+        { key: "role-assignments", label: "Assignments", icon: <Users className={iconCls} /> },
         { key: "security-pin", label: "Security", icon: <Fingerprint className={iconCls} />, badge: "NEW", disabled: true },
       ],
     },

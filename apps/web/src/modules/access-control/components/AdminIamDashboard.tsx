@@ -192,7 +192,7 @@ export function AdminIamDashboard() {
             title="Role Assignments"
             description="Assign or revoke roles from employees."
             tone="emerald"
-            onOpen={() => toast("Role Assignments is coming soon")}
+            onOpen={() => navigateTo("role-assignments")}
           />
           <QuickAction
             icon={Wand2}
