@@ -86,10 +86,11 @@ apps/web/src/modules/<module-id>/<row-key>/
 | `AdminLeaves` | `leaves/student-leaves`, `/teacher-leaves`, `/staff-leaves` | body in `leaves/student-leaves/`; two thin entries |
 | `AdminStaffAttendance` | `employee-attendance/teacher-attendance`, `/staff-attendance` | body in `employee-attendance/teacher-attendance/`; one thin entry |
 | `AdminFees` | 8 `student-fees/*` rows + `transport/transport-fee` | **one** folder `student-fees/fees/` for the 8 fee rows, plus one thin entry at `transport/transport-fee/`. All 9 render `<AdminFees />` with no props today, so nine identical files would be noise. Recorded as a deviation, not a shortcut. |
-| `AdminClasses` | `academics/classes` + `student-fees/classes` | body in `academics/classes/`; one thin entry in `student-fees/classes/` (different module, so it needs its own folder even though the body is shared) |
 | `AdminIamDashboard` | `iam/iam-dashboard`, `/security-pin`, `/seed-defaults` | **one** folder `iam/iam-dashboard/` for all three. Same reasoning and same shape as the fee rows: three live nav rows whose dispatcher cases are stacked fall-throughs onto `<AdminIamDashboard />` with no props. |
+| `AdminClasses` | `academics/classes` + `student-fees/classes` + `students/classes` | body in `academics/classes/` only. The other two are live rows in other modules, so by rule 1 each will need its own folder — but all three collide on the single bare `case 'classes'`, so neither can be reached until routing Task 3. Deferred, not skipped (see "Re-validation", §4). |
 
-**43 live rows → 25 distinct components → 34 folders, of which 9 are thin entries.**
+**52 live rows → 25 distinct components → 33 folders buildable now**, 9 more rows collapsed onto a
+sibling folder in the same module and 10 deferred onto the bare-key collision table below.
 
 | component | rows it serves |
 |---|---|
@@ -151,15 +152,16 @@ apps/web/src/modules/<module-id>/<row-key>/
 | `leaves/staff-leaves/` | thin entry → `../student-leaves` | leaves/staff-leaves |
 | `money-book/expenses/` | `finance/components/AdminExpenses.tsx` + `adminExpenses/*` (4) + `finance/hooks/use-expenses.ts` | money-book/expenses |
 
-That is 34 folders: 25 bodies + 9 thin entries, and every one of the 43 live rows appears exactly once
-in the `rows` column. `students/classes/` is deliberately absent — no such row exists at HEAD; Task 5
-adds the row and the folder together.
+That is 34 folders: 25 bodies + 9 thin entries. Every one of the **43** rows this table was drawn
+against appears exactly once in the `rows` column. The 9 rows the nav config gained afterwards are
+named in "Re-validation" below and are deliberately absent from this table.
 
 **33 of those 34 are buildable now; `student-fees/classes/` is not.** A thin entry needs a dispatcher
 case that points at it, and `student-fees/classes` has none — one bare `case 'classes'` serves both
 modules until the sidebar emits qualified keys (routing Task 3). Creating the folder today would add a
 file no URL can reach, which decision 2 rules out. It lands with routing Task 3, and the plan records
-the deviation.
+the deviation. **The same reasoning defers the nine newer rows**, so the deferred bucket is 10 folders,
+not one; the only difference is that they arrived after this table was first drawn.
 
 Two notes the table makes unavoidable:
 
@@ -188,9 +190,10 @@ the deltas are recorded rather than assumed:
 - `iam/security-pin` and `iam/seed-defaults` are live rows now. They fold into the existing
   `iam/iam-dashboard/` folder (3 rows, 1 component, no props), which is why the folder total stays at
   34 while the row count moved 41 → 43.
-- A full `transport` section exists in the nav config (20 rows) but **19 are `disabled: true`**; only
-  `transport-fee` is live, and it is already in the map as a thin entry. Do not build folders for the
-  disabled rows — §10 covers what happens when one is enabled later.
+- A `transport` section exists in the nav config with 20 rows, 19 of them `disabled: true`; only
+  `transport-fee` is live there, and it is already in the map as a thin entry. Do not build folders
+  for the disabled rows — §10 covers what happens when one is enabled later. (Superseded below:
+  `student-fees` also grew a live `transport-fee` row, sharing that thin entry's case.)
 - New disabled `academics` rows (`board-codes`, `offerings`, `groups`, `teaching-batches`) and new
   disabled `timetable` rows (`timetable-templates`, `timetable-by-class`) also move nothing.
 - Verified mechanically: the set of live rows at `HEAD` and the set in this table's `rows` column now
@@ -198,6 +201,45 @@ the deltas are recorded rather than assumed:
 
 If their window lands more nav rows first, re-run the map before step 1 of §8; a row that arrives
 afterwards gets its folder in its own commit, following §10.
+
+### Re-validation on 2026-09-29: 43 live rows became 52
+
+The rule above fired. Re-parsing `adminPanelSections` by brace matching (not by an indentation
+regex, which is what under-counted the first time) gives **52 live rows across 11 modules**, not 43.
+Nine rows are new, and they are not ordinary arrivals — each one reuses a bare dispatcher key that a
+sibling module already owns:
+
+| new live row | bare key it collides with | modules now sharing that one `case` |
+| --- | --- | --- |
+| `students/reports`, `employees/reports`, `student-attendance/reports`, `employee-attendance/reports`, `money-book/reports` | `reports` | **6** |
+| `students/classes` | `classes` | **3** (`academics`, `students`, `student-fees`) |
+| `student-attendance/student-leaves` | `student-leaves` | 2 |
+| `employee-attendance/staff-leaves` | `staff-leaves` | 2 |
+| `employee-attendance/staff` | `staff` | 2 |
+
+The collision is structural, not a missing case: `componentKey()` in `lib/routing/module-routes.ts:68`
+returns the **bare** screen for every qualified row except its single `COMPONENT_OVERRIDES` entry
+(`students/classes` → `class-roster`, a case that does not exist yet). So `case 'reports'` can return
+exactly one component no matter how many modules grow a reports row, and the same for `classes`.
+
+**This does not change what §8 builds.** The corrected accounting is:
+
+> 52 live rows → **33 folders built now** + 9 rows collapsed onto a sibling folder in the same module
+> (7 fee rows onto `student-fees/fees`, `security-pin` and `seed-defaults` onto `iam/iam-dashboard`)
+> + 10 rows **deferred to routing Task 3** (the nine above, plus `student-fees/classes`).
+> 33 + 9 + 10 = 52.
+
+Building the ten deferred folders now would add ten files no dispatcher case can return, which is the
+same dead-file objection that removes `student-fees/classes` from the map, and it would mean changing
+how module URLs resolve inside a commit whose promise is that nothing about behaviour changes. They
+land with qualified keys, one commit per module, following §10.
+
+Two older claims in this section are corrected by the same re-run. `transport` is not 19-disabled rows
+besides one live thin entry: **both** `transport/transport-fee` and `student-fees/transport-fee` are
+live and share `case 'transport-fee'` — the transport one gets the folder in §8 step 6, the
+student-fees one is inside the seven-row collapse. And `scratch/head-rows.tsv`, which this section
+cited as mechanical proof, was produced by a parser that missed four module groups; the authoritative
+list is now `scratch/live-rows-now.tsv`, regenerated by the brace-matched parser.
 
 ### Cross-references, measured (not assumed)
 
