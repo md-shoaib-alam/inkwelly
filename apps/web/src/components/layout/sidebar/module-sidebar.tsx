@@ -135,10 +135,17 @@ export function ModuleSidebar({
       className={cn(
         "fixed lg:static inset-y-0 left-0 z-50 flex h-full overflow-hidden",
         "rounded-r-2xl lg:rounded-r-none shadow-2xl lg:shadow-none",
-        "transition-transform duration-300 ease-out will-change-transform transform-gpu lg:transform-none",
-        "max-w-[calc(100vw-3.5rem)]",
-        desktopHidden && "lg:hidden",
-        sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        // v4 emits translate-x-* as the `translate` property, not `transform`, so
+        // listing transform here would animate the fade but never the slide.
+        "transition-[translate,opacity,width,visibility] duration-300 ease-out will-change-transform",
+        "max-w-[calc(100vw-3.5rem)] lg:max-w-none",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full",
+        // display:none cannot be transitioned, so the dashboard exit collapses the
+        // column instead and lets the main content glide into the freed space.
+        // `invisible` (not `hidden`) keeps it out of the tab order once the fade ends.
+        desktopHidden
+          ? "lg:w-0 lg:min-w-0 lg:-translate-x-3 lg:opacity-0 lg:invisible"
+          : "lg:w-auto lg:min-w-0 lg:translate-x-0 lg:opacity-100 lg:visible"
       )}
     >
       {showRail && (
