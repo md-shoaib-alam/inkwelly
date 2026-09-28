@@ -19,14 +19,14 @@ import { toast } from "sonner";
 import { useAppStore } from "@/store/use-app-store";
 
 // Sub-components
-import { RoleCard } from "./adminRoles/RoleCard";
-import { RoleTable } from "./adminRoles/RoleTable";
-import { RoleDialog } from "./adminRoles/RoleDialog";
-import { AssignRoleDialog } from "./adminRoles/AssignRoleDialog";
+import { RoleCard } from "@/modules/iam/components/adminRoles/RoleCard";
+import { RoleTable } from "@/modules/iam/components/adminRoles/RoleTable";
+import { RoleDialog } from "@/modules/iam/components/adminRoles/RoleDialog";
+import { AssignRoleDialog } from "@/modules/iam/components/adminRoles/AssignRoleDialog";
 
 // Types & Constants
-import type { RoleRecord } from "./adminRoles/types";
-import { RoleSkeleton } from "./adminRoles/RoleSkeleton";
+import type { RoleRecord } from "@/modules/iam/components/adminRoles/types";
+import { RoleSkeleton } from "@/modules/iam/components/adminRoles/RoleSkeleton";
 
 type State = {
   viewMode: 'grid' | 'table';

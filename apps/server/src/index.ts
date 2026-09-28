@@ -49,7 +49,7 @@ import { subjectsRoutes } from './modules/academics/subjects.routes';
 import { submissionsRoutes } from './modules/assessment/submissions.routes';
 import { timetableRoutes } from './modules/timetable/timetable.routes';
 import { staffRoutes } from './modules/people/staff.routes';
-import { rolesRoutes } from './modules/access-control/roles.routes';
+import { rolesRoutes } from './modules/iam/roles.routes';
 import { subscriptionsRoutes } from './modules/tenancy/subscriptions.routes';
 import { ticketsRoutes } from './modules/support/tickets.routes';
 import { tenantsRoutes } from './modules/tenancy/tenants.routes';

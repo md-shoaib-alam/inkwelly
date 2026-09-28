@@ -15,7 +15,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppStore } from "@/store/use-app-store";
 import { useAssignRoleToUser, useCustomRoles, useStaff } from "@/lib/graphql/hooks";
-import type { RoleRecord, UserRecord } from "./adminRoles/types";
+import type { RoleRecord, UserRecord } from "@/modules/iam/components/adminRoles/types";
 
 const UNASSIGNED = "__unassigned__";
 const ALL = "__all__";

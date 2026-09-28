@@ -19,7 +19,7 @@ import {
   PERMISSION_ACTIONS,
   PERMISSION_MODULES,
   ROLE_TEMPLATES,
-} from "./adminRoles/constants";
+} from "@/modules/iam/components/adminRoles/constants";
 
 const ACTION_DESC: Record<string, string> = {
   view: "Open and read records",
