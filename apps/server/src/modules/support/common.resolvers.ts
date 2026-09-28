@@ -1,7 +1,7 @@
 import { db } from '../../lib/db'
 import * as schema from '../../db/schema'
 import { eq, and, desc, inArray, count, sql, sum, ilike, gte, lte, or, isNull, isNotNull } from 'drizzle-orm'
-import { paginate, checkAuth, requireModule, requireSchoolAdmin, requirePlatformModule, scopedTenantId, tenantFromArg } from './helpers'
+import { paginate, checkAuth, requireModule, requireSchoolAdmin, requirePlatformModule, scopedTenantId, tenantFromArg } from '../../graphql/resolvers/helpers'
 import { dataCache } from '../../lib/cache'
 import { createAuditLog } from '../../lib/audit-helper'
 

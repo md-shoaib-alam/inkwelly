@@ -5,9 +5,9 @@ import { platformResolvers as platformQueries } from './platform.resolvers'
 import { dashboardResolvers as dashboardQueries } from './dashboard.resolvers'
 import { academicQueries, academicMutations } from './academic.resolvers'
 import { financeQueries, financeMutations } from '../../modules/finance/finance.resolvers'
-import { commonQueries, commonMutations } from './common.resolvers'
+import { commonQueries, commonMutations } from '../../modules/support/common.resolvers'
 import { authResolvers as authMutations } from './auth.resolvers'
-import { notificationResolvers } from './notification.resolvers'
+import { notificationResolvers } from '../../modules/communication/notification.resolvers'
 
 export const resolvers = {
   JSON: {

@@ -3,7 +3,7 @@ import * as schema from "../../db/schema";
 import { eq, and, desc, sql, inArray } from "drizzle-orm";
 import { pushQueue } from "../../lib/queue";
 import { sendPushNotification } from "../../lib/firebase-admin";
-import { requirePlatformModule } from "./helpers";
+import { requirePlatformModule } from "../../graphql/resolvers/helpers";
 
 export const notificationResolvers = {
   Query: {

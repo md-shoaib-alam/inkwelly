@@ -1,11 +1,11 @@
 import { Elysia, t } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
-import { redis } from '../lib/redis';
-import { getDismissedIds, dismissTransientNotification, invalidateUnreadCount, COUNT_TTL_SECONDS } from '../lib/notifications';
-import { requireAuth } from '../lib/auth';
-import { captureError } from '../lib/monitoring/posthog';
+import { redis } from '../../lib/redis';
+import { getDismissedIds, dismissTransientNotification, invalidateUnreadCount, COUNT_TTL_SECONDS } from '../../lib/notifications';
+import { requireAuth } from '../../lib/auth';
+import { captureError } from '../../lib/monitoring/posthog';
 
 export const notificationsRoutes = new Elysia({ prefix: '/notifications' })
   .use(requireAuth)

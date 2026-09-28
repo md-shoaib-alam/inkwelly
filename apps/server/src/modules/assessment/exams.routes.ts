@@ -1,12 +1,12 @@
 import { Elysia, t } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, desc, count, sql, inArray } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { requirePermission } from '../lib/permissions';
-import { dataCache } from '../lib/cache';
-import { posthog, captureError } from '../lib/monitoring/posthog';
-import { exams } from '../db/schema';
+import { requireAuth } from '../../lib/auth';
+import { requirePermission } from '../../lib/permissions';
+import { dataCache } from '../../lib/cache';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
+import { exams } from '../../db/schema';
 
 // Helper function to sync exam results to schema.grades
 export async function syncExamResultsToGrades(examId: string, tenantId: string, activeUserId?: string) {

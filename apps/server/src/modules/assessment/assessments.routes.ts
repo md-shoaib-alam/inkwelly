@@ -1,9 +1,9 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, desc, inArray, count } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { posthog, captureError } from '../lib/monitoring/posthog';
+import { requireAuth } from '../../lib/auth';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
 
 export const assessmentsRoutes = new Elysia({ prefix: '/assessments' })
   .use(requireAuth)

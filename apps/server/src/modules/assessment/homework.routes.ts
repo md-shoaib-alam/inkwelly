@@ -1,9 +1,9 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { posthog, captureError } from '../lib/monitoring/posthog';
+import { requireAuth } from '../../lib/auth';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
 
 export const homeworkRoutes = new Elysia({ prefix: '/homework' })
   .use(requireAuth)

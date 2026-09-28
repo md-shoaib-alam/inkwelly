@@ -105,7 +105,7 @@ const MAPPING = {
   },
 };
 
-const SPEC_RE = /(\bfrom\s+)(['"])(\.{1,2}\/[^'"]+)\2/g;
+const SPEC_RE = /(\bfrom\s+|\bimport\s*\(\s*)(['"])(\.{1,2}\/[^'"]+)\2/g;
 
 function allTs(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {

@@ -1,10 +1,10 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, desc, or, inArray, sql } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { platformMay } from '../lib/permissions';
-import { posthog, captureError } from '../lib/monitoring/posthog';
+import { requireAuth } from '../../lib/auth';
+import { platformMay } from '../../lib/permissions';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
 
 const VALID_STATUSES = ['open', 'in_progress', 'on_hold', 'resolved', 'closed'];
 const VALID_PRIORITIES = ['low', 'medium', 'high', 'urgent'];

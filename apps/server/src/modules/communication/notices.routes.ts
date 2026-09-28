@@ -1,11 +1,11 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { requirePermission } from '../lib/permissions';
-import { dataCache } from '../lib/cache';
-import { posthog, captureError } from '../lib/monitoring/posthog';
+import { requireAuth } from '../../lib/auth';
+import { requirePermission } from '../../lib/permissions';
+import { dataCache } from '../../lib/cache';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
 
 export const noticesRoutes = new Elysia({ prefix: '/notices' })
   .use(requireAuth)
@@ -55,7 +55,7 @@ export const noticesRoutes = new Elysia({ prefix: '/notices' })
 
       if (notice) {
         // Trigger background notification job
-        const { addJob } = await import('../lib/queue');
+        const { addJob } = await import('../../lib/queue');
         await addJob('NOTIFICATIONS', 'new-notice', {
           noticeId: notice.id,
           title: notice.title,
