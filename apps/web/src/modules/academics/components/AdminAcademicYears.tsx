@@ -72,7 +72,8 @@ export function AcademicYearsScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+  const [sortBy, setSortBy] = useState<"startDate" | "endDate" | "createdAt">("startDate");
+  const [sortDirection, setSortDirection] = useState<"desc" | "asc">("desc");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -328,7 +329,7 @@ export function AcademicYearsScreen() {
 
         {/* All Sessions Filter */}
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="h-9 w-[125px] rounded-md text-xs sm:text-[13px] border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-[#0D1526]">
+          <SelectTrigger className="h-9 w-[140px] rounded-md text-xs sm:text-[13px] border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-[#0D1526]">
             <SelectValue placeholder="All sessions" />
           </SelectTrigger>
           <SelectContent className="rounded-md">
@@ -340,7 +341,7 @@ export function AcademicYearsScreen() {
 
         {/* Status Filter */}
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="h-9 w-[115px] rounded-md text-xs sm:text-[13px] border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-[#0D1526]">
+          <SelectTrigger className="h-9 w-[120px] rounded-md text-xs sm:text-[13px] border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-[#0D1526]">
             <SelectValue placeholder="All status" />
           </SelectTrigger>
           <SelectContent className="rounded-md">
@@ -352,7 +353,7 @@ export function AcademicYearsScreen() {
 
         {/* Start Date Sort */}
         <Select value={sortOrder} onValueChange={(val: any) => setSortOrder(val)}>
-          <SelectTrigger className="h-9 w-[115px] rounded-md text-xs sm:text-[13px] border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-[#0D1526]">
+          <SelectTrigger className="h-9 w-[125px] rounded-md text-xs sm:text-[13px] border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-[#0D1526]">
             <SelectValue placeholder="Start date" />
           </SelectTrigger>
           <SelectContent className="rounded-md">
