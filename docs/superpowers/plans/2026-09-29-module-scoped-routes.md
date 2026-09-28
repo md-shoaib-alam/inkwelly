@@ -373,27 +373,111 @@ Add `isAdminModuleScreen, qualifiedKey` to the existing import list in `app-layo
 import { componentKey, parseRoute } from "@/lib/routing/module-routes";
 ```
 
-- [ ] **Step 4: Make the dispatcher use the contract**
+- [ ] **Step 4: Make the dispatcher use the contract — and close the hole that creates**
 
-In `tenant-screen-dispatcher.tsx`, the admin branch currently reads `const { slug, screen } = useParams();` and switches on `screen`. Change the admin branch to switch on the component key while leaving the other three role branches untouched — they only ever see bare keys:
+In `tenant-screen-dispatcher.tsx`, the switch at `:182` is **shared by super_admin,
+admin and staff** — it is not an admin-only branch. Read the region before editing:
+
+```bash
+cd apps/web && sed -n '165,185p' "src/app/(authenticated)/[slug]/[screen]/tenant-screen-dispatcher.tsx"
+```
+
+That matters, because the staff permission guard above it currently tests the raw
+`screen` param. Once module-scoped URLs exist, a staff user who types
+`/demo-academy/academics/classes` gets `screen === "academics"`, which is in
+neither `STAFF_FORBIDDEN_SCREENS` nor `STAFF_SCREEN_MODULES` — so the guard checks
+the wrong word, passes, and the switch then resolves `componentKey` to `classes`
+and renders the admin class editor. **A privilege escalation reachable by typing a
+URL.** The fix is to resolve the key first and guard on the resolved key:
 
 ```tsx
   const { slug, screen, detail } = useParams();
   // A module-scoped admin URL arrives as screen=module, detail=screen.
   const route = parseRoute(`/${slug}/${screen}${detail ? `/${detail}` : ""}`, {
     isModuleScreen: isAdminModuleScreen,
-    isTenantRoot: () => true,
+    isTenantRoot: (first) =>
+      first === currentUser?.tenantId ||
+      first === currentTenantSlug ||
+      first === currentUser?.tenantSlug,
   });
   const screenKey = componentKey(route.module, route.screen);
 ```
 
-Then in the admin branch only, change `switch (screen)` to `switch (screenKey)`, and change the two `redirect()` calls in that branch that rebuild a URL from `screen` so they carry the module:
+Then change **both** the staff guard and the switch to use `screenKey`:
 
 ```tsx
-  redirect(`/${tid}/${route.module ? qualifiedKey(route.module, "dashboard") : "dashboard"}`);
+      const denied =
+        STAFF_FORBIDDEN_SCREENS.has(screenKey) ||
+        (STAFF_SCREEN_MODULES[screenKey] !== undefined &&
+          !hasPermission(currentUser, STAFF_SCREEN_MODULES[screenKey], 'view'));
+
+      if (denied) {
+        const tid = currentUser.tenantSlug || currentUser.tenantId || slug;
+        redirect(`/${tid}/dashboard`);
+      }
+    }
+
+    switch (screenKey) {
 ```
 
-`dashboard` is not a sub-link of any module, so `route.module` is always `null` for it — the expression is defensive on purpose: if a panel ever declares a `dashboard` row, bookmarks keep landing on the real dashboard.
+For every bare path `componentKey(null, screen) === screen`, so staff, teacher and
+student behaviour is bit-for-bit unchanged; only a qualified URL resolves to
+something the guard now sees correctly.
+
+Every other `redirect()` in the file targets `dashboard`, which is not a sub-link
+of any module, so leave them as `/${tid}/dashboard`. Do **not** build a
+module-prefixed dashboard URL — there is no such route, and a defensive ternary
+that can only take one branch is dead code.
+
+- [ ] **Step 4b: Prove the escalation is closed**
+
+Append to `apps/web/src/lib/__tests__/module-routes.test.ts`:
+
+```ts
+// The dispatcher's staff guard must run on the resolved key. These two cases are
+// the whole reason: a staff user typing a module-scoped URL must not slip past a
+// guard that was only ever shown the bare half.
+test("a module-scoped URL resolves to the same component key as the bare screen", () => {
+  expect(componentKey("academics", "classes")).toBe(componentKey(null, "classes"));
+});
+
+test("a qualified key never leaks its module name as the screen", () => {
+  expect(componentKey("academics", "classes")).not.toBe("academics");
+});
+```
+
+Run: `cd apps/web && bun test src/lib/__tests__/module-routes.test.ts`
+Expected: PASS — and the point of adding them here is that they document *why* the
+guard reads `screenKey`, so a later reader cannot "simplify" it back to `screen`.
+
+- [ ] **Step 4c: Pin the convention with a source guard**
+
+A comment outlives nobody. `screen-registry.test.ts` already reads the dispatcher
+source, so append there:
+
+```ts
+// The staff permission guard and the screen switch must both read the resolved
+// key. Reading the raw `screen` param was a privilege escalation once URLs became
+// module-scoped: /slug/academics/classes puts "academics" in `screen`, which is in
+// neither STAFF_FORBIDDEN_SCREENS nor STAFF_SCREEN_MODULES, so the guard checked
+// the wrong word and passed. If you are about to undo this, undo the module-scoped
+// URLs instead — or add /slug/academics/classes as a staff user and watch it render
+// the admin class editor.
+test("the dispatcher guards and switches on the resolved key, not the raw param", () => {
+  const src = readFileSync(
+    join(APP_ROOT, "src/app/(authenticated)/[slug]/[screen]/tenant-screen-dispatcher.tsx"),
+    "utf8",
+  );
+  expect(src).toMatch(/STAFF_FORBIDDEN_SCREENS\.has\(screenKey\)/);
+  expect(src).toMatch(/STAFF_SCREEN_MODULES\[screenKey\]/);
+  expect(src).toMatch(/switch \(screenKey\) \{/);
+  expect(src).not.toMatch(/STAFF_FORBIDDEN_SCREENS\.has\(screen\)/);
+});
+```
+
+Run: `cd apps/web && bun test src/modules/__tests__/screen-registry.test.ts`
+Expected: PASS after Step 4, FAIL before it. Confirm it fails first — a guard that
+never failed proves nothing.
 
 - [ ] **Step 5: Run the guard tests**
 
@@ -581,12 +665,14 @@ Students, and rewriting it to a module root would change what an existing URL me
 
 **Files:**
 - Modify: `apps/web/src/components/layout/app-layout.tsx`
-- Create: `apps/web/src/lib/routing/module-owners.ts`
+- Modify: `apps/web/src/components/layout/sidebar/module-nav-config.tsx` (add the derived index)
 - Test: `apps/web/src/lib/__tests__/module-routes.test.ts` (extend)
 
 **Interfaces:**
-- Consumes: `canonicalOwner` from Task 1; `adminPanelSections` from `module-nav-config`.
-- Produces: `screenOwners: Record<string, string>` and `moduleIds: Set<string>`, and a `router.replace` in the layout that converges a bare bookmark onto its module-scoped URL.
+- Consumes: `canonicalOwner` from Task 1; `adminPanelSections` and `buildAdminRail`, both already in `module-nav-config`.
+- Produces: `screenOwners: Record<string, string>` and `moduleIds: Set<string>` exported from `module-nav-config`, and a `router.replace` in the layout that converges a bare bookmark onto its module-scoped URL.
+
+**Why the index lives in `module-nav-config` and not in `lib/routing`:** a `lib` module importing from `components/layout/sidebar` is architecturally backwards, and it would make `module-owners → module-nav-config → module-routes` a chain that only happens not to be a cycle. `module-nav-config` already owns both inputs, so it owns the derived index.
 
 - [ ] **Step 1: Write the failing test for the owner index**
 
@@ -613,30 +699,30 @@ describe("screenOwners index", () => {
 });
 ```
 
-Import at the top: `import { screenOwners, moduleIds } from "@/lib/routing/module-owners";`
+Import at the top: `import { moduleIds, screenOwners } from "@/components/layout/sidebar/module-nav-config";`
 
 - [ ] **Step 2: Run it to verify it fails**
 
 ```bash
 cd apps/web && bun test src/lib/__tests__/module-routes.test.ts
 ```
-Expected: `Cannot find module '@/lib/routing/module-owners'`.
+Expected: FAIL — `screenOwners` is not exported from `module-nav-config`, so the import resolves to `undefined` and the first assertion throws on reading a property of undefined.
 
 - [ ] **Step 3: Build the index from the panel, not by hand**
 
-Create `apps/web/src/lib/routing/module-owners.ts`:
+Append to `apps/web/src/components/layout/sidebar/module-nav-config.tsx`, after `buildAdminRail`:
 
-```ts
-import { adminPanelSections, buildAdminRail } from "@/components/layout/sidebar/module-nav-config";
-
+```tsx
 /**
  * Derived, never authored: a second list of screen -> module mappings is exactly
  * the thing that would let the sidebar and the URL disagree. The first module in
  * rail order that declares a screen owns its canonical bare form.
  */
+export const moduleIds: Set<string> = new Set(buildAdminRail().map((m) => m.key));
+
 export const screenOwners: Record<string, string> = (() => {
   const owners: Record<string, string> = {};
-  for (const moduleKey of buildAdminRail().map((m) => m.key)) {
+  for (const moduleKey of moduleIds) {
     for (const section of adminPanelSections[moduleKey] ?? []) {
       for (const item of section.items) {
         if (!(item.key in owners)) owners[item.key] = moduleKey;
@@ -645,9 +731,9 @@ export const screenOwners: Record<string, string> = (() => {
   }
   return owners;
 })();
-
-export const moduleIds: Set<string> = new Set(buildAdminRail().map((m) => m.key));
 ```
+
+Note `for (const moduleKey of moduleIds)` iterates a `Set` in insertion order, which is rail order — that is what makes "first module that declares it wins" deterministic.
 
 - [ ] **Step 4: Run the test and fix the collision it finds**
 
@@ -698,7 +784,7 @@ hand-written second mapping is exactly what would let the sidebar and the URL
 disagree. A screen whose key equals its own module id is excluded: /students means
 All Students and must stay that way.
 
-router.replace rather than a redirect, so the client store survives." -- src/lib/routing/module-owners.ts src/lib/__tests__/module-routes.test.ts src/components/layout/app-layout.tsx
+router.replace rather than a redirect, so the client store survives." -- src/components/layout/sidebar/module-nav-config.tsx src/lib/__tests__/module-routes.test.ts src/components/layout/app-layout.tsx
 ```
 
 ---
