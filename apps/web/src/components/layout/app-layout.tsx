@@ -8,6 +8,8 @@ import { useTenantResolution } from "@/lib/graphql/hooks/platform.hooks";
 import { hasPermission, isRootAdmin } from "@/lib/permissions";
 import { ChangePasswordModal } from "@/components/modals/change-password-modal";
 import { Sidebar } from "./sidebar";
+import { ModuleSidebar } from "./sidebar/module-sidebar";
+import { getAdminRail } from "./sidebar/module-nav-config";
 import { Header } from "./header";
 import { navItems } from "./nav-config";
 import { useIsFetching } from "@tanstack/react-query";
@@ -335,6 +337,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return getFilteredNavItems(currentUser);
   }, [currentUser]);
 
+  // Only admins get the two-level module sidebar for now; every other role keeps
+  // the legacy accordion.
+  const isAdmin = currentUser?.role === "admin";
+  const moduleItems = useMemo(
+    () => (isAdmin ? getAdminRail(currentUser) : []),
+    [isAdmin, currentUser]
+  );
+  const useModuleSidebar = isAdmin && moduleItems.length > 0;
+  // On the admin dashboard the module grid is the navigation, so the rail is there
+  // for phones only — the hamburger still opens it below the lg breakpoint.
+  const hideRailOnDesktop = resolvedScreen === "dashboard";
+
   // --- SUBSCRIPTION CHECK LOGIC ---
   const isExpired = useMemo(() => {
     return checkSubscriptionExpired(resolvedTenant, isSuperAdmin);
@@ -394,13 +408,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         )}
 
         {/* Sidebar */}
-        <Sidebar
-          items={items}
-          resolvedScreen={resolvedScreen}
-          navigateTo={navigateTo}
-          setIsChangePasswordOpen={setIsChangePasswordOpen}
-          layoutPref={layoutPref}
-        />
+        {useModuleSidebar && layoutPref !== "minimal" ? (
+          <ModuleSidebar
+            items={moduleItems}
+            resolvedScreen={resolvedScreen}
+            navigateTo={navigateTo}
+            desktopHidden={hideRailOnDesktop}
+          />
+        ) : (
+          <Sidebar
+            items={items}
+            resolvedScreen={resolvedScreen}
+            navigateTo={navigateTo}
+            setIsChangePasswordOpen={setIsChangePasswordOpen}
+            layoutPref={layoutPref}
+          />
+        )}
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

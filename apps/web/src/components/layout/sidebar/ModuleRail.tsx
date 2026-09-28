@@ -1,6 +1,6 @@
 "use client";
 
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ModuleNavItem } from "./module-nav-config";
 
@@ -9,6 +9,9 @@ interface ModuleRailProps {
   activeModuleKey: string | null;
   tenantLogo: string | null;
   tenantName: string | null;
+  /** Only reachable on desktop: the mobile drawer never collapses. */
+  collapsed?: boolean;
+  onExpand?: () => void;
   onSelect: (item: ModuleNavItem) => void;
 }
 
@@ -17,6 +20,8 @@ export function ModuleRail({
   activeModuleKey,
   tenantLogo,
   tenantName,
+  collapsed = false,
+  onExpand,
   onSelect,
 }: ModuleRailProps) {
   return (
@@ -91,6 +96,17 @@ export function ModuleRail({
           );
         })}
       </div>
+      {collapsed && onExpand && (
+        <button
+          type="button"
+          onClick={onExpand}
+          aria-label="Show module navigation"
+          className="hidden lg:flex mx-2 mb-3 h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-white/[0.07] text-[#8FCEAD] ring-1 ring-white/10 transition-colors hover:bg-white/[0.12] hover:text-white outline-none focus-visible:ring-2 focus-visible:ring-[#F2B33D]/60 cursor-pointer"
+        >
+          <PanelLeftOpen className="size-4" />
+          <span className="text-[11px] font-semibold">Menu</span>
+        </button>
+      )}
     </nav>
   );
 }

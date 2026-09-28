@@ -9,6 +9,8 @@ interface ModulePanelProps {
   module: ModuleNavItem;
   resolvedScreen: string;
   onToggleCollapse: () => void;
+  /** On the mobile drawer this button goes back to the rail rather than collapsing. */
+  backToRail?: boolean;
   onNavigate: (screen: string) => void;
 }
 
@@ -16,10 +18,11 @@ export function ModulePanel({
   module,
   resolvedScreen,
   onToggleCollapse,
+  backToRail = false,
   onNavigate,
 }: ModulePanelProps) {
   return (
-    <div className="flex w-[min(288px,calc(100vw-10.25rem))] shrink-0 flex-col overflow-hidden bg-white dark:bg-[#0A0A0A] border-r border-slate-200/80 dark:border-zinc-800/80 h-full">
+    <div className="flex w-full min-w-0 shrink-0 flex-col overflow-hidden bg-white dark:bg-[#0A0A0A] border-r border-slate-200/80 dark:border-zinc-800/80 h-full lg:w-[min(288px,calc(100vw-10.25rem))]">
       {/* Module header */}
       <div className="flex items-center gap-3 px-5 pt-5 pb-4 shrink-0">
         <div className="size-11 rounded-xl bg-amber-50 dark:bg-amber-400/10 border border-amber-100/80 dark:border-amber-400/20 flex items-center justify-center text-[#C99312] dark:text-amber-400 shrink-0">
@@ -34,7 +37,7 @@ export function ModulePanel({
         <button
           type="button"
           onClick={onToggleCollapse}
-          aria-label="Collapse navigation panel"
+          aria-label={backToRail ? "Back to modules" : "Collapse navigation panel"}
           className="size-8 shrink-0 rounded-full border border-slate-200 dark:border-zinc-800 flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
         >
           <ChevronLeft className="size-4" />
