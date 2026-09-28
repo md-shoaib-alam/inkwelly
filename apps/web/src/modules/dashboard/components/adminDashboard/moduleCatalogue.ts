@@ -159,7 +159,7 @@ export const moduleCatalogue: ModuleCard[] = [
   { id: "cms", title: "CMS", subtitle: "Website content", icon: Globe, tint: "orange", screen: null },
 
   { id: "users", title: "Users", subtitle: "Users & access", icon: UserCog, tint: "violet", screen: null },
-  { id: "iam", title: "IAM", subtitle: "Roles & permissions", icon: Shield, tint: "violet", screen: "roles" },
+  { id: "iam", title: "IAM", subtitle: "Roles & permissions", icon: Shield, tint: "violet", screen: "iam-dashboard", inRail: true },
   { id: "reports", title: "Reports", subtitle: "Exports & analytics", icon: BarChart3, tint: "violet", screen: "reports", permModule: "reports" },
   { id: "audit-logs", title: "Audit Logs", subtitle: "Activity trail", icon: ScrollText, tint: "indigo", screen: null },
   { id: "sports", title: "Sports", subtitle: "Events & scores", icon: Medal, tint: "slate", screen: null, roadmap: true },

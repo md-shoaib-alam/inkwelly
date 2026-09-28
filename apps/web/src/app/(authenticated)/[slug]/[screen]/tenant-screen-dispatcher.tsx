@@ -12,12 +12,12 @@ const LoadingScreen = () => <FullPageSkeleton />;
 
 const ParentHomework = dynamic(() => import('@/modules/assessment/components/ParentHomework').then(m => m.ParentHomework), { loading: LoadingScreen });
 const UserProfileScreen = dynamic(() => import('@/modules/auth/components/Profile').then(m => m.UserProfileScreen), { loading: LoadingScreen });
-const TeacherDashboard = dynamic(() => import('@/modules/dashboard/components/teacherDashboard/index').then(m => m.TeacherDashboard));
-const StudentDashboard = dynamic(() => import('@/modules/dashboard/components/StudentDashboard').then(m => m.StudentDashboard));
-const ParentDashboard = dynamic(() => import('@/modules/dashboard/components/ParentDashboard').then(m => m.ParentDashboard));
-const StaffDashboard = dynamic(() => import('@/modules/dashboard/components/staffDashboard/index').then(m => m.StaffDashboard));
-const AdminDashboard = dynamic(() => import('@/modules/dashboard/components/adminDashboard/index').then(m => m.AdminDashboard));
-const SuperAdminDashboard = dynamic(() => import('@/modules/dashboard/components/SuperAdminDashboard').then(m => m.SuperAdminDashboard));
+const TeacherDashboard = dynamic(() => import('@/modules/dashboard/components/teacherDashboard/index').then(m => m.TeacherDashboard), { loading: LoadingScreen });
+const StudentDashboard = dynamic(() => import('@/modules/dashboard/components/StudentDashboard').then(m => m.StudentDashboard), { loading: LoadingScreen });
+const ParentDashboard = dynamic(() => import('@/modules/dashboard/components/ParentDashboard').then(m => m.ParentDashboard), { loading: LoadingScreen });
+const StaffDashboard = dynamic(() => import('@/modules/dashboard/components/staffDashboard/index').then(m => m.StaffDashboard), { loading: LoadingScreen });
+const AdminDashboard = dynamic(() => import('@/modules/dashboard/components/adminDashboard/index').then(m => m.AdminDashboard), { loading: LoadingScreen });
+const SuperAdminDashboard = dynamic(() => import('@/modules/dashboard/components/SuperAdminDashboard').then(m => m.SuperAdminDashboard), { loading: LoadingScreen });
 const AdminStudents = dynamic(() => import('@/modules/people/components/AdminStudents').then(m => m.AdminStudents), { loading: LoadingScreen });
 const AdminTeachers = dynamic(() => import('@/modules/people/components/AdminTeachers').then(m => m.AdminTeachers), { loading: LoadingScreen });
 const AdminParents = dynamic(() => import('@/modules/people/components/AdminParents').then(m => m.AdminParents), { loading: LoadingScreen });
@@ -30,6 +30,8 @@ const AdminTimetable = dynamic(() => import('@/modules/timetable/components/Admi
 const AdminCalendar = dynamic(() => import('@/modules/timetable/components/AdminCalendar').then(m => m.AdminCalendar), { loading: LoadingScreen });
 const AdminReports = dynamic(() => import('@/modules/data-io/components/AdminReports').then(m => m.AdminReports), { loading: LoadingScreen });
 const AdminRoles = dynamic(() => import('@/modules/access-control/components/AdminRoles').then(m => m.AdminRoles), { loading: LoadingScreen });
+const AdminIamDashboard = dynamic(() => import('@/modules/access-control/components/AdminIamDashboard').then(m => m.AdminIamDashboard), { loading: LoadingScreen });
+const AdminPermissionsCatalog = dynamic(() => import('@/modules/access-control/components/AdminPermissionsCatalog').then(m => m.AdminPermissionsCatalog), { loading: LoadingScreen });
 const AdminStaff = dynamic(() => import('@/modules/people/components/AdminStaff').then(m => m.AdminStaff), { loading: LoadingScreen });
 const AdminTickets = dynamic(() => import('@/modules/support/components/AdminTickets').then(m => m.AdminTickets), { loading: LoadingScreen });
 const AdminSchoolSettings = dynamic(() => import('@/modules/tenancy/components/AdminSchoolSettings').then(m => m.AdminSchoolSettings), { loading: LoadingScreen });
@@ -120,7 +122,12 @@ const STAFF_SCREEN_MODULES: Record<string, string> = (() => {
  * Admin-only screens with no grantable module, so no permission could ever
  * open them for staff.
  */
-const STAFF_FORBIDDEN_SCREENS = new Set(['roles', 'school-settings']);
+const STAFF_FORBIDDEN_SCREENS = new Set([
+  'roles',
+  'iam-dashboard',
+  'permissions-catalog',
+  'school-settings',
+]);
 
 export default function TenantScreenDispatcherClient() {
   const { slug, screen } = useParams();
@@ -194,6 +201,8 @@ export default function TenantScreenDispatcherClient() {
       case 'calendar': return <AdminCalendar />;
       case 'reports': return <AdminReports />;
       case 'roles': return <AdminRoles />;
+      case 'iam-dashboard': return <AdminIamDashboard />;
+      case 'permissions-catalog': return <AdminPermissionsCatalog />;
       case 'staff': return <AdminStaff />;
       case 'school-settings': return <AdminSchoolSettings />;
       case 'academic-years': return <AcademicYearsScreen />;

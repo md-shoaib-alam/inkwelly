@@ -1,6 +1,5 @@
 import {
   LayoutDashboard,
-  UserRound,
   GraduationCap,
   Users,
   Briefcase,
@@ -38,6 +37,9 @@ import {
   BarChart3,
   UserPlus,
   Code2,
+  Fingerprint,
+  ListChecks,
+  Wand2,
   BookMarked,
   LayoutGrid,
   Map,
@@ -397,6 +399,29 @@ export function getDefaultScreen(item: ModuleNavItem): string {
  * -------------------------------------------------------------------------- */
 
 export const adminPanelSections: Record<string, ModuleNavSection[]> = {
+  iam: [
+    {
+      label: "Overview",
+      items: [
+        { key: "iam-dashboard", label: "Dashboard", icon: <LayoutDashboard className={iconCls} /> },
+      ],
+    },
+    {
+      label: "Access Control",
+      items: [
+        { key: "roles", label: "Roles", icon: <Shield className={iconCls} /> },
+        { key: "role-assignments", label: "Assignments", icon: <Users className={iconCls} />, disabled: true },
+        { key: "security-pin", label: "Security", icon: <Fingerprint className={iconCls} />, badge: "NEW", disabled: true },
+      ],
+    },
+    {
+      label: "Utilities",
+      items: [
+        { key: "permissions-catalog", label: "Permissions Catalog", icon: <ListChecks className={iconCls} /> },
+        { key: "seed-defaults", label: "Seed Defaults", icon: <Wand2 className={iconCls} />, disabled: true },
+      ],
+    },
+  ],
   academics: [
     {
       label: "Overview",
@@ -543,7 +568,6 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
 // Rail rows that aren't purchasable modules, so they aren't in the catalogue either.
 const adminRailChrome: ModuleNavItem[] = [
   direct("dashboard", "Dashboard", <LayoutDashboard className={iconCls} />),
-  direct("profile", "Me", <UserRound className={iconCls} />),
 ];
 
 function moduleFromCard(card: ModuleCard): ModuleNavItem {
