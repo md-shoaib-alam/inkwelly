@@ -47,7 +47,9 @@ node_modules
 bunfig.toml
 
 src/service_key.json
-certificates
+# Anchored: the bare form also matched src/components/screens/admin/certificates/, which
+# silently kept a real source file out of the index.
+/certificates/
 testsprite_tests\tmp\config.json
 testsprite_tests/
 
