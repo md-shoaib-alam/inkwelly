@@ -1,9 +1,9 @@
 import { Elysia, t } from 'elysia';
-import { requireAuth } from '../lib/auth';
+import { requireAuth } from '../../lib/auth';
 import { v4 as uuidv4 } from 'uuid';
-import logger from '../lib/logger';
-import { db } from '../lib/db';
-import { users } from '../db/schema';
+import logger from '../../lib/logger';
+import { db } from '../../lib/db';
+import { users } from '../../db/schema';
 import { eq, or } from 'drizzle-orm';
 
 import { loginRoute } from './login';

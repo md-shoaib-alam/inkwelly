@@ -1,12 +1,12 @@
 import { Elysia, t } from 'elysia';
-import { db } from '../lib/db';
-import { users, refreshTokens } from '../db/schema';
+import { db } from '../../lib/db';
+import { users, refreshTokens } from '../../db/schema';
 import { eq } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { denyToken } from '../lib/jwt';
-import { invalidateForUser } from '../lib/authCache';
-import { hashPassword, verifyPassword } from '../lib/passwords';
-import { dataCache } from '../lib/cache';
+import { requireAuth } from '../../lib/auth';
+import { denyToken } from '../../lib/jwt';
+import { invalidateForUser } from '../../lib/authCache';
+import { hashPassword, verifyPassword } from '../../lib/passwords';
+import { dataCache } from '../../lib/cache';
 
 export const passwordRoute = new Elysia()
   .use(requireAuth)

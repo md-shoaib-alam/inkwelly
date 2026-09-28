@@ -1,7 +1,7 @@
 import { db } from '../../lib/db'
 import * as schema from '../../db/schema'
 import { eq, and, desc, count, sql, sum, inArray, or, gte, lte, avg, ilike, isNull } from 'drizzle-orm'
-import { paginate, requirePlatformModule, requirePlatformUser } from './helpers'
+import { paginate, requirePlatformModule, requirePlatformUser } from '../../graphql/resolvers/helpers'
 import { platformMay } from '../../lib/permissions'
 
 export const platformResolvers = {

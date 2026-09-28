@@ -31,7 +31,7 @@ import { bunCompression } from './lib/compression';
 import { serverMetrics } from './lib/server-metrics';
 
 // Route modules
-import { authRoutes } from './routes/auth';
+import { authRoutes } from './modules/auth';
 import { dashboardRoutes } from './modules/dashboard/dashboard.routes';
 import { studentsRoutes } from './modules/people/students.routes';
 import { teachersRoutes } from './modules/people/teachers.routes';
@@ -49,27 +49,27 @@ import { subjectsRoutes } from './modules/academics/subjects.routes';
 import { submissionsRoutes } from './modules/assessment/submissions.routes';
 import { timetableRoutes } from './modules/timetable/timetable.routes';
 import { staffRoutes } from './modules/people/staff.routes';
-import { rolesRoutes } from './routes/roles';
-import { subscriptionsRoutes } from './routes/subscriptions';
+import { rolesRoutes } from './modules/access-control/roles.routes';
+import { subscriptionsRoutes } from './modules/tenancy/subscriptions.routes';
 import { ticketsRoutes } from './modules/support/tickets.routes';
-import { tenantsRoutes } from './routes/tenants';
-import { superAdminsRoutes } from './routes/super-admins';
-import { platformRoutes } from './routes/platform';
-import { tenantSettingsRoutes } from './routes/tenant-settings';
+import { tenantsRoutes } from './modules/tenancy/tenants.routes';
+import { superAdminsRoutes } from './modules/platform/superAdmins.routes';
+import { platformRoutes } from './modules/platform/platform.routes';
+import { tenantSettingsRoutes } from './modules/tenancy/tenantSettings.routes';
 import { promotionsRoutes } from './modules/academics/promotions.routes';
 import { certificatesRoutes } from './modules/certificates/certificates.routes';
 import { leavesRoutes } from './modules/attendance/leaves.routes';
 import { staffAttendanceRoutes } from './modules/attendance/staffAttendance.routes';
 import { examsRoutes } from './modules/assessment/exams.routes';
 import { admitCardsRoutes } from './modules/certificates/admitCards.routes';
-import { platformSettingsRoutes } from './routes/platform-settings';
-import { integrationsRoutes } from './routes/integrations';
+import { platformSettingsRoutes } from './modules/platform/platformSettings.routes';
+import { integrationsRoutes } from './modules/platform/integrations.routes';
 import { notificationsRoutes } from './modules/communication/notifications.routes';
 import { assessmentsRoutes } from './modules/assessment/assessments.routes';
 
 
 import { exportsRoutes, importsRoutes, importRoute } from './modules/data-io/exports.routes';
-import { performanceRoutes, healthRoutes } from './routes/performance';
+import { performanceRoutes, healthRoutes } from './modules/platform/performance.routes';
 import { graphqlRoutes } from './graphql/route';
 
 import { env } from './lib/env';

@@ -1,18 +1,18 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, desc, or, inArray, sql, count, sum, not, isNotNull, asc } from 'drizzle-orm';
-import { requireSuperAdmin } from '../lib/auth';
+import { requireSuperAdmin } from '../../lib/auth';
 import {
   platformMay,
   requirePlatformPermission,
   requireRootPlatformAdmin,
   invalidatePlatformRolePermissions,
   invalidateUserPermissions,
-} from '../lib/permissions';
-import { dataCache } from '../lib/cache';
-import { addJob } from '../lib/queue';
-import { posthog, captureError } from '../lib/monitoring/posthog';
+} from '../../lib/permissions';
+import { dataCache } from '../../lib/cache';
+import { addJob } from '../../lib/queue';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
 
 /** A debug probe that can enqueue an arbitrary job, so it stays with the owner. */
 const platformDebugRoutes = new Elysia()

@@ -1,6 +1,6 @@
 import { test, expect } from 'bun:test';
 import { Elysia } from 'elysia';
-import { performanceRoutes, healthRoutes } from './routes/performance';
+import { performanceRoutes, healthRoutes } from './modules/platform/performance.routes';
 import { transportRoutes } from './modules/transport/transport.routes';
 
 // Mirrors the post-edit mount structure of src/index.ts:

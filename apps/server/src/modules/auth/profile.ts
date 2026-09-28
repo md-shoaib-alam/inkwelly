@@ -1,10 +1,10 @@
 import { Elysia, t } from 'elysia';
-import { db } from '../lib/db';
-import { users } from '../db/schema';
+import { db } from '../../lib/db';
+import { users } from '../../db/schema';
 import { eq } from 'drizzle-orm';
-import { dataCache } from '../lib/cache';
-import { requireAuth } from '../lib/auth';
-import { denyToken, denyAllRefreshTokens, verifyJWT } from '../lib/jwt';
+import { dataCache } from '../../lib/cache';
+import { requireAuth } from '../../lib/auth';
+import { denyToken, denyAllRefreshTokens, verifyJWT } from '../../lib/jwt';
 
 export const profileRoute = new Elysia()
   .use(requireAuth)

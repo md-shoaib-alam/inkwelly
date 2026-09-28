@@ -1,12 +1,12 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import { hashPassword } from '../lib/passwords';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import { hashPassword } from '../../lib/passwords';
+import * as schema from '../../db/schema';
 import { eq, and, desc, isNull, isNotNull, asc } from 'drizzle-orm';
-import { requireSuperAdmin, requireAuth } from '../lib/auth';
-import { requireRootPlatformAdmin, invalidateUserPermissions } from '../lib/permissions';
-import { posthog, captureError } from '../lib/monitoring/posthog';
-import { isRedisHealthy, redis } from '../lib/redis';
+import { requireSuperAdmin, requireAuth } from '../../lib/auth';
+import { requireRootPlatformAdmin, invalidateUserPermissions } from '../../lib/permissions';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
+import { isRedisHealthy, redis } from '../../lib/redis';
 
 async function getRootAdminId(): Promise<string | null> {
   const root = await db.query.users.findFirst({ 

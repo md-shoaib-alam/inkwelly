@@ -1,10 +1,10 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, desc, ne, count, sql } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { invalidateRolePermissions, invalidateUserPermissions } from '../lib/permissions';
-import { posthog, captureError } from '../lib/monitoring/posthog';
+import { requireAuth } from '../../lib/auth';
+import { invalidateRolePermissions, invalidateUserPermissions } from '../../lib/permissions';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
 
 export const rolesRoutes = new Elysia({ prefix: '/roles' })
   .use(requireAuth)

@@ -1,17 +1,17 @@
 import { Elysia } from "elysia";
-import { db } from "../lib/db";
-import * as schema from "../db/schema";
+import { db } from "../../lib/db";
+import * as schema from "../../db/schema";
 import { eq, and, desc, inArray, sql, count, sum, isNull, isNotNull, lte } from 'drizzle-orm';
-import { requireAuth, requireSuperAdmin } from "../lib/auth";
-import { requirePlatformPermission } from "../lib/permissions";
-import { posthog, captureError } from "../lib/monitoring/posthog";
-import { uploadFile } from "../lib/s3";
-import { dataCache } from "../lib/cache";
+import { requireAuth, requireSuperAdmin } from "../../lib/auth";
+import { requirePlatformPermission } from "../../lib/permissions";
+import { posthog, captureError } from "../../lib/monitoring/posthog";
+import { uploadFile } from "../../lib/s3";
+import { dataCache } from "../../lib/cache";
 import crypto from "crypto";
-import { razorpay } from "../lib/razorpay";
-import { SCHOOL_PLAN_CATALOG, type SchoolPlanTier } from "../lib/plans";
-import { createAuditLog } from "../lib/audit-helper";
-import { formatDate } from "../lib/date-utils";
+import { razorpay } from "../../lib/razorpay";
+import { SCHOOL_PLAN_CATALOG, type SchoolPlanTier } from "../../lib/plans";
+import { createAuditLog } from "../../lib/audit-helper";
+import { formatDate } from "../../lib/date-utils";
 import { lookup } from "dns/promises";
 import net from "net";
 

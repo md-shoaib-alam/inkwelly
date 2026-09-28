@@ -1,11 +1,11 @@
 import { Elysia, t } from 'elysia';
 import { and, eq, isNull } from 'drizzle-orm';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
-import { requireAuth, requireSuperAdmin } from '../lib/auth';
-import { requirePlatformPermission } from '../lib/permissions';
-import { decryptSecrets, encryptSecrets, hasEncryptionKey } from '../lib/crypto';
-import { createAuditLog } from '../lib/audit-helper';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
+import { requireAuth, requireSuperAdmin } from '../../lib/auth';
+import { requirePlatformPermission } from '../../lib/permissions';
+import { decryptSecrets, encryptSecrets, hasEncryptionKey } from '../../lib/crypto';
+import { createAuditLog } from '../../lib/audit-helper';
 import {
   CONNECTION_STATUSES,
   PROVIDERS,
@@ -14,7 +14,7 @@ import {
   resolveStatus,
   type IntegrationProvider,
   type PlanTier,
-} from '../lib/integrations/catalog';
+} from '../../lib/integrations/catalog';
 
 type ConnectionRow = typeof schema.tenantIntegrations.$inferSelect;
 

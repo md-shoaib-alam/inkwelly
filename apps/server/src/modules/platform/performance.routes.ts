@@ -1,12 +1,12 @@
 import { Elysia } from 'elysia';
-import { db, getPoolStats, getMemoryStats } from '../lib/db';
-import * as schema from '../db/schema';
+import { db, getPoolStats, getMemoryStats } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { sql, count } from 'drizzle-orm';
-import { requireSuperAdmin } from '../lib/auth';
-import { redis } from '../lib/redis';
-import { getFCMStatus } from '../lib/firebase-admin';
-import { checkR2Connection } from '../lib/s3';
-import { dataCache } from '../lib/cache';
+import { requireSuperAdmin } from '../../lib/auth';
+import { redis } from '../../lib/redis';
+import { getFCMStatus } from '../../lib/firebase-admin';
+import { checkR2Connection } from '../../lib/s3';
+import { dataCache } from '../../lib/cache';
 
 export const performanceRoutes = new Elysia({ prefix: '/performance' })
   .use(requireSuperAdmin)

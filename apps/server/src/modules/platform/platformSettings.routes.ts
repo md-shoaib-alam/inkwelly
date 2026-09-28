@@ -1,10 +1,10 @@
 import { Elysia, t } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, inArray } from 'drizzle-orm';
-import { requireSuperAdmin, requireAuth } from '../lib/auth';
-import { requirePlatformPermission } from '../lib/permissions';
-import { captureError } from '../lib/monitoring/posthog';
+import { requireSuperAdmin, requireAuth } from '../../lib/auth';
+import { requirePlatformPermission } from '../../lib/permissions';
+import { captureError } from '../../lib/monitoring/posthog';
 
 // The tenant shell fetches these on mount for every role to render the
 // maintenance banner. Every other platform setting is super-admin only.

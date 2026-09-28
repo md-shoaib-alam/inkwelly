@@ -1,13 +1,13 @@
 import { Elysia, t } from 'elysia';
-import { db } from '../lib/db';
-import { users, refreshTokens } from '../db/schema';
+import { db } from '../../lib/db';
+import { users, refreshTokens } from '../../db/schema';
 import { eq, and, gt } from 'drizzle-orm';
-import { signAccessToken, signRefreshToken, verifyJWT, hashToken, denyAllRefreshTokens } from '../lib/jwt';
-import { redis } from '../lib/redis';
-import { incrWithWindow } from '../lib/ratelimit';
-import { captureError } from '../lib/monitoring/posthog';
-import logger from '../lib/logger';
-import { getClientIp } from '../lib/ip';
+import { signAccessToken, signRefreshToken, verifyJWT, hashToken, denyAllRefreshTokens } from '../../lib/jwt';
+import { redis } from '../../lib/redis';
+import { incrWithWindow } from '../../lib/ratelimit';
+import { captureError } from '../../lib/monitoring/posthog';
+import logger from '../../lib/logger';
+import { getClientIp } from '../../lib/ip';
 import { v4 as uuidv4 } from 'uuid';
 
 const MAX_REFRESH_ATTEMPTS = 30;

@@ -1,7 +1,7 @@
 import { db } from '../../lib/db'
 import * as schema from '../../db/schema'
 import { eq, and, desc, inArray, count, sum } from 'drizzle-orm'
-import { platformResolvers as platformQueries } from './platform.resolvers'
+import { platformResolvers as platformQueries } from '../../modules/platform/platform.resolvers'
 import { dashboardResolvers as dashboardQueries } from '../../modules/dashboard/dashboard.resolvers'
 import { academicQueries, academicMutations } from './academic.resolvers'
 import { financeQueries, financeMutations } from '../../modules/finance/finance.resolvers'

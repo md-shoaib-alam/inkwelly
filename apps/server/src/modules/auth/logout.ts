@@ -1,10 +1,10 @@
 import { Elysia, t } from 'elysia';
-import { db } from '../lib/db';
-import { refreshTokens } from '../db/schema';
+import { db } from '../../lib/db';
+import { refreshTokens } from '../../db/schema';
 import { eq } from 'drizzle-orm';
-import { verifyJWT, denyToken, hashToken } from '../lib/jwt';
-import { captureError } from '../lib/monitoring/posthog';
-import logger from '../lib/logger';
+import { verifyJWT, denyToken, hashToken } from '../../lib/jwt';
+import { captureError } from '../../lib/monitoring/posthog';
+import logger from '../../lib/logger';
 import { v4 as uuidv4 } from 'uuid';
 
 export const logoutRoute = new Elysia()

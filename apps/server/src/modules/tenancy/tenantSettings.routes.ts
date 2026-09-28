@@ -1,9 +1,9 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { posthog, captureError } from '../lib/monitoring/posthog';
+import { requireAuth } from '../../lib/auth';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
 
 const DEFAULT_SETTINGS = { 
   workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],

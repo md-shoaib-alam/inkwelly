@@ -1,13 +1,13 @@
 import { Elysia, t } from 'elysia';
-import { db } from '../lib/db';
-import { users, refreshTokens } from '../db/schema';
+import { db } from '../../lib/db';
+import { users, refreshTokens } from '../../db/schema';
 import { or, eq, and } from 'drizzle-orm';
-import { signAccessToken, signRefreshToken, hashToken } from '../lib/jwt';
-import { getLoginAttempts, getAccountLoginAttempts, registerFailedLogin, clearLoginAttempts, LOGIN_MAX_ATTEMPTS, LOGIN_IP_MAX_ATTEMPTS } from '../lib/ratelimit';
-import { posthog, captureError } from '../lib/monitoring/posthog';
-import logger from '../lib/logger';
-import { getClientIp } from '../lib/ip';
-import { hashPassword, verifyPassword } from '../lib/passwords';
+import { signAccessToken, signRefreshToken, hashToken } from '../../lib/jwt';
+import { getLoginAttempts, getAccountLoginAttempts, registerFailedLogin, clearLoginAttempts, LOGIN_MAX_ATTEMPTS, LOGIN_IP_MAX_ATTEMPTS } from '../../lib/ratelimit';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
+import logger from '../../lib/logger';
+import { getClientIp } from '../../lib/ip';
+import { hashPassword, verifyPassword } from '../../lib/passwords';
 
 import { v4 as uuidv4 } from 'uuid';
 
