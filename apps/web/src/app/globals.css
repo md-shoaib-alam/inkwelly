@@ -243,6 +243,11 @@
 }
 
 /* Sidebar scrollbar styles */
+/* The ::-webkit rules below are ignored by Firefox, which otherwise shows a full-width bar. */
+.sidebar-scrollbar {
+  scrollbar-width: thin;
+}
+
 .sidebar-scrollbar::-webkit-scrollbar {
   width: 4px;
 }

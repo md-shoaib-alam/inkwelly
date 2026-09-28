@@ -47,10 +47,10 @@ export function ModulePanel({
       {/* Module nav */}
       <div
         data-lenis-scroll-container
-        className="flex-1 overflow-y-auto sidebar-scrollbar overscroll-contain touch-pan-y px-3 pb-6"
+        className="flex flex-1 flex-col gap-4 overflow-y-auto sidebar-scrollbar overscroll-contain touch-pan-y px-2 py-3"
       >
         {module.sections.map((section, sectionIdx) => (
-          <div key={section.label ?? `section-${sectionIdx}`} className="pt-4 first:pt-1">
+          <div key={section.label ?? `section-${sectionIdx}`}>
             {section.label && (
               <p className="px-3 pb-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-400 dark:text-zinc-500">
                 {section.label}
