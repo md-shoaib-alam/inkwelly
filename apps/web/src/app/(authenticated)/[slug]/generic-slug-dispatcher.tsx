@@ -7,10 +7,12 @@ import { useTenantResolution } from "@/lib/graphql/hooks/platform.hooks";
 import dynamic from "next/dynamic";
 
 import { FullPageSkeleton } from "@/components/ui/full-page-skeleton";
+import { AdminDashboardSkeleton } from "@/modules/dashboard/components/adminDashboard/DashboardSkeleton";
 
 const LoadingScreen = () => <FullPageSkeleton />;
+const DashboardLoadingScreen = () => <AdminDashboardSkeleton />;
 
-const AdminDashboard = dynamic(() => import("@/modules/dashboard/components/adminDashboard/index").then((m) => m.AdminDashboard), { loading: LoadingScreen });
+const AdminDashboard = dynamic(() => import("@/modules/dashboard/components/adminDashboard/index").then((m) => m.AdminDashboard), { loading: DashboardLoadingScreen });
 const SuperAdminDashboard = dynamic(() => import("@/modules/dashboard/components/SuperAdminDashboard").then((m) => m.SuperAdminDashboard), { loading: LoadingScreen });
 const SuperAdminTenants = dynamic(() => import("@/modules/tenancy/components/SuperAdminTenants").then((m) => m.SuperAdminTenants), { loading: LoadingScreen });
 const SuperAdminDeletedTenants = dynamic(() => import("@/modules/tenancy/components/SuperAdminDeletedTenants").then((m) => m.SuperAdminDeletedTenants), { loading: LoadingScreen });

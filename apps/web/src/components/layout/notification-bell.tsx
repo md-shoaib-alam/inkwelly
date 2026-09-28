@@ -174,7 +174,7 @@ export function NotificationBell() {
           variant="ghost"
           size="icon"
           aria-label={`Notifications${unread > 0 ? ` (${unread} unread)` : ""}`}
-          className="size-8.5 sm:size-9 shrink-0 rounded-xl border border-slate-200/70 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-slate-100/80 dark:hover:bg-zinc-800 shadow-2xs transition-all cursor-pointer relative"
+          className="size-8.5 sm:size-9 shrink-0 rounded-xl border border-slate-200/70 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-slate-100/80 dark:hover:bg-zinc-800 shadow-none transition-all cursor-pointer relative"
         >
           <Bell className="size-4" />
           {unread > 0 && (

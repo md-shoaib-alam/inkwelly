@@ -31,6 +31,7 @@ interface ModuleSidebarProps {
   navigateTo: (screen: string) => void;
   /** Admin dashboard: the grid is the navigation, so drop the rail on desktop only. */
   desktopHidden?: boolean;
+  onCollapsedChange?: (collapsed: boolean) => void;
 }
 
 export function ModuleSidebar({
@@ -38,6 +39,7 @@ export function ModuleSidebar({
   resolvedScreen,
   navigateTo,
   desktopHidden = false,
+  onCollapsedChange,
 }: ModuleSidebarProps) {
   const { currentUser, currentTenantLogo, currentTenantName, sidebarOpen, setSidebarOpen } =
     useAppStore();
@@ -46,7 +48,6 @@ export function ModuleSidebar({
   const [activeModuleKey, setActiveModuleKey] = useState<string | null>(
     () => findModuleForScreen(items, resolvedScreen)?.key ?? items[0]?.key ?? null
   );
-  const [drillOpen, setDrillOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -56,8 +57,11 @@ export function ModuleSidebar({
     }
   });
 
-  // Follow URL-driven screen changes so the right module stays selected
-  // (adjust-during-render pattern instead of an effect).
+  useEffect(() => {
+    onCollapsedChange?.(collapsed);
+  }, [collapsed, onCollapsedChange]);
+
+  // Follow URL-driven screen changes
   const [prevScreen, setPrevScreen] = useState(resolvedScreen);
   if (resolvedScreen !== prevScreen) {
     setPrevScreen(resolvedScreen);
@@ -65,21 +69,15 @@ export function ModuleSidebar({
     if (matched) setActiveModuleKey(matched.key);
   }
 
-  // A closed drawer must not come back up stuck on the drilled-in panel.
-  useEffect(() => {
-    if (!sidebarOpen) setDrillOpen(false);
-  }, [sidebarOpen]);
-
   useEffect(() => {
     if (!sidebarOpen) return;
     const handleKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (isMobile && drillOpen) setDrillOpen(false);
-      else setSidebarOpen(false);
+      setSidebarOpen(false);
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [sidebarOpen, drillOpen, isMobile, setSidebarOpen]);
+  }, [sidebarOpen, setSidebarOpen]);
 
   const toggleCollapsed = useCallback(() => {
     setCollapsed((prev) => {
@@ -87,87 +85,110 @@ export function ModuleSidebar({
       try {
         localStorage.setItem(COLLAPSED_STORAGE_KEY, next ? "1" : "0");
       } catch {
-        // storage unavailable — collapse just won't persist
+        // storage unavailable
       }
       return next;
     });
   }, []);
 
+  useEffect(() => {
+    const handleToggle = () => toggleCollapsed();
+    window.addEventListener("inkwelly_module_sidebar_toggle", handleToggle);
+    return () => window.removeEventListener("inkwelly_module_sidebar_toggle", handleToggle);
+  }, [toggleCollapsed]);
+
+  // Rail item selected: on mobile, just switch the active module (panel stays open).
+  // On desktop, expand if collapsed and navigate.
   const handleSelectModule = useCallback(
     (module: ModuleNavItem) => {
-      const alreadyActive = module.key === activeModuleKey;
       setActiveModuleKey(module.key);
 
       if (isMobile) {
-        // The drawer is too narrow for the rail and the panel side by side, so a
-        // second tap on the selected module drills into its sub-links. Without
-        // this they would be unreachable on a phone.
-        if (alreadyActive) {
-          setDrillOpen(true);
-          return;
+        // Switch panel content; don't close the drawer.
+        // If the module is a single direct item, navigate right away.
+        const totalItems = module.sections.flatMap((s) => s.items).length;
+        if (totalItems === 1) {
+          navigateTo(getDefaultScreen(module));
+          setSidebarOpen(false);
         }
-        navigateTo(getDefaultScreen(module));
-        setSidebarOpen(false);
         return;
       }
 
       if (collapsed) toggleCollapsed();
       navigateTo(getDefaultScreen(module));
     },
-    [activeModuleKey, isMobile, collapsed, toggleCollapsed, navigateTo, setSidebarOpen]
+    [isMobile, collapsed, toggleCollapsed, navigateTo, setSidebarOpen]
   );
 
+  // Panel toggle: on desktop collapses the panel; on mobile closes the drawer.
   const handlePanelToggle = useCallback(() => {
-    if (isMobile) setDrillOpen(false);
+    if (isMobile) setSidebarOpen(false);
     else toggleCollapsed();
-  }, [isMobile, toggleCollapsed]);
+  }, [isMobile, setSidebarOpen, toggleCollapsed]);
+
+  // Panel navigation: navigate and close sidebar on mobile.
+  const handlePanelNavigate = useCallback(
+    (screen: string) => {
+      navigateTo(screen);
+      if (isMobile) setSidebarOpen(false);
+    },
+    [navigateTo, isMobile, setSidebarOpen]
+  );
 
   if (!currentUser) return null;
 
   const activeModule = items.find((i) => i.key === activeModuleKey) ?? items[0];
   if (!activeModule) return null;
 
-  const showRail = !isMobile || !drillOpen;
-  const showPanel = isMobile ? drillOpen : !collapsed;
+  // On mobile: always show both rail and panel side-by-side (matches reference).
+  // On desktop: toggle via collapsed state.
+  const showPanel = isMobile ? true : !collapsed;
 
   return (
     <aside
       className={cn(
         "fixed lg:static inset-y-0 left-0 z-50 flex h-full overflow-hidden",
-        "rounded-r-2xl lg:rounded-r-none shadow-2xl lg:shadow-none",
-        // v4 emits translate-x-* as the `translate` property, not `transform`, so
-        // listing transform here would animate the fade but never the slide.
+        "rounded-r-2xl lg:rounded-none shadow-2xl lg:shadow-none bg-[#06231D]",
         "transition-[translate,opacity,width,visibility] duration-300 ease-out will-change-transform",
         "max-w-[calc(100vw-3.5rem)] lg:max-w-none",
         sidebarOpen ? "translate-x-0" : "-translate-x-full",
-        // display:none cannot be transitioned, so the dashboard exit collapses the
-        // column instead and lets the main content glide into the freed space.
-        // `invisible` (not `hidden`) keeps it out of the tab order once the fade ends.
         desktopHidden
           ? "lg:w-0 lg:min-w-0 lg:-translate-x-3 lg:opacity-0 lg:invisible"
           : "lg:w-auto lg:min-w-0 lg:translate-x-0 lg:opacity-100 lg:visible"
       )}
     >
-      {showRail && (
-        <ModuleRail
-          items={items}
-          activeModuleKey={activeModule.key}
-          tenantLogo={currentTenantLogo}
-          tenantName={currentTenantName}
-          collapsed={collapsed}
-          onExpand={toggleCollapsed}
-          onSelect={handleSelectModule}
-        />
-      )}
-      {showPanel && (
-        <ModulePanel
-          module={activeModule}
-          resolvedScreen={resolvedScreen}
-          onToggleCollapse={handlePanelToggle}
-          backToRail={isMobile}
-          onNavigate={navigateTo}
-        />
-      )}
+      {/* Rail — always visible */}
+      <ModuleRail
+        items={items}
+        activeModuleKey={activeModule.key}
+        tenantLogo={currentTenantLogo}
+        tenantName={currentTenantName}
+        collapsed={collapsed}
+        onExpand={toggleCollapsed}
+        onSelect={handleSelectModule}
+      />
+
+      {/* Panel with smooth slide animation on desktop, side-by-side on mobile */}
+      <div
+        className={cn(
+          "h-full overflow-hidden transition-[width,opacity] duration-300 ease-in-out shrink-0",
+          isMobile
+            ? "w-full"
+            : !collapsed
+            ? "w-[210px] opacity-100"
+            : "w-0 opacity-0 pointer-events-none"
+        )}
+      >
+        <div className="w-[210px] h-full lg:h-[calc(100%-16px)] lg:my-2 flex flex-col">
+          <ModulePanel
+            module={activeModule}
+            resolvedScreen={resolvedScreen}
+            onToggleCollapse={handlePanelToggle}
+            backToRail={isMobile}
+            onNavigate={handlePanelNavigate}
+          />
+        </div>
+      </div>
     </aside>
   );
 }

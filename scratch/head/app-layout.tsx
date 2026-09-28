@@ -301,7 +301,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { push } = useRouter();
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [sidebarPanelCollapsed, setSidebarPanelCollapsed] = useState(false);
 
   // Sync tenant context from slug
   const { data: resolvedTenant } = useTenantResolution(slug as string);
@@ -388,7 +387,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         !isMounted ? "opacity-0" : "opacity-100"
       )}>
         <PlatformNoticeBar />
-        <div className="flex-1 flex min-h-0 overflow-hidden bg-[#06231D]">
+        <div className="flex-1 flex min-h-0 overflow-hidden">
           <LoadingProgress />
         {/* Mobile overlay */}
 
@@ -415,7 +414,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             resolvedScreen={resolvedScreen}
             navigateTo={navigateTo}
             desktopHidden={hideRailOnDesktop}
-            onCollapsedChange={setSidebarPanelCollapsed}
           />
         ) : (
           <Sidebar
@@ -428,23 +426,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         )}
 
         {/* Main Content */}
-        <div className={cn(
-          "flex-1 flex flex-col min-w-0 overflow-hidden bg-background",
-          useModuleSidebar && hideRailOnDesktop && "lg:my-2 lg:mx-2 lg:h-[calc(100%-16px)] lg:rounded-[24px]",
-          useModuleSidebar && !hideRailOnDesktop && (
-            sidebarPanelCollapsed
-              ? "lg:my-2 lg:mr-2 lg:h-[calc(100%-16px)] lg:rounded-[24px]"
-              : "lg:my-2 lg:mr-2 lg:h-[calc(100%-16px)] lg:rounded-r-[24px]"
-          )
-        )}>
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Top Header */}
           <Header
             items={items}
             resolvedScreen={resolvedScreen}
             layoutPref={layoutPref}
             onPasswordChange={() => setIsChangePasswordOpen(true)}
-            sidebarPanelCollapsed={useModuleSidebar && !hideRailOnDesktop && sidebarPanelCollapsed}
-            onExpandSidebarPanel={() => window.dispatchEvent(new CustomEvent("inkwelly_module_sidebar_toggle"))}
           />
 
           {/* Page Content */}

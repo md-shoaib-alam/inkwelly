@@ -7,17 +7,15 @@ import { hasPermission } from '@/lib/permissions';
 import { navItems } from '@/components/layout/nav-config';
 import dynamic from 'next/dynamic';
 import { FullPageSkeleton } from "@/components/ui/full-page-skeleton";
-import { AdminDashboardSkeleton } from "@/modules/dashboard/components/adminDashboard/DashboardSkeleton";
 
 const LoadingScreen = () => <FullPageSkeleton />;
-const DashboardLoadingScreen = () => <AdminDashboardSkeleton />;
 
 const ParentHomework = dynamic(() => import('@/modules/assessment/components/ParentHomework').then(m => m.ParentHomework), { loading: LoadingScreen });
 const TeacherDashboard = dynamic(() => import('@/modules/dashboard/components/teacherDashboard/index').then(m => m.TeacherDashboard), { loading: LoadingScreen });
 const StudentDashboard = dynamic(() => import('@/modules/dashboard/components/StudentDashboard').then(m => m.StudentDashboard), { loading: LoadingScreen });
 const ParentDashboard = dynamic(() => import('@/modules/dashboard/components/ParentDashboard').then(m => m.ParentDashboard), { loading: LoadingScreen });
 const StaffDashboard = dynamic(() => import('@/modules/dashboard/components/staffDashboard/index').then(m => m.StaffDashboard), { loading: LoadingScreen });
-const AdminDashboard = dynamic(() => import('@/modules/dashboard/components/adminDashboard/index').then(m => m.AdminDashboard), { loading: DashboardLoadingScreen });
+const AdminDashboard = dynamic(() => import('@/modules/dashboard/components/adminDashboard/index').then(m => m.AdminDashboard), { loading: LoadingScreen });
 const SuperAdminDashboard = dynamic(() => import('@/modules/dashboard/components/SuperAdminDashboard').then(m => m.SuperAdminDashboard), { loading: LoadingScreen });
 const AdminStudents = dynamic(() => import('@/modules/people/components/AdminStudents').then(m => m.AdminStudents), { loading: LoadingScreen });
 const AdminTeachers = dynamic(() => import('@/modules/people/components/AdminTeachers').then(m => m.AdminTeachers), { loading: LoadingScreen });
@@ -203,9 +201,7 @@ export default function TenantScreenDispatcherClient() {
       case 'calendar': return <AdminCalendar />;
       case 'reports': return <AdminReports />;
       case 'roles': return <AdminRoles />;
-      case 'iam-dashboard':
-      case 'security-pin':
-      case 'seed-defaults': return <AdminIamDashboard />;
+      case 'iam-dashboard': return <AdminIamDashboard />;
       case 'permissions-catalog': return <AdminPermissionsCatalog />;
       case 'role-assignments': return <AdminRoleAssignments />;
       case 'staff': return <AdminStaff />;

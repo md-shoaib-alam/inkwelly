@@ -66,10 +66,10 @@ export function AdminDashboard() {
   }, [pinned, visibleCards]);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6">
+    <div className="mx-auto w-full max-w-7xl space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
       {(isExpired || isExpiringSoon) && (
         <div
-          className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-base leading-6 ${
+          className={`flex items-center gap-3 rounded-2xl border px-3.5 py-2 text-sm leading-5 ${
             isExpired
               ? "border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300"
               : "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300"
@@ -107,3 +107,6 @@ export function AdminDashboard() {
     </div>
   );
 }
+
+export { DashboardSkeleton, AdminDashboardSkeleton } from "./DashboardSkeleton";
+

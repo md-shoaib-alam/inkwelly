@@ -5,7 +5,7 @@ import { useAppStore } from "@/store/use-app-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Menu, ShieldCheck, School, Calendar, PanelLeftClose, PanelLeftOpen, LayoutDashboard, Crown, Settings as SettingsIcon, KeyRound, LogOut, ChevronDown, Sparkles } from "lucide-react";
+import { Menu, ShieldCheck, School, Calendar, PanelLeftClose, PanelLeftOpen, LayoutDashboard, Crown, Settings as SettingsIcon, KeyRound, LogOut, ChevronDown, Sparkles, ChevronRight } from "lucide-react";
 import { NotificationBell } from "./notification-bell";
 import { ThemeToggle } from "./theme-toggle";
 import { type NavItem, roleColors, roleLabels } from "./nav-config";
@@ -24,9 +24,18 @@ interface HeaderProps {
   resolvedScreen: string;
   layoutPref?: string | null;
   onPasswordChange?: () => void;
+  sidebarPanelCollapsed?: boolean;
+  onExpandSidebarPanel?: () => void;
 }
 
-export function Header({ items, resolvedScreen, layoutPref = "comprehensive", onPasswordChange }: HeaderProps) {
+export function Header({
+  items,
+  resolvedScreen,
+  layoutPref = "comprehensive",
+  onPasswordChange,
+  sidebarPanelCollapsed = false,
+  onExpandSidebarPanel,
+}: HeaderProps) {
   const { push, replace } = useRouter();
   const {
     currentUser,
@@ -119,8 +128,20 @@ export function Header({ items, resolvedScreen, layoutPref = "comprehensive", on
   };
 
   return (
-    <header className="shrink-0 z-30 bg-background/80 backdrop-blur-md border-b border-border px-2.5 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-3">
+    <header className="shrink-0 z-30 bg-background/80 backdrop-blur-md border-b border-border pl-[20px] pr-[16px] h-[56px] flex items-center justify-between gap-4">
       <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
+        {/* Expand Sidebar Panel Button when panel is collapsed */}
+        {sidebarPanelCollapsed && onExpandSidebarPanel && (
+          <button
+            type="button"
+            onClick={onExpandSidebarPanel}
+            aria-label="Show module navigation"
+            className="hidden lg:flex size-7 shrink-0 rounded-full border border-amber-400/80 dark:border-amber-500/60 bg-amber-50/80 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 items-center justify-center hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
+          >
+            <ChevronRight className="size-3.5" />
+          </button>
+        )}
+
         {!effectiveIsMinimal && (
           <Button
             type="button"
@@ -179,16 +200,18 @@ export function Header({ items, resolvedScreen, layoutPref = "comprehensive", on
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-        {/* The reference build ships an AI assistant here; the connector isn't built
-            in this app, so the control announces itself but stays inert. */}
+        {/* The reference build ships an AI assistant here */}
         <button
           type="button"
-          disabled
-          aria-label="Ask AI — coming soon"
-          className="hidden lg:flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-amber-200 bg-amber-50 text-[13px] font-semibold text-amber-700 cursor-not-allowed select-none dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-400/70"
+          aria-label="Ask AI"
+          style={{
+            background: "linear-gradient(135deg, #fffdf5 0%, #fef3d6 100%)",
+            borderColor: "#d69e2e80",
+          }}
+          className="ink-ask-ai hidden lg:inline-flex items-center gap-[7px] h-[36px] mr-[6px] pl-[11px] pr-[15px] rounded-full border text-[#c9912f] text-[13px] font-semibold shrink-0 relative overflow-hidden transition-[transform,border-color,background-color] duration-150 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#d69e2e]/50"
         >
-          <Sparkles className="size-3.5" />
-          Ask AI
+          <Sparkles className="size-3.5 text-[#c9912f] shrink-0" />
+          <span className="ink-ask-ai-label text-[13px] font-semibold leading-tight">Ask AI</span>
         </button>
         <NotificationBell />
         <ThemeToggle />
@@ -205,30 +228,26 @@ export function Header({ items, resolvedScreen, layoutPref = "comprehensive", on
                 variant="ghost"
                 className="size-8.5 sm:size-auto sm:h-10 p-0 sm:pl-1.5 sm:pr-3 sm:py-1 sm:gap-2.5 rounded-full border border-slate-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 hover:bg-slate-100/90 dark:hover:bg-zinc-800 shadow-2xs transition-all cursor-pointer group focus-visible:ring-0 shrink-0 flex items-center justify-center"
               >
-                <Avatar className={cn(
-                  "size-7 sm:size-7.5 cursor-pointer shadow-xs",
-                  currentUser.role === "super_admin"
-                    ? "ring-2 ring-blue-500/25"
-                    : currentUser.role === "admin"
-                    ? "ring-2 ring-emerald-500/25"
-                    : currentUser.role === "teacher"
-                    ? "ring-2 ring-blue-500/25"
-                    : currentUser.role === "staff"
-                    ? "ring-2 ring-orange-500/25"
-                    : currentUser.role === "student"
-                    ? "ring-2 ring-violet-500/25"
-                    : "ring-2 ring-amber-500/25"
-                )}>
-                  <AvatarImage src={currentUser.avatar} alt={currentUser.name} className="object-cover" />
-                  <AvatarFallback
-                    className={cn(
-                      "text-white text-[10px] sm:text-[11px] font-bold",
-                      roleColors[currentUser.role],
-                    )}
+                <div
+                  style={{
+                    background: "conic-gradient(from 200deg, #0d9488, #14b8a6, #f2c66d, #e6ae45, #0d9488)",
+                  }}
+                  className="ink-avatar-ring relative flex rounded-full p-[2px] shrink-0"
+                >
+                  <div
+                    style={{
+                      background: "linear-gradient(145deg, #134e4a 0%, #06201c 100%)",
+                      color: "#f2c66d",
+                    }}
+                    className="ink-avatar size-[30px] rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center text-[11px] font-semibold tracking-[0.02em] overflow-hidden shrink-0"
                   >
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                    {currentUser.avatar ? (
+                      <img src={currentUser.avatar} alt={currentUser.name} className="size-full object-cover" />
+                    ) : (
+                      initials
+                    )}
+                  </div>
+                </div>
                 <div className="hidden sm:flex flex-col text-left">
                   <span className="text-xs font-semibold text-slate-800 dark:text-zinc-100 leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                     {currentUser.name}

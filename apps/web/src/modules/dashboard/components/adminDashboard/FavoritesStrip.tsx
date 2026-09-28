@@ -1,8 +1,25 @@
 "use client";
 
-import { ArrowRight, Pin } from "lucide-react";
+import { ArrowRight, PinOff } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { TINT_CLASSES, type ModuleCard } from "./moduleCatalogue";
+import type { ModuleCard, ModuleTint } from "./moduleCatalogue";
+
+// Since FavoritesStrip is a dark navy container in both themes, pinned card icons
+// use the sleek dark-mode tint (subtle colored background + colored icon) instead of white/cream.
+const FAVORITE_TINT_CLASSES: Record<ModuleTint, string> = {
+  emerald: "bg-emerald-400/10 text-emerald-400",
+  green: "bg-green-400/10 text-green-400",
+  teal: "bg-teal-400/10 text-teal-400",
+  cyan: "bg-cyan-400/10 text-cyan-400",
+  blue: "bg-blue-400/10 text-blue-400",
+  indigo: "bg-indigo-400/10 text-indigo-400",
+  violet: "bg-violet-400/10 text-violet-400",
+  purple: "bg-purple-400/10 text-purple-400",
+  amber: "bg-amber-400/10 text-amber-400",
+  orange: "bg-orange-400/10 text-orange-400",
+  rose: "bg-rose-400/10 text-rose-400",
+  slate: "bg-zinc-800 text-zinc-300",
+};
 
 interface FavoritesStripProps {
   cards: ModuleCard[];
@@ -17,74 +34,88 @@ export function FavoritesStrip({ cards, onNavigate, onUnpin, onClearAll }: Favor
   return (
     <section
       aria-label="Favorites"
-      className="rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-6 dark:border-zinc-800 dark:bg-zinc-950"
+      className="rounded-2xl bg-[#0D1526] border border-white/[0.06] p-3.5 sm:p-4.5"
     >
-      <div className="flex items-start gap-3 pb-4">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
-          <Pin className="size-5" />
+      {/* Header row */}
+      <div className="flex items-center gap-2.5 mb-3">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/15 text-amber-400">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
+          </svg>
         </span>
-        <div className="min-w-0 flex-1">
-          <h2 className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-zinc-50">
-            Favorites
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-bold text-white leading-none">Favorites</h2>
+            <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-bold text-white/70 leading-none">
               {cards.length}
             </span>
-          </h2>
-          <p className="text-base leading-6 text-slate-900 dark:text-zinc-100">
+          </div>
+          <p className="text-[11px] text-slate-400 mt-0.5 truncate">
             Your quick-launch modules — pin any card below to keep it here.
           </p>
         </div>
         <button
           type="button"
           onClick={onClearAll}
-          className="shrink-0 rounded-lg px-2 py-1 text-[13px] font-medium text-slate-500 outline-none transition-colors hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-brand/50 dark:text-zinc-400 dark:hover:text-zinc-100"
+          className="shrink-0 text-[11px] font-medium text-slate-400 hover:text-white transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white/30 rounded px-1"
         >
           Clear all
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      {/* Grid: 1 col mobile → 2 col sm → 4 col lg */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
         {cards.map((card) => (
           <div
             key={card.id}
-            className={cn(
-              "group flex min-w-[15rem] flex-1 basis-56 items-center gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 dark:border-zinc-800 dark:bg-zinc-900/40",
-            )}
+            className="group/card relative flex items-center gap-3 rounded-xl border border-white/8 bg-white/5 px-3.5 py-3"
           >
+            {/* Unpin button — top-right on hover */}
+            <button
+              type="button"
+              onClick={() => onUnpin(card.id)}
+              aria-label={`Unpin ${card.title}`}
+              className="absolute -top-2 -right-2 flex size-5 items-center justify-center rounded-full bg-slate-700 text-slate-300 opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-slate-600 hover:text-white outline-none focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white/40 z-10 shadow-sm"
+            >
+              <PinOff className="size-3" />
+            </button>
+
+            {/* Icon bubble — dark mode tint (no white background) */}
             <span
               className={cn(
-                "flex size-10 shrink-0 items-center justify-center rounded-xl",
-                TINT_CLASSES[card.tint],
+                "flex size-9 shrink-0 items-center justify-center rounded-xl",
+                FAVORITE_TINT_CLASSES[card.tint],
               )}
             >
-              <card.icon className="size-5" />
+              <card.icon className="size-4.5" />
             </span>
+
+            {/* Text */}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-base font-semibold leading-6 text-slate-900 dark:text-zinc-50">
+              <p className="truncate text-[13px] font-bold leading-tight text-amber-400">
                 {card.title}
               </p>
-              <p className="truncate text-base leading-6 text-slate-900 dark:text-zinc-100">
+              <p className="truncate text-[11px] text-slate-400 mt-0.5">
                 {card.subtitle}
               </p>
             </div>
-            <div className="flex shrink-0 items-center gap-1">
-              <button
-                type="button"
-                onClick={() => onUnpin(card.id)}
-                aria-label={`Unpin ${card.title}`}
-                className="flex size-9 items-center justify-center rounded-full text-slate-400 outline-none transition-colors hover:bg-slate-200/70 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-brand/50 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-              >
-                <Pin className="size-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => onNavigate(card.screen as string)}
-                aria-label={`Open ${card.title}`}
-                className="flex size-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 outline-none transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-brand/50 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
-              >
-                <ArrowRight className="size-4" />
-              </button>
-            </div>
+
+            {/* Arrow */}
+            <button
+              type="button"
+              onClick={() => onNavigate(card.screen as string)}
+              aria-label={`Open ${card.title}`}
+              className="flex size-7 shrink-0 items-center justify-center rounded-full border border-white/15 text-slate-400 outline-none transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/30"
+            >
+              <ArrowRight className="size-3.5" />
+            </button>
           </div>
         ))}
       </div>

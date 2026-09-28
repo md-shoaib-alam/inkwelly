@@ -99,6 +99,12 @@ export interface ModuleCard {
    * reachable from the grid and from its parent module's panel, but not from the rail.
    */
   inRail?: boolean;
+  /**
+   * Unabbreviated name for the module panel header only. The rail column is 84px
+   * at 10px text, so a long `title` truncates there; this lets the panel spell the
+   * name out without touching the rail or the grid card.
+   */
+  panelTitle?: string;
 }
 
 // Order is the grid order: the dashboard renders this array as-is, and buildAdminRail()
@@ -120,7 +126,7 @@ export const moduleCatalogue: ModuleCard[] = [
   { id: "money-book", title: "Money Book", subtitle: "Income & expenses", icon: Wallet, tint: "green", screen: "expenses", permModule: "expenses", inRail: true },
   { id: "payroll", title: "Employee Payroll", subtitle: "Salary & payslips", icon: Banknote, tint: "violet", screen: null },
   { id: "student-fees", title: "Student Fees", subtitle: "Fees & receipts", icon: IndianRupee, tint: "cyan", screen: "fees", permModule: "fees", inRail: true },
-  { id: "transport", title: "Transport", subtitle: "Routes & tracking", icon: Bus, tint: "orange", screen: null },
+  { id: "transport", title: "Transport", subtitle: "Routes & tracking", icon: Bus, tint: "orange", screen: "transport-fee", inRail: true },
   { id: "school-store", title: "School Store", subtitle: "Uniforms & supplies", icon: Store, tint: "amber", screen: null },
 
   { id: "examinations", title: "Examinations", subtitle: "Exams & results", icon: ClipboardList, tint: "rose", screen: "exams", permModule: "exams", inRail: true },
@@ -153,7 +159,7 @@ export const moduleCatalogue: ModuleCard[] = [
   { id: "cms", title: "CMS", subtitle: "Website content", icon: Globe, tint: "orange", screen: null },
 
   { id: "users", title: "Users", subtitle: "Users & access", icon: UserCog, tint: "violet", screen: null },
-  { id: "iam", title: "IAM", subtitle: "Roles & permissions", icon: Shield, tint: "violet", screen: "iam-dashboard", inRail: true },
+  { id: "iam", title: "IAM", subtitle: "Roles & permissions", panelTitle: "Identity & Access Management", icon: Shield, tint: "violet", screen: "iam-dashboard", inRail: true },
   { id: "reports", title: "Reports", subtitle: "Exports & analytics", icon: BarChart3, tint: "violet", screen: "reports", permModule: "reports" },
   { id: "audit-logs", title: "Audit Logs", subtitle: "Activity trail", icon: ScrollText, tint: "indigo", screen: null },
   { id: "sports", title: "Sports", subtitle: "Events & scores", icon: Medal, tint: "slate", screen: null },

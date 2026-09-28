@@ -75,8 +75,6 @@ export interface ModuleNavItem {
   rootOnly?: boolean;
   /** Where the rail sends you when this module is selected. Falls back to the first sub-link. */
   defaultScreen?: string;
-  /** Spelled-out name for the panel header, when `label` is abbreviated for the rail. */
-  panelTitle?: string;
   sections: ModuleNavSection[];
 }
 
@@ -413,14 +411,14 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
       items: [
         { key: "roles", label: "Roles", icon: <Shield className={iconCls} /> },
         { key: "role-assignments", label: "Assignments", icon: <Users className={iconCls} /> },
-        { key: "security-pin", label: "Security", icon: <Fingerprint className={iconCls} />, badge: "NEW" },
+        { key: "security-pin", label: "Security", icon: <Fingerprint className={iconCls} />, badge: "NEW", disabled: true },
       ],
     },
     {
       label: "Utilities",
       items: [
         { key: "permissions-catalog", label: "Permissions Catalog", icon: <ListChecks className={iconCls} /> },
-        { key: "seed-defaults", label: "Seed Defaults", icon: <Wand2 className={iconCls} /> },
+        { key: "seed-defaults", label: "Seed Defaults", icon: <Wand2 className={iconCls} />, disabled: true },
       ],
     },
   ],
@@ -506,56 +504,6 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
       ],
     },
   ],
-  "student-fees": [
-    {
-      label: "Overview",
-      items: [
-        { key: "fees", label: "Dashboard", icon: <LayoutDashboard className={iconCls} /> },
-        { key: "fee-categories", label: "Fee Profiles", icon: <Tag className={iconCls} /> },
-        { key: "classes", label: "Classes", icon: <School className={iconCls} />, permModule: "classes" },
-      ],
-    },
-    {
-      label: "Collection",
-      items: [
-        { key: "invoices", label: "Invoices", icon: <FileText className={iconCls} />, disabled: true },
-        { key: "late-fees", label: "Late fees", icon: <Clock className={iconCls} />, disabled: true },
-        { key: "check-payments", label: "Payments", icon: <History className={iconCls} /> },
-        { key: "make-payment", label: "Collect Payment", icon: <Banknote className={iconCls} /> },
-        { key: "check-receipt", label: "Receipts", icon: <FileCheck className={iconCls} /> },
-        { key: "fee-status", label: "Fee Status", icon: <UserSearch className={iconCls} /> },
-        { key: "fee-concessions", label: "Concessions", icon: <Percent className={iconCls} /> },
-        { key: "transport-fee", label: "Transport Fee", icon: <Bus className={iconCls} /> },
-        { key: "cheques", label: "Cheques", icon: <TicketCheck className={iconCls} />, disabled: true },
-        { key: "reminders", label: "Reminders", icon: <Bell className={iconCls} />, disabled: true },
-      ],
-    },
-    {
-      label: "Refunds",
-      items: [
-        { key: "refunds", label: "Refunds", icon: <CreditCard className={iconCls} />, disabled: true },
-      ],
-    },
-    {
-      label: "Programs",
-      items: [
-        { key: "scholarships", label: "Scholarships", icon: <Award className={iconCls} />, disabled: true },
-        { key: "rte", label: "RTE", icon: <BookMarked className={iconCls} />, disabled: true },
-      ],
-    },
-    {
-      label: "Reports",
-      items: [
-        { key: "reports", label: "Reports", icon: <BarChart3 className={iconCls} />, permModule: "reports" },
-      ],
-    },
-    {
-      label: "Setup",
-      items: [
-        { key: "fee-configuration", label: "Configuration", icon: <Settings className={iconCls} />, disabled: true },
-      ],
-    },
-  ],
   examinations: [
     {
       label: "Overview",
@@ -584,63 +532,35 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
       ],
     },
   ],
+  "student-fees": [
+    {
+      label: "Operations",
+      items: [
+        { key: "fees", label: "Set Fees", icon: <Layers className={iconCls} /> },
+        { key: "fee-categories", label: "Fee Categories", icon: <Tag className={iconCls} /> },
+        { key: "fee-concessions", label: "Add Concession", icon: <Percent className={iconCls} /> },
+        { key: "transport-fee", label: "Transport Fee", icon: <Bus className={iconCls} /> },
+      ],
+    },
+    {
+      label: "Actions",
+      items: [
+        { key: "make-payment", label: "Make Payment", icon: <Banknote className={iconCls} /> },
+        { key: "check-receipt", label: "Check Receipt", icon: <FileCheck className={iconCls} /> },
+      ],
+    },
+    {
+      label: "Data",
+      items: [
+        { key: "fee-status", label: "Fee Status", icon: <UserSearch className={iconCls} /> },
+        { key: "check-payments", label: "Check Payments", icon: <History className={iconCls} /> },
+      ],
+    },
+  ],
   "money-book": [
     {
       label: "Overview",
       items: [{ key: "expenses", label: "Money Book", icon: <Wallet className={iconCls} /> }],
-    },
-  ],
-  transport: [
-    {
-      label: "Overview",
-      items: [
-        { key: "transport-dashboard", label: "Dashboard", icon: <LayoutDashboard className={iconCls} />, disabled: true },
-      ],
-    },
-    {
-      label: "Fleet",
-      items: [
-        { key: "vehicles", label: "Vehicles", icon: <Bus className={iconCls} />, disabled: true },
-        { key: "routes", label: "Routes", icon: <Map className={iconCls} />, disabled: true },
-        { key: "drivers", label: "Drivers", icon: <UserCheck className={iconCls} />, disabled: true },
-      ],
-    },
-    {
-      label: "Assignments",
-      items: [
-        { key: "transport-students", label: "Students", icon: <GraduationCap className={iconCls} />, disabled: true },
-        { key: "transport-employees", label: "Employees", icon: <Briefcase className={iconCls} />, disabled: true },
-        { key: "change-requests", label: "Change Requests", icon: <ListChecks className={iconCls} />, disabled: true },
-      ],
-    },
-    {
-      label: "Operations",
-      items: [
-        { key: "trips", label: "Trips", icon: <Clock className={iconCls} />, disabled: true },
-        { key: "transport-attendance", label: "Attendance", icon: <CalendarCheck className={iconCls} />, disabled: true },
-        { key: "transport-alerts", label: "Alerts", icon: <Bell className={iconCls} />, disabled: true },
-        { key: "complaints", label: "Complaints", icon: <TicketCheck className={iconCls} />, disabled: true },
-      ],
-    },
-    {
-      label: "Finance",
-      items: [
-        { key: "transport-invoices", label: "Invoices", icon: <FileText className={iconCls} />, disabled: true },
-        { key: "transport-payments", label: "Payments", icon: <Banknote className={iconCls} />, disabled: true },
-        { key: "transport-receipts", label: "Receipts", icon: <FileCheck className={iconCls} />, disabled: true },
-        { key: "transport-concessions", label: "Concessions", icon: <Percent className={iconCls} />, disabled: true },
-        { key: "fines", label: "Fines", icon: <TrendingUp className={iconCls} />, disabled: true },
-        { key: "transport-refunds", label: "Refunds", icon: <CreditCard className={iconCls} />, disabled: true },
-        { key: "fee-structures", label: "Fee Structures", icon: <Layers className={iconCls} />, disabled: true },
-        { key: "transport-fee", label: "Transport Fees", icon: <IndianRupee className={iconCls} /> },
-      ],
-    },
-    {
-      label: "Setup",
-      items: [
-        { key: "geofences", label: "Geofences", icon: <Shield className={iconCls} />, disabled: true },
-        { key: "transport-configuration", label: "Configuration", icon: <Settings className={iconCls} />, disabled: true },
-      ],
     },
   ],
 };
@@ -657,7 +577,6 @@ function moduleFromCard(card: ModuleCard): ModuleNavItem {
   return {
     key: card.id,
     label: card.title,
-    panelTitle: card.panelTitle,
     icon,
     permModule: card.permModule ?? null,
     defaultScreen: screen,
