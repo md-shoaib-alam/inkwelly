@@ -155,6 +155,12 @@ That is 34 folders: 25 bodies + 9 thin entries, and every one of the 43 live row
 in the `rows` column. `students/classes/` is deliberately absent — no such row exists at HEAD; Task 5
 adds the row and the folder together.
 
+**33 of those 34 are buildable now; `student-fees/classes/` is not.** A thin entry needs a dispatcher
+case that points at it, and `student-fees/classes` has none — one bare `case 'classes'` serves both
+modules until the sidebar emits qualified keys (routing Task 3). Creating the folder today would add a
+file no URL can reach, which decision 2 rules out. It lands with routing Task 3, and the plan records
+the deviation.
+
 Two notes the table makes unavoidable:
 
 - `StudentFees`, `ParentFees` and `ParentAttendance` look like they belong in these folders by their
@@ -192,6 +198,27 @@ the deltas are recorded rather than assumed:
 
 If their window lands more nav rows first, re-run the map before step 1 of §8; a row that arrives
 afterwards gets its folder in its own commit, following §10.
+
+### Cross-references, measured (not assumed)
+
+Two facts were grepped out of `HEAD` and they decide how the move can be scripted:
+
+- **The 25 moving bodies have exactly one importer in the whole app**: `tenant-screen-dispatcher.tsx`.
+  `generic-slug-dispatcher.tsx` touches **0** of them, and every `@/modules/…` reference from outside
+  `modules/` (the 8 non-dispatcher files) points at a super-admin, auth, dashboard or role screen —
+  none of which move. So the web rewrite is one file plus the moved subtrees' own relative imports.
+- **A parts folder moves only if every consumer moves with it.** Four folders fail that test and stay
+  exactly where they are today, referenced afterwards by `@/…`:
+
+  | stays | why |
+  |---|---|
+  | `assessment/components/adminExams/` | consumed by `AdminExams`, `AdminPrintMarksheet` **and** `StudentMarksheet` (a role screen) — cross-module, so it cannot follow either admin screen |
+  | `timetable/components/adminCalendar/` | consumed by `AdminCalendar` and `Parent/Student/TeacherCalendar` |
+  | `access-control/hooks/use-permissions.ts` | 12 consumers across 7 modules |
+  | `academics/hooks/use-academic-years.ts` | 7 consumers including `AdminPrintMarksheet` and `adminFees/SetFeesTab` |
+
+  Everything else is private and moves with its screen. `finance/hooks/use-fees.ts` counts as private
+  even though 9 files use it, because all 9 are parts of `AdminFees`.
 
 ### What does NOT move
 
@@ -232,12 +259,20 @@ read every table in the schema; filing them under `student-fees/` would make a c
 aggregator look like it belongs to fees. The web folder follows the sidebar (§4), the server folder
 follows the data. Stated so nobody has to rediscover the asymmetry.
 
-**GraphQL split.** `academics/academic.{typeDefs,resolvers}.ts` currently covers classes + subjects +
-promotions, and `finance/finance.{typeDefs,resolvers}.ts` covers fees + expenses. They split:
-promotions/graduation SDL → `students/`, expenses SDL → `money-book/`. Both aggregation files
-(`graphql/typeDefs/index.ts`, `graphql/resolvers/index.ts`) gain imports; the merged schema must be
-byte-identical in field names, which is verified by the existing route-resolution test plus a
-`SDL diff` step in the plan (print the composed schema before and after and diff).
+**GraphQL: there is no split to perform.** This section previously claimed
+`academic.{typeDefs,resolvers}.ts` covers "classes + subjects + promotions" and `finance.*` covers
+"fees + expenses", and that both need cutting in two. Read the files: `academic.typeDefs.ts` has **0**
+mentions of promotion or graduation (it declares `TenantDetail`, `TenantStudent`, `TenantTeacher`,
+`TenantParent`, `TenantClass`, `TenantFee`, `TenantAttendance`, `StaffAttendance`, `Subject`,
+`StaffMember`, `Event`, `AcademicYear`) and its resolver serves subjects, classes, teachers, students,
+staff, fees, parents, customRoles, staffAttendance, calendarEvents and academicYears. It is a
+cross-domain aggregator, the server twin of `data-io`, so it **stays in `academics/`** unchanged.
+`finance.typeDefs.ts` and `finance.resolvers.ts` have **0** mentions of fee — they are expenses only,
+so they move **whole** to `money-book/` and `student-fees/` takes only the four REST files
+(`fees.routes.ts`, `fee.service.ts`, `fee-receipt.service.ts`, `fees.types.ts`). No file is edited, no
+SDL is cut, and the composed schema cannot change — which removes the one step whose mistake would only
+surface at schema build. `promotions` reaches the server `students/` module through
+`promotions.routes.ts` alone.
 
 **Route paths and permission strings do not change.** `src/index.ts` rewires 37 module imports; the
 URLs it mounts stay identical.
@@ -252,7 +287,10 @@ URLs it mounts stay identical.
   registry guard. No new mechanism is introduced here.
 - **`screen-registry.test.ts`** counts lazy specifiers (69/25) and case keys (60/19) and resolves
   every `@/…` specifier against the filesystem. Case keys must not change during the restructure.
-  **Specifier counts rise by 9** (the thin entries) and every specifier text changes; the counts are
+  **Tenant specifier counts go 69 → 77**, not +9: eight thin entries get their own case
+  (`bulk-promote`, `graduated`, `staff-attendance`, `results-entry`, `published-results`,
+  `teacher-leaves`, `staff-leaves`, `transport-fee`) while the ninth, `student-fees/classes`, has no
+  case to point at until routing Task 3. Every remaining specifier text still changes. The counts are
   raised inside the plan step that does it, per that file's own rule that a count change is a
   deliberate act and never a side effect.
   Two pre-existing drifts to settle **before** step 1, or the restructure cannot tell its own drift
@@ -303,10 +341,13 @@ Then one commit per module folder, smallest first, each independently verifiable
 4. `employees/`
 5. `student-attendance/` + `employee-attendance/` + `leaves/`
 6. `student-fees/` (fees + reports + the classes thin entry)
-7. `money-book/`
+7. `money-book/` (web `expenses` folder + the whole-file move of `finance/finance.{typeDefs,resolvers}.ts`)
 8. `examinations/` + `homework/`
-9. GraphQL SDL split (`academic.*` → `students/`, `finance.*` → `money-book/`) with a composed-schema diff
-10. Sweep: delete emptied folders, fix any straggler import, re-run §7 across the repo
+9. Sweep: delete emptied folders, fix any straggler import, re-run §7 across the repo
+
+There is no GraphQL surgery step. §5 shows `academic.*` is a cross-domain aggregator that stays put and
+`finance.*` is expenses-only and moves whole, so no SDL is ever cut — the composed schema cannot
+change, and §7 step 3 (the route-resolution test, which builds the schema at boot) is what proves it.
 
 **After** step 10, the three deferred routing tasks resume in the new shape: Task 3 (sidebar emits
 qualified keys), Task 4 (bookmark convergence), Task 5 (the roster — which adds the
