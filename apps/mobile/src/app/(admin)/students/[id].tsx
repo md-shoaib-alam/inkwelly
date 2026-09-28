@@ -9,8 +9,8 @@ import { adminCache } from '@/lib/adminCache';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { DetailLoadingScreen } from '@/components/common/DetailLoadingScreen';
-import { StudentProfileView } from '@/components/students/profile';
-import type { Student } from '@/types';
+import { StudentProfileView } from '@/modules/people/components/students/profile/index';
+import type { Student } from '@/types/index';
 
 // In-memory cache for student details (5 minutes TTL)
 const studentDetailCache = new Map<string, { data: Student; timestamp: number }>();

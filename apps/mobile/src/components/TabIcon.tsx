@@ -1,6 +1,6 @@
 import React from 'react';
 import { SvgXml } from 'react-native-svg';
-import { tabIcons } from '../../assets/images/tabIcons';
+import { tabIcons } from '../../assets/images/tabIcons/index';
 
 interface TabIconProps {
   name: string;

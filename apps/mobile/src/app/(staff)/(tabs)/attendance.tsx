@@ -9,8 +9,8 @@ import { useAuth } from '@/store/auth-context';
 import { api } from '@/lib/api';
 
 // Reusing parent components for consistency
-import { AttendanceStats } from '@/components/parent/attendance/AttendanceStats';
-import { AttendanceCalendar } from '@/components/parent/attendance/AttendanceCalendar';
+import { AttendanceStats } from '@/modules/attendance/components/parentAttendance/AttendanceStats';
+import { AttendanceCalendar } from '@/modules/attendance/components/parentAttendance/AttendanceCalendar';
 
 export default function StaffAttendanceScreen() {
   const { user } = useAuth();

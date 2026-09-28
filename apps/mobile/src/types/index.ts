@@ -1,6 +1,6 @@
 /**
  * Central type definitions for the School Management App.
- * Import from '@/types' instead of using `any` across components.
+ * Import from '@/types/index' instead of using `any` across components.
  */
 
 // ── Auth / User ──────────────────────────────────────────────────────────────

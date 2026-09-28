@@ -12,8 +12,8 @@ import { Colors } from '@/constants/theme';
 import { useSettings } from '@/store/settings-context';
 
 // Subcomponents
-import { Child, Parent, StudentMin } from '@/components/admin/parents/types';
-import { ParentCard } from '@/components/admin/parents/ParentCard';
+import { Child, Parent, StudentMin } from '@/modules/people/components/adminParents/types';
+import { ParentCard } from '@/modules/people/components/adminParents/ParentCard';
 
 export default function ParentsScreen() {
   const router = useRouter();

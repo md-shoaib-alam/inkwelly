@@ -9,7 +9,7 @@ import { Colors } from '@/constants/theme';
 import { useSettings } from '@/store/settings-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import type { StudentProfile, GradeRecord } from '@/types';
+import type { StudentProfile, GradeRecord } from '@/types/index';
 
 interface AcademicYear { id: string; name: string; [key: string]: any; }
 interface Exam { id: string; name: string; [key: string]: any; }

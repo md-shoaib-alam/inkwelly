@@ -7,7 +7,7 @@ import { useSettings } from '@/store/settings-context';
 import { Ionicons } from '@expo/vector-icons';
 
 // Sub-components
-import { TaskList } from '@/components/staff/TaskList';
+import { TaskList } from '@/modules/dashboard/components/StaffTaskList';
 
 export default function StaffTasksScreen() {
   const { activeTheme } = useSettings();

@@ -9,8 +9,8 @@ import { adminCache } from '@/lib/adminCache';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { DetailLoadingScreen } from '@/components/common/DetailLoadingScreen';
-import { ParentProfileView } from '@/components/admin/parents/profile';
-import type { Parent, Child } from '@/components/admin/parents/types';
+import { ParentProfileView } from '@/modules/people/components/adminParents/profile/index';
+import type { Parent, Child } from '@/modules/people/components/adminParents/types';
 import { Portal, Dialog, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 

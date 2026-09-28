@@ -1,1 +1,1 @@
-export { default } from '@/components/dashboard/CommonDashboard';
+export { default } from '@/modules/dashboard/components/CommonDashboard';

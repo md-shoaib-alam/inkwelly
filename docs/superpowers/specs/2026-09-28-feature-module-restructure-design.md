@@ -1,7 +1,7 @@
 # Feature-Module Restructure — Design
 
 Date: 2026-09-28
-Status: server + web complete (web: 15 modules, no barrels, guard test green; server has boundary lint) — mobile pending, web boundary lint pending
+Status: all three apps relocated (server 16 modules + boundary lint; web 15; mobile 14) — remaining: web boundary lint, mobile boundary lint, oversized-file pass
 Scope: `apps/web`, `apps/server`, `apps/mobile` inside the `@inkwelly` turborepo
 
 ## 1. Problem
@@ -197,3 +197,27 @@ are byte-identical.
    `turbo run lint` fails with `Invalid project directory provided, no such directory: apps/web/lint`
    both before and after this change. Adding web boundary lint therefore requires replacing the script
    with a direct `eslint src` first, the same way `apps/server` was wired.
+
+## 13. Mobile result — and the gap that only a bundle catches
+
+188 files into 14 modules (`assessment` got 2, `platform` 1; no `data-io`/`transport` surfaces exist
+in mobile). Verified with `typecheck` across all three apps plus a real Metro bundle
+(`expo export --platform ios`, 2589 modules, exit 0) — the bundle is mobile's equivalent of web's
+`next build`, and it is what caught the one thing typecheck could not.
+
+**A moved file's relative `require()` of an asset broke silently.** `components/dashboard/WelcomeBanner.tsx`
+used `require('../../../assets/images/icon.png')`, which pointed at `apps/mobile/assets/` from its
+old depth and at nonexistent `src/assets/` from its new one. TypeScript never resolves `require()`
+strings against the filesystem, so `typecheck` stayed green and `expo config` loaded fine; only
+bundling failed. Both relocators now match `require('…')` alongside `from`, `import()` and bare
+`import`. Lesson for any mechanical import rewrite: the specifier forms to cover are
+`from`, `import()`, bare `import`, **and** `require()` — and a green `typecheck` is not proof the
+runtime module graph resolves.
+
+Kept out of `modules/` on purpose: `components/ui`, `components/providers`, `components/common`,
+`components/onboarding`, `themed-*`, and the app-shell pieces with no domain (`GlobalErrorBoundary`,
+`GlobalOfflineGuard`, `NetworkStatusBar`, `OfflineState`, `Skeleton`, `TabIcon`), plus
+`store/`, `lib/`, `hooks/`, `types/`, `constants/` as shared layers (rule 2).
+`store/protected-route.tsx` was **not** deleted: it is a working role guard (`ProtectedRoute`,
+expo-router `Redirect` + `useAuth`), unreferenced because mobile's routes guard themselves. That is
+the human check plan Task 2 step 2 asked for — it moved to `modules/auth/ProtectedRoute.tsx`.

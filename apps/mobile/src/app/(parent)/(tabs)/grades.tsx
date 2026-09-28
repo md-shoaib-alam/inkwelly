@@ -9,9 +9,9 @@ import { useAuth } from '@/store/auth-context';
 import { api } from '@/lib/api';
 
 // Sub-components
-import { ChildSelector } from '@/components/parent/ChildSelector';
-import { GradesSummary } from '@/components/parent/grades/GradesSummary';
-import { GradesList } from '@/components/parent/grades/GradesList';
+import { ChildSelector } from '@/modules/people/components/ParentChildSelector';
+import { GradesSummary } from '@/modules/assessment/components/parentGrades/GradesSummary';
+import { GradesList } from '@/modules/assessment/components/parentGrades/GradesList';
 import { Skeleton } from '@/components/Skeleton';
 
 export default function ParentGradesScreen() {

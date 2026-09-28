@@ -11,9 +11,9 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { format } from 'date-fns';
 
 // Sub-components
-import { ChildSelector } from '@/components/parent/ChildSelector';
-import { TodayAttendanceCard } from '@/components/attendance/TodayAttendanceCard';
-import { AttendanceSkeleton } from '@/components/attendance/AttendanceSkeleton';
+import { ChildSelector } from '@/modules/people/components/ParentChildSelector';
+import { TodayAttendanceCard } from '@/modules/attendance/components/TodayAttendanceCard';
+import { AttendanceSkeleton } from '@/modules/attendance/components/AttendanceSkeleton';
 import { Skeleton } from '@/components/Skeleton';
 
 export default function ParentAttendanceScreen() {

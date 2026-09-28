@@ -5,11 +5,11 @@ import { useSettings } from '@/store/settings-context';
 import { Colors } from '@/constants/theme';
 import { api } from '@/lib/api';
 import { adminCache } from '@/lib/adminCache';
-import { AddParentScreen } from '@/components/admin/parents/AddParentScreen';
+import { AddParentScreen } from '@/modules/people/components/adminParents/AddParentScreen';
 import {
   ParentCreatedSuccessDialog,
   ParentCreatedData,
-} from '@/components/admin/parents/ParentCreatedSuccessDialog';
+} from '@/modules/people/components/adminParents/ParentCreatedSuccessDialog';
 import { Portal, Dialog, Button } from 'react-native-paper';
 import { ThemedText } from '@/components/themed-text';
 

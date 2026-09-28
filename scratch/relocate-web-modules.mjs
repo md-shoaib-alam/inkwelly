@@ -221,9 +221,10 @@ for (const [from, to] of moves) {
 }
 
 // ------------------------------------------------------------- import rewrite
-// Covers `from '…'`, `import('…')` and bare side-effect `import '…'`. Missing the dynamic
-// form cost a stale-depth bug on the server pass, so it stays in this regex deliberately.
-const SPEC_RE = /(\bfrom\s+|\bimport\s*\(\s*|\bimport\s+)(['"])((?:\.{1,2}\/|@\/)[^'"]+)\2/g;
+// Covers `from '…'`, `import('…')`, bare side-effect `import '…'` and `require('…')`. Missing the
+// dynamic form cost a stale-depth bug on the server pass, and the mobile pass proved require() has
+// to be here too — React Native loads assets that way and tsc never complains about a bad depth.
+const SPEC_RE = /(\bfrom\s+|\bimport\s*\(\s*|\bimport\s+|\brequire\s*\(\s*)(['"])((?:\.{1,2}\/|@\/)[^'"]+)\2/g;
 
 function resolveSpecifier(fromAbs, spec) {
   const base = spec.startsWith('@/') ? join(SRC, spec.slice(2)) : resolve(dirname(fromAbs), spec);

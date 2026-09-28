@@ -6,35 +6,35 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 // Sub-components
-import { FeeStatusTab } from '@/components/admin/fees/FeeStatusTab';
-import { StudentFeeStatusTab } from '@/components/admin/fees/StudentFeeStatusTab';
-import { CollectFeeTab } from '@/components/admin/fees/CollectFeeTab';
-import { ReceiptsTab } from '@/components/admin/fees/ReceiptsTab';
-import { ConcessionsTab } from '@/components/admin/fees/ConcessionsTab';
-import { SetFeesTab } from '@/components/admin/fees/SetFeesTab';
-import { CategoriesTab } from '@/components/admin/fees/CategoriesTab';
-import { TransportTab } from '@/components/admin/fees/TransportTab';
+import { FeeStatusTab } from '@/modules/finance/components/adminFees/FeeStatusTab';
+import { StudentFeeStatusTab } from '@/modules/finance/components/adminFees/StudentFeeStatusTab';
+import { CollectFeeTab } from '@/modules/finance/components/adminFees/CollectFeeTab';
+import { ReceiptsTab } from '@/modules/finance/components/adminFees/ReceiptsTab';
+import { ConcessionsTab } from '@/modules/finance/components/adminFees/ConcessionsTab';
+import { SetFeesTab } from '@/modules/finance/components/adminFees/SetFeesTab';
+import { CategoriesTab } from '@/modules/finance/components/adminFees/CategoriesTab';
+import { TransportTab } from '@/modules/finance/components/adminFees/TransportTab';
 import { Skeleton } from '@/components/Skeleton';
 
 // Dialog components
-import { StudentPickerDialog } from '@/components/admin/fees/dialogs/StudentPickerDialog';
-import { CategoryPickerDialog } from '@/components/admin/fees/dialogs/CategoryPickerDialog';
-import { ClassPickerDialog } from '@/components/admin/fees/dialogs/ClassPickerDialog';
-import { AcademicYearPickerDialog } from '@/components/admin/fees/dialogs/AcademicYearPickerDialog';
-import { ConcessionDialog } from '@/components/admin/fees/dialogs/ConcessionDialog';
-import { TransactionSuccessDialog } from '@/components/admin/fees/dialogs/TransactionSuccessDialog';
-import { AddManualFeeDialog } from '@/components/admin/fees/dialogs/AddManualFeeDialog';
-import { DueDateCalendarPickerDialog } from '@/components/admin/fees/dialogs/DueDateCalendarPickerDialog';
-import { StructureDialog } from '@/components/admin/fees/dialogs/StructureDialog';
-import { CategoryDialog } from '@/components/admin/fees/dialogs/CategoryDialog';
-import { EditStructureDialog } from '@/components/admin/fees/dialogs/EditStructureDialog';
-import { AssignDialog } from '@/components/admin/fees/dialogs/AssignDialog';
-import { ReceiptDetailDialog } from '@/components/admin/fees/dialogs/ReceiptDetailDialog';
-import { CustomAlertDialog } from '@/components/admin/fees/dialogs/CustomAlertDialog';
+import { StudentPickerDialog } from '@/modules/finance/components/adminFees/dialogs/StudentPickerDialog';
+import { CategoryPickerDialog } from '@/modules/finance/components/adminFees/dialogs/CategoryPickerDialog';
+import { ClassPickerDialog } from '@/modules/finance/components/adminFees/dialogs/ClassPickerDialog';
+import { AcademicYearPickerDialog } from '@/modules/finance/components/adminFees/dialogs/AcademicYearPickerDialog';
+import { ConcessionDialog } from '@/modules/finance/components/adminFees/dialogs/ConcessionDialog';
+import { TransactionSuccessDialog } from '@/modules/finance/components/adminFees/dialogs/TransactionSuccessDialog';
+import { AddManualFeeDialog } from '@/modules/finance/components/adminFees/dialogs/AddManualFeeDialog';
+import { DueDateCalendarPickerDialog } from '@/modules/finance/components/adminFees/dialogs/DueDateCalendarPickerDialog';
+import { StructureDialog } from '@/modules/finance/components/adminFees/dialogs/StructureDialog';
+import { CategoryDialog } from '@/modules/finance/components/adminFees/dialogs/CategoryDialog';
+import { EditStructureDialog } from '@/modules/finance/components/adminFees/dialogs/EditStructureDialog';
+import { AssignDialog } from '@/modules/finance/components/adminFees/dialogs/AssignDialog';
+import { ReceiptDetailDialog } from '@/modules/finance/components/adminFees/dialogs/ReceiptDetailDialog';
+import { CustomAlertDialog } from '@/modules/finance/components/adminFees/dialogs/CustomAlertDialog';
 
 // Hooks & Styles
-import { useFees, TabType } from '@/components/admin/fees/useFees';
-import { styles } from '@/components/admin/fees/fees.styles';
+import { useFees, TabType } from '@/modules/finance/components/adminFees/useFees';
+import { styles } from '@/modules/finance/components/adminFees/fees.styles';
 
 import { useAuth } from '@/store/auth-context';
 

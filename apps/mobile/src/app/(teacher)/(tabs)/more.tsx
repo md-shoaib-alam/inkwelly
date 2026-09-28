@@ -7,9 +7,9 @@ import { useAuth } from '@/store/auth-context';
 import { Colors } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import { useSettings, ThemeMode } from '@/store/settings-context';
-import { ChangePasswordModal } from '@/components/ChangePasswordModal';
-import { ProfileCard } from '@/components/ProfileCard';
-import { AboutAppModal } from '@/components/AboutAppModal';
+import { ChangePasswordModal } from '@/modules/auth/components/ChangePasswordModal';
+import { ProfileCard } from '@/modules/auth/components/ProfileCard';
+import { AboutAppModal } from '@/modules/platform/components/AboutAppModal';
 import { Portal, Dialog, Button } from 'react-native-paper';
 
 export default function TeacherMoreScreen() {

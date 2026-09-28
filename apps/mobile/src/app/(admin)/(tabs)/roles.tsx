@@ -8,10 +8,10 @@ import { useAuth } from '@/store/auth-context';
 import { api } from '@/lib/api';
 import { Colors } from '@/constants/theme';
 import { useSettings } from '@/store/settings-context';
-import { RoleRecord, StaffMember } from '@/components/admin/roles/types';
-import { RoleCard } from '@/components/admin/roles/RoleCard';
-import { AddRoleDialog } from '@/components/admin/roles/AddRoleDialog';
-import { AssignStaffDialog } from '@/components/admin/roles/AssignStaffDialog';
+import { RoleRecord, StaffMember } from '@/modules/access-control/components/adminRoles/types';
+import { RoleCard } from '@/modules/access-control/components/adminRoles/RoleCard';
+import { AddRoleDialog } from '@/modules/access-control/components/adminRoles/AddRoleDialog';
+import { AssignStaffDialog } from '@/modules/access-control/components/adminRoles/AssignStaffDialog';
 
 export default function RolesScreen() {
   const { user } = useAuth();

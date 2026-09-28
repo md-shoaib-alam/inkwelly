@@ -9,11 +9,11 @@ import { useAuth } from '@/store/auth-context';
 import { api } from '@/lib/api';
 import { adminCache } from '@/lib/adminCache';
 import { Colors } from '@/constants/theme';
-import { ClassSelector } from '@/components/admin/ClassSelector';
+import { ClassSelector } from '@/modules/academics/components/AdminClassSelector';
 import { useSettings } from '@/store/settings-context';
 import { useLocalSearchParams, useFocusEffect, useRouter } from 'expo-router';
-import { Student } from '@/components/admin/students/types';
-import { StudentCard } from '@/components/admin/students/StudentCard';
+import { Student } from '@/modules/people/components/adminStudents/types';
+import { StudentCard } from '@/modules/people/components/adminStudents/StudentCard';
 import { Skeleton } from '@/components/Skeleton';
 
 export default function StudentsScreen() {

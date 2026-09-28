@@ -12,7 +12,7 @@ const ThemedText = (props: React.ComponentProps<typeof BaseThemedText>) => (
     {...props} 
   />
 );
-import type { ThemeColors } from '@/types';
+import type { ThemeColors } from '@/types/index';
 
 interface ParentSlideProps {
   colors: ThemeColors;

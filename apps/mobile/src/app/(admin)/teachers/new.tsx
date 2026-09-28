@@ -5,7 +5,7 @@ import { useSettings } from '@/store/settings-context';
 import { Colors } from '@/constants/theme';
 import { api } from '@/lib/api';
 import { adminCache } from '@/lib/adminCache';
-import { AddTeacherScreen } from '@/components/admin/teachers/AddTeacherScreen';
+import { AddTeacherScreen } from '@/modules/people/components/adminTeachers/AddTeacherScreen';
 import { Portal, Dialog, Button } from 'react-native-paper';
 import { ThemedText } from '@/components/themed-text';
 

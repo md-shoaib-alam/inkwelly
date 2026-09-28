@@ -9,9 +9,9 @@ import { Colors } from '@/constants/theme';
 import { useSettings } from '@/store/settings-context';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
-import { TodayAttendanceCard } from '@/components/attendance/TodayAttendanceCard';
+import { TodayAttendanceCard } from '@/modules/attendance/components/TodayAttendanceCard';
 import { Skeleton } from '@/components/Skeleton';
-import type { StudentProfile, AttendanceRecord } from '@/types';
+import type { StudentProfile, AttendanceRecord } from '@/types/index';
 
 export default function StudentAttendanceScreen() {
   const { user } = useAuth();

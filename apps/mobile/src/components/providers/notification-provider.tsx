@@ -5,7 +5,7 @@ import * as Device from 'expo-device';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/store/auth-context';
 import { api } from '@/lib/api';
-import type { NotificationPayload } from '@/types';
+import type { NotificationPayload } from '@/types/index';
 
 // Configure how to handle notifications when the app is in foreground
 if (Platform.OS !== 'web') {

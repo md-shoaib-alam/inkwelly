@@ -16,9 +16,9 @@ import {
   UPDATE_ACADEMIC_YEAR, 
   DELETE_ACADEMIC_YEAR, 
   SET_CURRENT_ACADEMIC_YEAR 
-} from '@/components/admin/academic-years/types';
-import { AcademicYearCard } from '@/components/admin/academic-years/AcademicYearCard';
-import { AddAcademicYearDialog } from '@/components/admin/academic-years/AddAcademicYearDialog';
+} from '@/modules/academics/components/adminAcademicYears/types';
+import { AcademicYearCard } from '@/modules/academics/components/adminAcademicYears/AcademicYearCard';
+import { AddAcademicYearDialog } from '@/modules/academics/components/adminAcademicYears/AddAcademicYearDialog';
 
 export default function AcademicYearsScreen() {
   const { user } = useAuth();

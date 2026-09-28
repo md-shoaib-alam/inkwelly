@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
 import { setAuthSession, registerOnUnauthorized, serverLogout, storeRefreshToken, removeRefreshToken, REFRESH_TOKEN_KEY, api } from '@/lib/api';
-import type { DashboardData, ParentDashboardData } from '@/types';
+import type { DashboardData, ParentDashboardData } from '@/types/index';
 
 export type UserRole = 'super_admin' | 'admin' | 'teacher' | 'student' | 'parent' | 'staff';
 

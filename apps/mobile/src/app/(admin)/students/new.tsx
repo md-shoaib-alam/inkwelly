@@ -5,7 +5,7 @@ import { useSettings } from '@/store/settings-context';
 import { Colors } from '@/constants/theme';
 import { api } from '@/lib/api';
 import { adminCache } from '@/lib/adminCache';
-import { AddStudentScreen, StudentFormData } from '@/components/admin/students/AddStudentScreen';
+import { AddStudentScreen, StudentFormData } from '@/modules/people/components/adminStudents/AddStudentScreen';
 import { Portal, Dialog, Button } from 'react-native-paper';
 import { ThemedText } from '@/components/themed-text';
 

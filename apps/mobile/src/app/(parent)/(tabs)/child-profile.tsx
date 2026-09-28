@@ -11,7 +11,7 @@ import { useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
 // Sub-components
-import { ChildSelector } from '@/components/parent/ChildSelector';
+import { ChildSelector } from '@/modules/people/components/ParentChildSelector';
 import { Skeleton } from '@/components/Skeleton';
 
 const PARENT_DASHBOARD_QUERY = `

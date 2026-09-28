@@ -8,9 +8,9 @@ import { Colors } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import { useSettings, ThemeMode } from '@/store/settings-context';
 import { api } from '@/lib/api';
-import { ChangePasswordModal } from '@/components/ChangePasswordModal';
-import { AboutAppModal } from '@/components/AboutAppModal';
-import { ProfileCard } from '@/components/ProfileCard';
+import { ChangePasswordModal } from '@/modules/auth/components/ChangePasswordModal';
+import { AboutAppModal } from '@/modules/platform/components/AboutAppModal';
+import { ProfileCard } from '@/modules/auth/components/ProfileCard';
 
 export default function ParentMoreScreen() {
   const { user, logout } = useAuth();

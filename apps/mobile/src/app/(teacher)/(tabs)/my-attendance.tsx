@@ -19,20 +19,20 @@ import { useSettings } from '@/store/settings-context';
 import { useAuth } from '@/store/auth-context';
 import { api } from '@/lib/api';
 
-import { AttendanceRecordItem } from '@/components/teacher/my-attendance/types';
+import { AttendanceRecordItem } from '@/modules/attendance/components/teacherMyAttendance/types';
 import {
   formatLocalDate,
   calculateAttendanceMetrics,
   MONTH_NAMES,
-} from '@/components/teacher/my-attendance/utils';
-import { MonthlyMetricCards } from '@/components/teacher/my-attendance/MonthlyMetricCards';
-import { AttendanceCalendar } from '@/components/teacher/my-attendance/AttendanceCalendar';
-import { TodayAttendanceCard } from '@/components/teacher/my-attendance/TodayAttendanceCard';
-import { AttendanceBreakdownCard } from '@/components/teacher/my-attendance/AttendanceBreakdownCard';
-import { RecentAttendanceList } from '@/components/teacher/my-attendance/RecentAttendanceList';
-import { AttendanceHistoryModal } from '@/components/teacher/my-attendance/AttendanceHistoryModal';
-import { AttendanceSkeleton } from '@/components/teacher/my-attendance/AttendanceSkeleton';
-import { TeacherQRScanModal } from '@/components/teacher/TeacherQRScanModal';
+} from '@/modules/attendance/components/teacherMyAttendance/utils';
+import { MonthlyMetricCards } from '@/modules/attendance/components/teacherMyAttendance/MonthlyMetricCards';
+import { AttendanceCalendar } from '@/modules/attendance/components/teacherMyAttendance/AttendanceCalendar';
+import { TodayAttendanceCard } from '@/modules/attendance/components/teacherMyAttendance/TodayAttendanceCard';
+import { AttendanceBreakdownCard } from '@/modules/attendance/components/teacherMyAttendance/AttendanceBreakdownCard';
+import { RecentAttendanceList } from '@/modules/attendance/components/teacherMyAttendance/RecentAttendanceList';
+import { AttendanceHistoryModal } from '@/modules/attendance/components/teacherMyAttendance/AttendanceHistoryModal';
+import { AttendanceSkeleton } from '@/modules/attendance/components/teacherMyAttendance/AttendanceSkeleton';
+import { TeacherQRScanModal } from '@/modules/attendance/components/TeacherQRScanModal';
 
 export default function TeacherMyAttendanceScreen() {
   const router = useRouter();

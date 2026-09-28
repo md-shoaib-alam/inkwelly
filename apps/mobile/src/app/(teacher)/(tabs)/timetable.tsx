@@ -1,1 +1,1 @@
-export { default } from '@/components/timetable/TeacherTimetable';
+export { default } from '@/modules/timetable/components/TeacherTimetable';

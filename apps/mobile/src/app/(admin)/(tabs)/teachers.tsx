@@ -12,9 +12,9 @@ import { Colors } from '@/constants/theme';
 import { useSettings } from '@/store/settings-context';
 
 // Subcomponents
-import { Teacher } from '@/components/admin/teachers/types';
-import { TeacherCard } from '@/components/admin/teachers/TeacherCard';
-import { AddTeacherScreen } from '@/components/admin/teachers/AddTeacherScreen';
+import { Teacher } from '@/modules/people/components/adminTeachers/types';
+import { TeacherCard } from '@/modules/people/components/adminTeachers/TeacherCard';
+import { AddTeacherScreen } from '@/modules/people/components/adminTeachers/AddTeacherScreen';
 
 export default function TeachersScreen() {
   const router = useRouter();

@@ -7,7 +7,7 @@ import { useAuth } from '@/store/auth-context';
 import { api } from '@/lib/api';
 import { Colors } from '@/constants/theme';
 import { useSettings } from '@/store/settings-context';
-import { ProfileCard } from '@/components/ProfileCard';
+import { ProfileCard } from '@/modules/auth/components/ProfileCard';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';

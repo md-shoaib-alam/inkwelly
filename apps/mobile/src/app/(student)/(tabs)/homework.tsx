@@ -8,7 +8,7 @@ import { api } from '@/lib/api';
 import { Colors } from '@/constants/theme';
 import { useSettings } from '@/store/settings-context';
 import { useRouter } from 'expo-router';
-import type { StudentProfile, HomeworkItem, SubmissionItem } from '@/types';
+import type { StudentProfile, HomeworkItem, SubmissionItem } from '@/types/index';
 
 export default function StudentHomeworkScreen() {
   const { user } = useAuth();

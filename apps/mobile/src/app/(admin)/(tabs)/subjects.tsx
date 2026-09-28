@@ -10,10 +10,10 @@ import { Colors } from '@/constants/theme';
 import { useSettings } from '@/store/settings-context';
 
 // Sub-components
-import { SubjectFilters } from '@/components/admin/subjects/SubjectFilters';
-import { SubjectCard, SubjectInfo } from '@/components/admin/subjects/SubjectList';
-import { SubjectDialogs } from '@/components/admin/subjects/SubjectDialogs';
-import { SelectClassGrid } from '@/components/admin/subjects/SelectClassGrid';
+import { SubjectFilters } from '@/modules/academics/components/adminSubjects/SubjectFilters';
+import { SubjectCard, SubjectInfo } from '@/modules/academics/components/adminSubjects/SubjectList';
+import { SubjectDialogs } from '@/modules/academics/components/adminSubjects/SubjectDialogs';
+import { SelectClassGrid } from '@/modules/academics/components/adminSubjects/SelectClassGrid';
 
 interface ClassInfo {
   id: string;

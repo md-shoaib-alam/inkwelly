@@ -8,9 +8,9 @@ import { ThemedView } from '@/components/themed-view';
 import { api } from '@/lib/api';
 import { Colors } from '@/constants/theme';
 import { useSettings } from '@/store/settings-context';
-import { LeaveRequest, STATUS_CONFIG, LEAVE_TYPE_CONFIG } from '@/components/admin/leaves/types';
-import { LeaveRequestCard } from '@/components/admin/leaves/LeaveRequestCard';
-import { LeaveActionDialog } from '@/components/admin/leaves/LeaveActionDialog';
+import { LeaveRequest, STATUS_CONFIG, LEAVE_TYPE_CONFIG } from '@/modules/attendance/components/adminLeaves/types';
+import { LeaveRequestCard } from '@/modules/attendance/components/adminLeaves/LeaveRequestCard';
+import { LeaveActionDialog } from '@/modules/attendance/components/adminLeaves/LeaveActionDialog';
 
 export default function StudentLeavesScreen() {
   const { activeTheme } = useSettings();

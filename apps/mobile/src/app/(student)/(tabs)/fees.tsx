@@ -10,7 +10,7 @@ import { useSettings } from '@/store/settings-context';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
-import { FeeSummary } from '@/components/parent/fees/FeeSummary';
+import { FeeSummary } from '@/modules/finance/components/parentFees/FeeSummary';
 import { Skeleton } from '@/components/Skeleton';
 
 const formatFeeDate = (dateStr?: string) => {

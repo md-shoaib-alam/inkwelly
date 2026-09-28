@@ -11,12 +11,12 @@ import { Colors } from '@/constants/theme';
 import { useSettings } from '@/store/settings-context';
 
 // Subcomponents
-import { CertificateRecord } from '@/components/admin/certificates/types';
-import { handlePrintCertificate } from '@/components/admin/certificates/printHelper';
-import { CertificateCard } from '@/components/admin/certificates/CertificateCard';
-import { GenerateCertificateDialog } from '@/components/admin/certificates/GenerateCertificateDialog';
-import { RevokeCertificateDialog } from '@/components/admin/certificates/RevokeCertificateDialog';
-import { ViewCertificateDialog } from '@/components/admin/certificates/ViewCertificateDialog';
+import { CertificateRecord } from '@/modules/certificates/components/adminCertificates/types';
+import { handlePrintCertificate } from '@/modules/certificates/components/adminCertificates/printHelper';
+import { CertificateCard } from '@/modules/certificates/components/adminCertificates/CertificateCard';
+import { GenerateCertificateDialog } from '@/modules/certificates/components/adminCertificates/GenerateCertificateDialog';
+import { RevokeCertificateDialog } from '@/modules/certificates/components/adminCertificates/RevokeCertificateDialog';
+import { ViewCertificateDialog } from '@/modules/certificates/components/adminCertificates/ViewCertificateDialog';
 
 export default function CertificatesScreen() {
   const { user } = useAuth();

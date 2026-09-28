@@ -11,10 +11,10 @@ import { useSettings } from '@/store/settings-context';
 import { useRouter } from 'expo-router';
 
 // Subcomponents
-import { Class, TeacherInfo, getMappedGradeFromName } from '@/components/admin/classes/types';
-import { ClassCard } from '@/components/admin/classes/ClassCard';
-import { AddClassDialog } from '@/components/admin/classes/AddClassDialog';
-import { ClassDetailDialog } from '@/components/admin/classes/ClassDetailDialog';
+import { Class, TeacherInfo, getMappedGradeFromName } from '@/modules/academics/components/adminClasses/types';
+import { ClassCard } from '@/modules/academics/components/adminClasses/ClassCard';
+import { AddClassDialog } from '@/modules/academics/components/adminClasses/AddClassDialog';
+import { ClassDetailDialog } from '@/modules/academics/components/adminClasses/ClassDetailDialog';
 import { OfflineState } from '@/components/OfflineState';
 
 export default function ClassesScreen() {

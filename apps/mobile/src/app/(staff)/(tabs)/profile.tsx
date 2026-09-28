@@ -6,7 +6,7 @@ import { useAuth } from '@/store/auth-context';
 import { Colors } from '@/constants/theme';
 import { useSettings } from '@/store/settings-context';
 import { Ionicons } from '@expo/vector-icons';
-import { ProfileCard } from '@/components/ProfileCard';
+import { ProfileCard } from '@/modules/auth/components/ProfileCard';
 
 export default function StaffProfileScreen() {
   const { user } = useAuth();

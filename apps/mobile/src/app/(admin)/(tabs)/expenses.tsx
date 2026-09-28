@@ -11,10 +11,10 @@ import { useSettings } from '@/store/settings-context';
 import { hasPermission } from '@/lib/permissions';
 
 // Subcomponents
-import { CategoryInfo, ExpenseInfo, ExpenseStats, executeGraphQL } from '@/components/admin/expenses/types';
-import { ExpenseCard } from '@/components/admin/expenses/ExpenseCard';
-import { AddExpenseDialog } from '@/components/admin/expenses/AddExpenseDialog';
-import { ExpenseStatsView } from '@/components/admin/expenses/ExpenseStatsView';
+import { CategoryInfo, ExpenseInfo, ExpenseStats, executeGraphQL } from '@/modules/finance/components/adminExpenses/types';
+import { ExpenseCard } from '@/modules/finance/components/adminExpenses/ExpenseCard';
+import { AddExpenseDialog } from '@/modules/finance/components/adminExpenses/AddExpenseDialog';
+import { ExpenseStatsView } from '@/modules/finance/components/adminExpenses/ExpenseStatsView';
 
 export default function ExpensesScreen() {
   const { user } = useAuth();

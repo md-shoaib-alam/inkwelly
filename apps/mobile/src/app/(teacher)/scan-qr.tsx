@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { TeacherQRScanModal } from '@/components/teacher/TeacherQRScanModal';
+import { TeacherQRScanModal } from '@/modules/attendance/components/TeacherQRScanModal';
 
 export default function TeacherScanQRScreen() {
   const router = useRouter();

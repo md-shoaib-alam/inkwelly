@@ -11,11 +11,11 @@ import { Colors } from '@/constants/theme';
 import { api } from '@/lib/api';
 
 // Sub-components
-import { Ticket, TICKET_STATUS_CONFIG, TICKET_PRIORITY_CONFIG, TICKET_CATEGORY_CONFIG } from '@/components/admin/tickets/types';
-import { TicketCard } from '@/components/admin/tickets/TicketCard';
-import { TicketStatsView } from '@/components/admin/tickets/TicketStatsView';
-import { CreateTicketDialog } from '@/components/admin/tickets/CreateTicketDialog';
-import { TicketDetailModal } from '@/components/admin/tickets/TicketDetailModal';
+import { Ticket, TICKET_STATUS_CONFIG, TICKET_PRIORITY_CONFIG, TICKET_CATEGORY_CONFIG } from '@/modules/support/components/adminTickets/types';
+import { TicketCard } from '@/modules/support/components/adminTickets/TicketCard';
+import { TicketStatsView } from '@/modules/support/components/adminTickets/TicketStatsView';
+import { CreateTicketDialog } from '@/modules/support/components/adminTickets/CreateTicketDialog';
+import { TicketDetailModal } from '@/modules/support/components/adminTickets/TicketDetailModal';
 
 export default function TicketsScreen() {
   const { user } = useAuth();

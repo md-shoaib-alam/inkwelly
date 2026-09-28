@@ -10,12 +10,12 @@ import { api } from '@/lib/api';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
 
-import { ChildSelector } from '@/components/parent/ChildSelector';
-import { FeeSummary } from '@/components/parent/fees/FeeSummary';
-import { FeeList } from '@/components/parent/fees/FeeList';
+import { ChildSelector } from '@/modules/people/components/ParentChildSelector';
+import { FeeSummary } from '@/modules/finance/components/parentFees/FeeSummary';
+import { FeeList } from '@/modules/finance/components/parentFees/FeeList';
 import { Skeleton } from '@/components/Skeleton';
 import { shareReceiptAsPDF, printReceiptAsPDF } from '@/lib/pdf-export';
-import { SubscriptionLockModal } from '@/components/parent/SubscriptionLockModal';
+import { SubscriptionLockModal } from '@/modules/tenancy/components/ParentSubscriptionLockModal';
 
 export default function ParentFeesScreen() {
   const { user } = useAuth();

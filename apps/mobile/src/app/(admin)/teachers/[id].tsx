@@ -9,8 +9,8 @@ import { adminCache } from '@/lib/adminCache';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { DetailLoadingScreen } from '@/components/common/DetailLoadingScreen';
-import { TeacherProfileView } from '@/components/admin/teachers/profile';
-import type { Teacher } from '@/components/admin/teachers/types';
+import { TeacherProfileView } from '@/modules/people/components/adminTeachers/profile/index';
+import type { Teacher } from '@/modules/people/components/adminTeachers/types';
 
 // In-memory cache for teacher details (5 minutes TTL)
 const teacherDetailCache = new Map<string, { data: Teacher; timestamp: number }>();

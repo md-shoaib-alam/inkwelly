@@ -9,8 +9,8 @@ import { adminCache } from '@/lib/adminCache';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { DetailLoadingScreen } from '@/components/common/DetailLoadingScreen';
-import { StaffProfileView } from '@/components/admin/staff/profile';
-import type { StaffMember, CustomRole } from '@/components/admin/staff/types';
+import { StaffProfileView } from '@/modules/people/components/adminStaff/profile/index';
+import type { StaffMember, CustomRole } from '@/modules/people/components/adminStaff/types';
 
 // In-memory cache for staff details (5 minutes TTL)
 const staffDetailCache = new Map<string, { member: StaffMember; roles: CustomRole[]; timestamp: number }>();

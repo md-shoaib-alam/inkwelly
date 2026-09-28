@@ -8,9 +8,9 @@ import { api } from '@/lib/api';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/store/auth-context';
-import { Notice } from '@/components/admin/notices/types';
-import { NoticeCard } from '@/components/admin/notices/NoticeCard';
-import { AddNoticeDialog } from '@/components/admin/notices/AddNoticeDialog';
+import { Notice } from '@/modules/communication/components/adminNotices/types';
+import { NoticeCard } from '@/modules/communication/components/adminNotices/NoticeCard';
+import { AddNoticeDialog } from '@/modules/communication/components/adminNotices/AddNoticeDialog';
 import { Portal, Dialog, Button } from 'react-native-paper';
 
 export default function SchoolNoticesScreen() {

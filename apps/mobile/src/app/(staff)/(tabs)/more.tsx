@@ -7,9 +7,9 @@ import { useAuth } from '@/store/auth-context';
 import { Colors } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import { useSettings, ThemeMode } from '@/store/settings-context';
-import { ChangePasswordModal } from '@/components/ChangePasswordModal';
-import { AboutAppModal } from '@/components/AboutAppModal';
-import { ProfileCard } from '@/components/ProfileCard';
+import { ChangePasswordModal } from '@/modules/auth/components/ChangePasswordModal';
+import { AboutAppModal } from '@/modules/platform/components/AboutAppModal';
+import { ProfileCard } from '@/modules/auth/components/ProfileCard';
 import { hasPermission, staffHasNoGrants } from '@/lib/permissions';
 
 export default function StaffMoreScreen() {

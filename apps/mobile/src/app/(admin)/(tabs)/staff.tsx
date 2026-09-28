@@ -10,10 +10,10 @@ import { api } from '@/lib/api';
 import { adminCache } from '@/lib/adminCache';
 import { Colors } from '@/constants/theme';
 import { useSettings } from '@/store/settings-context';
-import { StaffCard } from '@/components/staff/StaffCard';
-import { StaffMember, CustomRole } from '@/components/admin/staff/types';
-import { StaffListCard } from '@/components/admin/staff/StaffListCard';
-import { AddStaffDialog } from '@/components/admin/staff/AddStaffDialog';
+import { StaffCard } from '@/modules/people/components/StaffCard';
+import { StaffMember, CustomRole } from '@/modules/people/components/adminStaff/types';
+import { StaffListCard } from '@/modules/people/components/adminStaff/StaffListCard';
+import { AddStaffDialog } from '@/modules/people/components/adminStaff/AddStaffDialog';
 
 export default function StaffScreen() {
   const router = useRouter();
