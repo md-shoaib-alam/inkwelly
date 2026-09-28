@@ -61,4 +61,17 @@ describe("admin module catalogue", () => {
     expect(live).toBeGreaterThan(0);
     expect(live).toBeLessThan(moduleCatalogue.length);
   });
+
+  test("only the reference's three dashed cards are roadmap-marked", () => {
+    // A roadmap card renders dashed and inert; a built card must never be drawn that way.
+    expect(moduleCatalogue.filter((c) => c.roadmap).map((c) => c.id)).toEqual([
+      "sports",
+      "tasks",
+      "assets",
+    ]);
+    const mislabeled = moduleCatalogue
+      .filter((c) => c.roadmap && c.screen !== null)
+      .map((c) => c.id);
+    expect(mislabeled).toEqual([]);
+  });
 });
