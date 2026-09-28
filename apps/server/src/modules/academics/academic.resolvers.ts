@@ -1,14 +1,14 @@
 import { db } from '../../lib/db'
 import * as schema from '../../db/schema'
 import { eq, and, desc, inArray, count, sql, sum, ilike, or, lt, gt } from 'drizzle-orm'
-import { checkAuth, paginate, requireModule, requireSchoolAdmin, assertTenantOwnership, tenantFromArg } from './helpers'
+import { checkAuth, paginate, requireModule, requireSchoolAdmin, assertTenantOwnership, tenantFromArg } from '../../graphql/resolvers/helpers'
 import { invalidateUserPermissions, invalidateRolePermissions } from '../../lib/permissions'
 import { dataCache } from '../../lib/cache'
 import { formatDate } from '../../lib/date-utils'
-import { StudentService } from '../../modules/people/student.service'
-import { TeacherService } from '../../modules/people/teacher.service'
-import { ClassService } from '../../modules/academics/class.service'
-import { SubjectService } from '../../modules/academics/subject.service'
+import { StudentService } from '../people/student.service'
+import { TeacherService } from '../people/teacher.service'
+import { ClassService } from './class.service'
+import { SubjectService } from './subject.service'
 
 export const academicQueries = {
   subjects: async (_: unknown, args: { tenantId?: string; page?: number; limit?: number }, context: any) => {

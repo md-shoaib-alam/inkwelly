@@ -1,6 +1,6 @@
 import { db } from '../../lib/db'
 import { resolveTenantId } from '../../lib/resolve-tenant'
-import { checkAuth, forbidden, requireSchoolAdminOrPlatform, scopedTenantId, assertTenantOwnership } from './helpers'
+import { checkAuth, forbidden, requireSchoolAdminOrPlatform, scopedTenantId, assertTenantOwnership } from '../../graphql/resolvers/helpers'
 import * as schema from '../../db/schema'
 import { eq } from 'drizzle-orm'
 import { createAuditLog } from '../../lib/audit-helper'

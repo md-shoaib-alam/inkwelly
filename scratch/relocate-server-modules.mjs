@@ -92,6 +92,14 @@ const MAPPING = {
     'graphql/typeDefs/platform.typeDefs.ts': 'modules/platform/platform.typeDefs.ts',
   },
   'access-control': { 'routes/roles.ts': 'modules/access-control/roles.routes.ts' },
+  // academic.* spans academics AND assessment; auth.resolvers spans auth AND people.
+  // spec §2 decision 2 is relocate-only, so they park in the dominant domain and get
+  // split in the follow-up oversized-file pass rather than hand-cut 920 lines blind.
+  'graphql-remainder': {
+    'graphql/resolvers/academic.resolvers.ts': 'modules/academics/academic.resolvers.ts',
+    'graphql/typeDefs/academic.typeDefs.ts': 'modules/academics/academic.typeDefs.ts',
+    'graphql/resolvers/auth.resolvers.ts': 'modules/auth/auth.resolvers.ts',
+  },
   // src/auth/ is a composition pattern (index.ts wires the sub-route files); it moves whole.
   auth: {
     'auth/index.ts': 'modules/auth/index.ts',
@@ -185,11 +193,15 @@ for (const domain of domains) {
   }
 
   // Pass 4 — barrel: named re-exports only (export * would collide on duplicate local types).
-  const modDir = join(SRC, `modules/${domain}`);
+  // Grouped by destination module dir, not by the domain key, so a domain may fill two modules.
+  const touchedModules = [...new Set([...moveSet.values()].map((n) => dirname(n)))];
+  for (const modRel of touchedModules) {
+  const modDir = join(SRC, modRel);
   const barrelPath = join(modDir, 'index.ts');
   const existing = existsSync(barrelPath) ? readFileSync(barrelPath, 'utf8') : '';
   const lines = [];
   for (const [, newP] of moveSet) {
+    if (dirname(newP) !== modRel) continue;
     const base = newP.split('/').pop();
     if (base === 'index.ts') continue;
     if (existing.includes(`'./${base.replace(/\.ts$/, '')}'`)) continue;
@@ -215,7 +227,8 @@ for (const domain of domains) {
   }
   if (lines.length) {
     writeFileSync(barrelPath, (existing ? existing.replace(/\n$/, '') + '\n' : '') + lines.join('\n') + '\n');
-    console.log(`  index.ts += ${lines.filter((l) => !l.startsWith('//')).length} re-export(s)`);
+    console.log(`  ${modRel}/index.ts += ${lines.filter((l) => !l.startsWith('//')).length} re-export(s)`);
+  }
   }
   console.log(`  referrers rewritten: ${changed.filter((c) => !moveSet.has(c)).join(', ') || 'none'}`);
 }

@@ -3,10 +3,10 @@ import * as schema from '../../db/schema'
 import { eq, and, desc, inArray, count, sum } from 'drizzle-orm'
 import { platformResolvers as platformQueries } from '../../modules/platform/platform.resolvers'
 import { dashboardResolvers as dashboardQueries } from '../../modules/dashboard/dashboard.resolvers'
-import { academicQueries, academicMutations } from './academic.resolvers'
+import { academicQueries, academicMutations } from '../../modules/academics/academic.resolvers'
 import { financeQueries, financeMutations } from '../../modules/finance/finance.resolvers'
 import { commonQueries, commonMutations } from '../../modules/support/common.resolvers'
-import { authResolvers as authMutations } from './auth.resolvers'
+import { authResolvers as authMutations } from '../../modules/auth/auth.resolvers'
 import { notificationResolvers } from '../../modules/communication/notification.resolvers'
 
 export const resolvers = {

@@ -60,3 +60,4 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
   .use(profileRoute)
   .use(passwordRoute);
 export default authRoutes;
+export { authResolvers } from './auth.resolvers';

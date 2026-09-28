@@ -31,7 +31,7 @@ import { bunCompression } from './lib/compression';
 import { serverMetrics } from './lib/server-metrics';
 
 // Route modules
-import { authRoutes } from './modules/auth';
+import { authRoutes } from './modules/auth/index';
 import { dashboardRoutes } from './modules/dashboard/dashboard.routes';
 import { studentsRoutes } from './modules/people/students.routes';
 import { teachersRoutes } from './modules/people/teachers.routes';
