@@ -66,3 +66,20 @@ test('transport resolves under both mounts', async () => {
     }
   }
 });
+
+// fees moved to src/modules/finance/. Importing through the barrel pins two things at
+// once: the barrel re-exports feesRoutes under the same name, and /api/fees still
+// resolves after the move. requireAuth is mounted inside feesRoutes, so 401 proves the
+// route matched — 404 would mean the mount vanished.
+test('fees resolves from its module barrel under both mounts', async () => {
+  const { feesRoutes } = await import('./modules/finance');
+  const feesApp = new Elysia()
+    .group('/api/v1', (a) => a.use(feesRoutes))
+    .group('/api', (a) => a.use(feesRoutes))
+    .compile();
+  for (const prefix of ['/api', '/api/v1']) {
+    const res = await feesApp.handle(new Request(`http://localhost${prefix}/fees`));
+    expect(res.status).toBe(401);
+    expect(res.status).not.toBe(404);
+  }
+});

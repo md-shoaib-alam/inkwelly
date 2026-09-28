@@ -1,15 +1,15 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, or, sql, desc, count, sum, inArray, ilike, like, gte, lte, ne, exists } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { requirePermission } from '../lib/permissions';
-import { dataCache } from '../lib/cache';
-import { posthog, captureError } from '../lib/monitoring/posthog';
-import { formatDate } from '../lib/date-utils';
-import { notificationQueue } from '../lib/queue';
-import { chunked } from '../lib/batch';
-import { invalidateFeeCaches, invalidateFeeAndStudentCaches } from '../lib/fees-cache';
+import { requireAuth } from '../../lib/auth';
+import { requirePermission } from '../../lib/permissions';
+import { dataCache } from '../../lib/cache';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
+import { formatDate } from '../../lib/date-utils';
+import { notificationQueue } from '../../lib/queue';
+import { chunked } from '../../lib/batch';
+import { invalidateFeeCaches, invalidateFeeAndStudentCaches } from '../../lib/fees-cache';
 import {
   CreateFeeSchema,
   CreateReceiptSchema,
@@ -18,16 +18,16 @@ import {
   CreateTransportAssignmentSchema,
   FeeAssignSchema,
   formatZodError,
-} from '../lib/validation/fees';
-import { FeeService, type DbTransaction } from '../services/fee.service';
-import { FeeReceiptService } from '../services/fee-receipt.service';
+} from '../../lib/validation/fees';
+import { FeeService, type DbTransaction } from './fee.service';
+import { FeeReceiptService } from './fee-receipt.service';
 import type {
   FeeItem,
   FeeListResult,
   ConcessionRow,
   StructureRow,
   FeeReceiptStats,
-} from '../types/fees';
+} from './fees.types';
 
 const applyConcessionToPendingFees = FeeService.applyConcessionToPendingFees;
 const removeConcessionFromPendingFees = FeeService.removeConcessionFromPendingFees;

@@ -2,10 +2,10 @@
  * FeeService — Shared Service Layer for Fee Business Logic
  * Single source of truth for fee concessions and calculations.
  */
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, gte, sql } from 'drizzle-orm';
-import { formatDate } from '../lib/date-utils';
+import { formatDate } from '../../lib/date-utils';
 
 export type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 

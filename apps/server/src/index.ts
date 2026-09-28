@@ -39,7 +39,7 @@ import { classesRoutes } from './routes/classes';
 import { attendanceRoutes } from './routes/attendance';
 import { homeworkRoutes } from './routes/homework';
 import { gradesRoutes } from './routes/grades';
-import { feesRoutes } from './routes/fees';
+import { feesRoutes } from './modules/finance/fees.routes';
 import { reportsRoutes } from './routes/reports';
 import { transportRoutes } from './routes/transport';
 import { eventsRoutes } from './routes/events';

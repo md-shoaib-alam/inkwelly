@@ -1,7 +1,7 @@
 import { db } from '../../lib/db'
 import * as schema from '../../db/schema'
 import { eq, and, desc, count, sql, sum, ilike, inArray } from 'drizzle-orm'
-import { checkAuth, paginate, requireModule, tenantFromArg } from './helpers'
+import { checkAuth, paginate, requireModule, tenantFromArg } from '../../graphql/resolvers/helpers'
 
 export const financeQueries = {
   expenseCategories: async (_: unknown, args: { tenantId?: string }, context: any) => {

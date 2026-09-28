@@ -2,10 +2,10 @@
  * FeeReceiptService — Shared Service Layer for Fee Receipt & Payment Processing
  * Handles atomic fee row locking, payment balance allocations, and receipt creation.
  */
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, gte, inArray, like, desc } from 'drizzle-orm';
-import { formatDate } from '../lib/date-utils';
+import { formatDate } from '../../lib/date-utils';
 
 export type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
