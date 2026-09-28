@@ -94,12 +94,6 @@ export interface ModuleCard {
   /** Permission module gating visibility. Must be a name the role permissions map uses. */
   permModule?: string;
   /**
-   * The reference design also draws this one dashed and labelled "Coming soon", so it
-   * isn't an announced module yet. Any other screen-less card is announced there and so
-   * renders as a normal card, answering a click with a toast rather than looking broken.
-   */
-  roadmap?: boolean;
-  /**
    * Also a top-level module on the dark global rail. The rail reads its names, icons
    * and order from this catalogue so the two can never drift; a card without it is
    * reachable from the grid and from its parent module's panel, but not from the rail.
@@ -162,9 +156,9 @@ export const moduleCatalogue: ModuleCard[] = [
   { id: "iam", title: "IAM", subtitle: "Roles & permissions", icon: Shield, tint: "violet", screen: "iam-dashboard", inRail: true },
   { id: "reports", title: "Reports", subtitle: "Exports & analytics", icon: BarChart3, tint: "violet", screen: "reports", permModule: "reports" },
   { id: "audit-logs", title: "Audit Logs", subtitle: "Activity trail", icon: ScrollText, tint: "indigo", screen: null },
-  { id: "sports", title: "Sports", subtitle: "Events & scores", icon: Medal, tint: "slate", screen: null, roadmap: true },
-  { id: "tasks", title: "Tasks", subtitle: "Checklists & follow-ups", icon: ListTodo, tint: "slate", screen: null, roadmap: true },
-  { id: "assets", title: "Assets", subtitle: "Inventory & tracking", icon: Boxes, tint: "slate", screen: null, roadmap: true },
+  { id: "sports", title: "Sports", subtitle: "Events & scores", icon: Medal, tint: "slate", screen: null },
+  { id: "tasks", title: "Tasks", subtitle: "Checklists & follow-ups", icon: ListTodo, tint: "slate", screen: null },
+  { id: "assets", title: "Assets", subtitle: "Inventory & tracking", icon: Boxes, tint: "slate", screen: null },
   { id: "school-settings", title: "School Settings", subtitle: "Profile & preferences", icon: Settings, tint: "slate", screen: "school-settings", permModule: "settings" },
 ];
 

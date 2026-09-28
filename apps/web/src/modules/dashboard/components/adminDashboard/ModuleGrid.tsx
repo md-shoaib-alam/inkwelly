@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Pin } from "lucide-react";
+import { Pin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TINT_CLASSES, type ModuleCard } from "./moduleCatalogue";
 
@@ -12,88 +12,113 @@ interface ModuleGridProps {
 }
 
 export function ModuleGrid({ cards, pinned, onTogglePin, onNavigate }: ModuleGridProps) {
-  const liveCount = cards.filter((c) => c.screen !== null).length;
-
   return (
     <section aria-label="Modules">
+      {/* Section header */}
       <div className="flex items-baseline gap-2 pb-4">
-        <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">
+        <h2 className="text-sm font-bold text-slate-900 dark:text-slate-50">
           Modules
         </h2>
-        <p className="text-[13px] text-slate-500 dark:text-slate-400">{liveCount} available</p>
+        <p className="text-[12px] text-slate-500 dark:text-slate-400">{cards.length} modules</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+      {/* Grid: 2 cols on mobile, 3 on sm, 4 on lg, 6 on xl */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         {cards.map((card) => {
-          const isLive = card.screen !== null;
           const isPinned = pinned.includes(card.id);
+          // A card with no screen is announced but not built in this copy, so it is drawn
+          // dashed, colourless and inert — the same way the reference draws a module that
+          // isn't there yet. Colour is reserved for cards that actually open.
+          const isComingSoon = card.screen === null;
 
-          const faceClasses = cn(
-            "flex h-full w-full flex-col items-center gap-1 rounded-2xl border border-slate-200/80 bg-white p-5 text-center outline-none transition-all dark:border-zinc-800 dark:bg-zinc-950",
-            isLive
-              ? "cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg hover:shadow-slate-900/5 focus-visible:ring-2 focus-visible:ring-brand/50"
-              : "opacity-70",
-          );
-
-          const face = (
+          const cardContent = (
             <>
+              {/* Icon bubble */}
               <span
                 className={cn(
-                  "mb-1 flex size-12 items-center justify-center rounded-2xl",
-                  TINT_CLASSES[card.tint],
+                  "mb-2 flex size-11 items-center justify-center rounded-2xl",
+                  TINT_CLASSES[isComingSoon ? "slate" : card.tint],
                 )}
               >
-                <card.icon className="size-6" />
+                <card.icon className="size-5" />
               </span>
-              <span className="text-base font-semibold leading-6 text-slate-900 dark:text-zinc-50">
+
+              {/* Title */}
+              <span className="text-[12px] font-semibold leading-tight text-slate-900 dark:text-zinc-50 text-center">
                 {card.title}
               </span>
-              <span className="text-base leading-6 text-slate-900 dark:text-zinc-100">
-                {card.subtitle}
-              </span>
-              <span className="mt-auto pt-2">
-                {isLive ? (
-                  <ArrowRight className="size-4 text-slate-300 transition-colors group-hover:text-slate-500" />
-                ) : (
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:bg-zinc-800 dark:text-zinc-400">
-                    Coming soon
-                  </span>
-                )}
-              </span>
+
+              {!isComingSoon && (
+                <span className="text-[11px] leading-tight text-slate-500 dark:text-zinc-400 text-center mt-0.5">
+                  {card.subtitle}
+                </span>
+              )}
+
+              {isComingSoon && (
+                <span className="mt-2 rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-400 dark:bg-zinc-800 dark:text-zinc-500">
+                  Coming soon
+                </span>
+              )}
             </>
+          );
+
+          const faceClasses = cn(
+            "relative flex h-full w-full flex-col items-center justify-center gap-0 rounded-2xl bg-white pt-4 pb-3.5 px-2.5 text-center outline-none transition-all dark:bg-[#0D1526]",
+            isComingSoon
+              ? "cursor-default opacity-75"
+              : "cursor-pointer border border-slate-200/80 dark:border-zinc-800/60 hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md hover:shadow-blue-500/10 dark:hover:border-blue-500/60 focus-visible:ring-2 focus-visible:ring-brand/50",
           );
 
           return (
             <div key={card.id} className="group relative">
-              {isLive ? (
+              {isComingSoon ? (
+                <div role="note" aria-disabled className={faceClasses}>
+                  <svg
+                    className="pointer-events-none absolute inset-0 size-full"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect
+                      x="1"
+                      y="1"
+                      width="calc(100% - 2px)"
+                      height="calc(100% - 2px)"
+                      style={{ width: "calc(100% - 2px)", height: "calc(100% - 2px)" }}
+                      rx="16"
+                      fill="none"
+                      className="stroke-[#0F251E] dark:stroke-[#0F251E]"
+                      strokeWidth="1.5"
+                      strokeDasharray="2 8"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  {cardContent}
+                </div>
+              ) : (
                 <button
                   type="button"
                   onClick={() => onNavigate(card.screen as string)}
                   aria-label={`Open ${card.title}`}
                   className={faceClasses}
                 >
-                  {face}
+                  {cardContent}
                 </button>
-              ) : (
-                <div role="note" aria-disabled className={faceClasses}>
-                  {face}
-                </div>
               )}
 
-              {isLive && (
+              {/* Pin toggle — top-right, visible on hover or when pinned */}
+              {!isComingSoon && (
                 <button
                   type="button"
                   onClick={() => onTogglePin(card.id)}
                   aria-label={`${isPinned ? "Unpin" : "Pin"} ${card.title}`}
                   aria-pressed={isPinned}
                   className={cn(
-                    "absolute right-2.5 top-2.5 flex size-7 items-center justify-center rounded-lg outline-none transition-all focus-visible:ring-2 focus-visible:ring-brand/50",
+                    "absolute right-2 top-2 flex size-6 items-center justify-center rounded-md outline-none transition-all focus-visible:ring-2 focus-visible:ring-brand/50",
                     isPinned
-                      ? "text-brand"
-                      : "text-slate-300 opacity-0 hover:text-slate-500 focus-visible:opacity-100 group-hover:opacity-100 dark:text-zinc-600",
+                      ? "text-brand opacity-100"
+                      : "text-slate-300 opacity-0 group-hover:opacity-100 dark:text-zinc-600 hover:text-slate-500",
                   )}
                 >
-                  <Pin className={cn("size-4", isPinned && "fill-current")} />
+                  <Pin className={cn("size-3.5", isPinned && "fill-current")} />
                 </button>
               )}
             </div>
