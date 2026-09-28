@@ -1,4 +1,4 @@
-import { SendNotificationScreen } from '@/components/screens/super-admin/send-notification';
+import { SendNotificationScreen } from '@/modules/communication/components/SuperAdminSendNotification';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {

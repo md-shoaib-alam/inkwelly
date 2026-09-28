@@ -11,7 +11,7 @@ import {
 import { 
   BillingDataResponse, TenantsResponse, UsersResponse, 
   AuditLogsResponse, TenantInput, TenantBasic, SubscriptionsResponse, TenantDetailData
-} from '../types'
+} from '../types/index'
 
 export function useTenantResolution(slug?: string) {
   return useQuery({

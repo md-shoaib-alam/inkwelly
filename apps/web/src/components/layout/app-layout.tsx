@@ -14,7 +14,7 @@ import { useIsFetching } from "@tanstack/react-query";
 import { getCookie } from "@/lib/cookies";
 import { NotificationProvider } from "@/components/providers/notification-provider";
 import { PlatformNoticeBar } from "./platform-notice-bar";
-import { SubscriptionExpiredScreen } from "@/components/screens/subscription-expired";
+import { SubscriptionExpiredScreen } from "@/modules/tenancy/components/SubscriptionExpired";
 
 function LoadingProgress() {
   const isFetching = useIsFetching();

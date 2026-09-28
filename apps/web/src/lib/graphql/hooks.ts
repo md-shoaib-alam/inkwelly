@@ -7,7 +7,7 @@ export { graphqlQuery, graphqlMutate } from './core'
 export * from './queries'
 
 // Types
-export * from './types'
+export * from './types/index'
 
 // Selection Keys
 export { queryKeys } from './keys'

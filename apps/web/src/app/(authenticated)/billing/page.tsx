@@ -1,4 +1,4 @@
-import { SuperAdminBilling } from '@/components/screens/super-admin/billing';
+import { SuperAdminBilling } from '@/modules/finance/components/SuperAdminBilling';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {

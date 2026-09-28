@@ -6,7 +6,7 @@ import {
 } from '../queries'
 import { 
   AdminDashboardData, TeacherDashboardData, StudentDashboardData, ParentDashboardData
-} from '../types'
+} from '../types/index'
 
 export function useAdminDashboard(tenantId: string) {
   return useQuery({

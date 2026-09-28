@@ -10,7 +10,7 @@ import {
 import { 
   SubjectsResponse, ClassesResponse, TeachersResponse, StudentsResponse, ParentsResponse, 
   NoticesResponse, FeesResponse, AttendanceResponse, StaffResponse
-} from '../types'
+} from '../types/index'
 
 export function useSubjects(tenantId?: string, page?: number, limit?: number) {
   return useQuery<SubjectsResponse>({

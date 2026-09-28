@@ -4,8 +4,8 @@ import { useEffect, useSyncExternalStore, useReducer } from "react";
 import { useRouter, redirect } from "next/navigation";
 import { useAppStore } from "@/store/use-app-store";
 import { apiFetch } from "@/lib/api";
-import { LoginScreen } from "@/components/screens/login";
-import { MaintenanceScreen } from "@/components/screens/error/maintenance";
+import { LoginScreen } from "@/modules/auth/components/Login";
+import { MaintenanceScreen } from "@/components/shared/error/maintenance";
 import { FullPageSkeleton } from "@/components/ui/full-page-skeleton";
 
 // Prevents hydration mismatch: returns false on server, true on client

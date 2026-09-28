@@ -1,11 +1,11 @@
 'use client';
 
 import { useAppStore } from '@/store/use-app-store';
-import { LoginScreen } from '@/components/screens/login';
+import { LoginScreen } from '@/modules/auth/components/Login';
 import { AppLayout } from '@/components/layout/app-layout';
 import { useSyncExternalStore, useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/api';
-import { MaintenanceScreen } from '@/components/screens/error/maintenance';
+import { MaintenanceScreen } from '@/components/shared/error/maintenance';
 import { FullPageSkeleton } from '@/components/ui/full-page-skeleton';
 
 // Prevents hydration mismatch

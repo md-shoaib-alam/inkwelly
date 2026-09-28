@@ -1,7 +1,7 @@
 # Feature-Module Restructure — Design
 
 Date: 2026-09-28
-Status: server complete (all 16 modules + boundary lint) — web and mobile pending
+Status: server + web complete (web: 15 modules, no barrels, guard test green; server has boundary lint) — mobile pending, web boundary lint pending
 Scope: `apps/web`, `apps/server`, `apps/mobile` inside the `@inkwelly` turborepo
 
 ## 1. Problem
@@ -164,3 +164,36 @@ The server slice is complete. Four things differed from this spec and are record
 4. **`route-resolution.test.ts` must be in the relocator's referrer set.** §5 rule 6 co-locates tests with their subject, but this test asserts on the composition root, so it lives at `src/` and its imports rewrite on every domain move.
 
 Verified with `turbo run lint typecheck test` (32 pass / 0 fail) plus a live boot — Elysia's AOT compile registers every route group, which typecheck alone cannot prove.
+
+## 12. Web result — deviations found while executing
+
+537 files moved into 15 modules (`transport` has no web screens; `transport-fee` is a tab inside
+`finance/components/adminFees/`). Verified with the guard test (5 pass), `typecheck`, and
+`next build`; `git diff` on `src/app/**` contains zero non-import lines, so URLs and screen keys
+are byte-identical.
+
+1. **Rule 7 is insufficient as written.** It renames only the `X.tsx` side of a collision. But
+   `dashboard_components/` exists under four roles and `dashboard/`, `fees/`, `attendance/`,
+   `notices/`, `reports/`, `roles/`, `staff/`, `tickets/`, `timetable/` under two or three, so the
+   *folders* collide too — 414 distinct basenames across 461 files. Applied: every folder gets the
+   same role prefix as its screen (`admin/dashboard_components/ → finance/…/adminDashboardComponents/`),
+   applied uniformly rather than only where a clash exists, so the convention is predictable.
+2. **`components/screens/error/` has no domain.** The maintenance and not-found screens are app-level
+   fallbacks rendered before a tenant resolves, so they went to `components/shared/error/` instead of
+   being forced into a module.
+3. **A source file was never in version control.** `apps/web/.gitignore` line 50 was a bare
+   `certificates`, intended for the local HTTPS key directory, which also matched
+   `src/components/screens/admin/certificates/` at any depth. `certificate-template.tsx` existed
+   only on disk and `git mv` refused to move it. The rule is now `/certificates/` and the file is
+   tracked. Anything that audits "the tree is committed" by reading `git status` will not catch this
+   class of gap — ignored files are silent.
+4. **No web barrels were generated.** With the taxonomy applied there are zero module→module internal
+   imports: all 14 non-dispatcher `@/components/screens/...` references land inside a single module
+   (`parent/tickets` re-exports `student/tickets`, both `support`; `student/marksheet` imports
+   `admin/exams/types`, both `assessment`; etc.). A barrel would be dead weight, and rule 3 actively
+   discourages one for screens. Rule 1's negative half is still worth enforcing; the positive half has
+   nothing to serve yet.
+5. **`next lint` is broken at baseline.** Next 16 no longer accepts the `lint` subcommand —
+   `turbo run lint` fails with `Invalid project directory provided, no such directory: apps/web/lint`
+   both before and after this change. Adding web boundary lint therefore requires replacing the script
+   with a direct `eslint src` first, the same way `apps/server` was wired.
