@@ -6,7 +6,7 @@ import { invalidateUserPermissions, invalidateRolePermissions } from '../../lib/
 import { dataCache } from '../../lib/cache'
 import { formatDate } from '../../lib/date-utils'
 import { StudentService } from '../students'
-import { TeacherService } from '../people'
+import { TeacherService } from '../employees'
 import { ClassService } from './class.service'
 import { SubjectService } from './subject.service'
 

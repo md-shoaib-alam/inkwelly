@@ -22,7 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { avatarColors } from "../adminTeachers/types";
+import { avatarColors } from "@/modules/employees/teachers/adminTeachers/types";
 import type { ParentInfo } from "./types";
 
 interface ParentsTableViewProps {

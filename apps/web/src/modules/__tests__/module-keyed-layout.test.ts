@@ -29,3 +29,11 @@ describe("students", () => {
     }
   });
 });
+
+describe("employees", () => {
+  test("every employees row lives under modules/employees/", () => {
+    for (const row of ["teachers", "staff", "parents"]) {
+      expect(rowHasScreen("employees", row)).toBe(true);
+    }
+  });
+});
