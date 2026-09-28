@@ -2,7 +2,8 @@
 
 Date: 2026-09-29
 Status: draft for review
-Scope: `apps/web` routing + admin sidebar, one new screen, two server fixes in `apps/server`
+Scope: `apps/web` routing + admin sidebar, one new screen, and one optional
+`apps/server` fix that turned out to belong to a different feature (see §4)
 
 ## Problem
 
@@ -131,17 +132,32 @@ percentage would be a fabricated metric behind a real-looking bar.
 
 ## 4. Server
 
-`apps/server/src/modules/academics/class.service.ts`:
+**Corrected 2026-09-29 while gathering exact code for the plan.** The original
+draft of this section assumed the roster would read `GET /api/classes`. It
+won't: the web reads the full class list through **GraphQL** (`queries.ts:152`
+selects `id name section grade capacity studentCount classTeacher`), which
+resolves to `ClassService.listPaginated` — and that function **already** uses the
+grouped `count()` this section was going to introduce. The roster therefore
+needs **no server change at all**.
 
-1. **`list` counts students by loading one row per student.** It uses
-   `with: { students: { columns: { id: true } } }` and then `.length`, so a
+What remains, and its true blast radius:
+
+1. **`ClassService.list` counts students by loading one row per student.** It
+   uses `with: { students: { columns: { id: true } } }` and then `.length`, so a
    tenant with 298 enrolled students fetches 298 rows to produce 12 numbers.
-   `listPaginated` twenty lines below already does this correctly with
-   `SELECT classId, count() … GROUP BY`. This is copying an existing in-repo
+   `listPaginated` below it already does this correctly with
+   `SELECT classId, count() … GROUP BY`, so this is copying an existing in-repo
    fix, not inventing one.
-2. **`totalEnrolled` on the list response.** The roster's aggregate line cannot
-   be computed client-side, because the endpoint paginates and page 2 would
-   under-report. One tenant-wide `count()` returns the honest number.
+   REST `list` is reached from the web only via `?all=true` —
+   `assessment/components/teacherExamsEntry/useTeacherExams.ts:98` and
+   `teacherGradeManagement/useGradeManagement.ts:42`. **The optimisation belongs
+   to those two screens, not to this feature**, and should be judged on its own.
+2. **The roster's aggregate is computed client-side, exactly.** `useClassesInfinite`
+   (`academic.hooks.ts:39`) already pages through the same query and exposes
+   `total`. Summing `studentCount` over the accumulated pages is exact whenever
+   `pages.length` has reached `totalPages`; the screen shows the line only then.
+   The originally-proposed `totalEnrolled` server field is **withdrawn** — it
+   solved a problem the existing hook already solves.
 
 Not doing, with reasons:
 
@@ -152,15 +168,16 @@ Not doing, with reasons:
   over the returned page; `limit` caps at 100 and a school has tens of classes.
 - **No new columns.** `Class` is `id, tenantId, name, section, grade, capacity`;
   medium, vocational, status and a session id do not exist and are out of scope.
-- **No new endpoint.** `GET /api/classes` already returns exactly the roster's
-  fields. Note for whoever wires it: the handler returns a **bare array** when
-  `page`/`limit` are absent and an **envelope** when present, so the roster
-  requests the envelope explicitly.
+- **No new endpoint.** Both screens are served by the existing `classes` query.
 
 The in-memory `sortByName` stays. It is a natural sort
 (`localeCompare(…, { numeric: true })`), which SQL `ORDER BY name` is not. The
 reference sorts `10th, 1st, 2nd` — lexicographic. That is their bug and we will
 not copy it.
+
+**Consequence for the commit sequence:** the server work is now optional and
+belongs to a different feature. Tasks in the plan are ordered so the routing and
+both screens land without it.
 
 ## 5. Testing
 
