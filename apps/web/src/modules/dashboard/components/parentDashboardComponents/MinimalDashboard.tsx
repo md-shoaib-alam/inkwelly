@@ -15,7 +15,6 @@ import {
   Calendar, 
   LifeBuoy, 
   Sparkles,
-  User,
   KeyRound,
   LogOut,
   FileText,
@@ -109,13 +108,6 @@ const parentQuickActions: QuickAction[] = [
     category: "Support & Info",
     color: "bg-zinc-600 dark:bg-zinc-500",
     icon: <LifeBuoy className="size-5" />
-  },
-  {
-    label: "My Profile",
-    screen: "profile",
-    category: "Account & Settings",
-    color: "bg-emerald-500",
-    icon: <User className="size-5" />
   },
   {
     label: "Change Password",

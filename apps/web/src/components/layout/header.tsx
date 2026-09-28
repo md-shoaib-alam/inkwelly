@@ -5,7 +5,7 @@ import { useAppStore } from "@/store/use-app-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Menu, ShieldCheck, School, Calendar, PanelLeftClose, PanelLeftOpen, LayoutDashboard, User, Crown, Settings as SettingsIcon, KeyRound, LogOut, ChevronDown, Sparkles } from "lucide-react";
+import { Menu, ShieldCheck, School, Calendar, PanelLeftClose, PanelLeftOpen, LayoutDashboard, Crown, Settings as SettingsIcon, KeyRound, LogOut, ChevronDown, Sparkles } from "lucide-react";
 import { NotificationBell } from "./notification-bell";
 import { ThemeToggle } from "./theme-toggle";
 import { type NavItem, roleColors, roleLabels } from "./nav-config";
@@ -150,9 +150,7 @@ export function Header({ items, resolvedScreen, layoutPref = "comprehensive", on
 
         {!isModernUI && !shouldShowDashboard && (
           <h1 className="text-sm sm:text-base md:text-lg font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-            {resolvedScreen === "profile"
-              ? "My Profile"
-              : items.find((i) => i.key === resolvedScreen)?.label || "Dashboard"}
+            {items.find((i) => i.key === resolvedScreen)?.label || "Dashboard"}
           </h1>
         )}
 
@@ -256,10 +254,6 @@ export function Header({ items, resolvedScreen, layoutPref = "comprehensive", on
                 </div>
               </div>
               <DropdownMenuSeparator className="my-1" />
-              <DropdownMenuItem className="cursor-pointer gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-200" onClick={() => navigateTo("profile")}>
-                <User className="size-4 text-blue-500" />
-                My Profile
-              </DropdownMenuItem>
               {currentUser.role === "admin" && (
                 <>
                   <DropdownMenuItem className="cursor-pointer gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-200" onClick={() => navigateTo("school-subscription")}>

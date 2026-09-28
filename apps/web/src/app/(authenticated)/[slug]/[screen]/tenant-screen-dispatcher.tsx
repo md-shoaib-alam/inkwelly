@@ -11,7 +11,6 @@ import { FullPageSkeleton } from "@/components/ui/full-page-skeleton";
 const LoadingScreen = () => <FullPageSkeleton />;
 
 const ParentHomework = dynamic(() => import('@/modules/assessment/components/ParentHomework').then(m => m.ParentHomework), { loading: LoadingScreen });
-const UserProfileScreen = dynamic(() => import('@/modules/auth/components/Profile').then(m => m.UserProfileScreen), { loading: LoadingScreen });
 const TeacherDashboard = dynamic(() => import('@/modules/dashboard/components/teacherDashboard/index').then(m => m.TeacherDashboard), { loading: LoadingScreen });
 const StudentDashboard = dynamic(() => import('@/modules/dashboard/components/StudentDashboard').then(m => m.StudentDashboard), { loading: LoadingScreen });
 const ParentDashboard = dynamic(() => import('@/modules/dashboard/components/ParentDashboard').then(m => m.ParentDashboard), { loading: LoadingScreen });
@@ -179,7 +178,6 @@ export default function TenantScreenDispatcherClient() {
     }
 
     switch (screen) {
-      case 'profile': return <UserProfileScreen />;
       case 'dashboard': 
         if (currentUser.role === 'super_admin' && slug === 'tenants') return <SuperAdminDashboard />;
         return currentUser.role === 'staff' ? <StaffDashboard /> : <AdminDashboard />;
@@ -243,7 +241,6 @@ export default function TenantScreenDispatcherClient() {
 
   if (currentUser.role === 'teacher') {
     switch (screen) {
-      case 'profile': return <UserProfileScreen />;
       case 'dashboard': return <TeacherDashboard />;
       case 'my-classes': return <TeacherClasses />;
       case 'my-subjects': return <TeacherSubjects />;
@@ -272,7 +269,6 @@ export default function TenantScreenDispatcherClient() {
 
   if (currentUser.role === 'student') {
     switch (screen) {
-      case 'profile': return <UserProfileScreen />;
       case 'dashboard': return <StudentDashboard />;
       case 'my-classes': return <StudentClasses />;
       case 'my-grades': return <StudentGrades />;
@@ -300,7 +296,6 @@ export default function TenantScreenDispatcherClient() {
 
   if (currentUser.role === 'parent') {
     switch (screen) {
-      case 'profile': return <UserProfileScreen />;
       case 'dashboard': return <ParentDashboard />;
       case 'children': return <ParentChildren />;
       case 'homework': return <ParentHomework />;

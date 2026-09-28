@@ -17,7 +17,7 @@ export function useTenantResolution(slug?: string) {
   return useQuery({
     queryKey: ['tenant-resolution', slug],
     queryFn: () => api.get(`/tenants/resolve/${slug}`),
-    enabled: !!slug && !['profile', 'dashboard', 'tenants', 'billing', 'users', 'audit-logs', 'platform-analytics', 'settings', 'subscriptions', 'deleted-tenants', 'bulk-attendance-import', 'roadmap', 'integrations', 'roles', 'staff', 'manage-admins', 'school-subscriptions', 'platform-notices', 'reports'].includes(slug),
+    enabled: !!slug && !['dashboard', 'tenants', 'billing', 'users', 'audit-logs', 'platform-analytics', 'settings', 'subscriptions', 'deleted-tenants', 'bulk-attendance-import', 'roadmap', 'integrations', 'roles', 'staff', 'manage-admins', 'school-subscriptions', 'platform-notices', 'reports'].includes(slug),
     staleTime: Infinity,
   })
 }

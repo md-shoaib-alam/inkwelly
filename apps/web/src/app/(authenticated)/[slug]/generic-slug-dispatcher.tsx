@@ -31,7 +31,6 @@ const SuperAdminReports = dynamic(() => import("@/modules/data-io/components/Sup
 const SuperAdminBulkAttendance = dynamic(() => import("@/modules/attendance/components/SuperAdminBulkAttendanceImport").then((m) => m.SuperAdminBulkAttendance), { loading: LoadingScreen });
 const SuperAdminQueueStatus = dynamic(() => import("@/modules/platform/components/SuperAdminQueueStatus").then((m) => m.SuperAdminQueueStatus), { loading: LoadingScreen });
 
-const UserProfileScreen = dynamic(() => import("@/modules/auth/components/Profile").then((m) => m.UserProfileScreen), { loading: LoadingScreen });
 const TeacherDashboard = dynamic(() => import("@/modules/dashboard/components/teacherDashboard/index").then((m) => m.TeacherDashboard), { loading: LoadingScreen });
 const StudentDashboard = dynamic(() => import("@/modules/dashboard/components/StudentDashboard").then((m) => m.StudentDashboard), { loading: LoadingScreen });
 const ParentDashboard = dynamic(() => import("@/modules/dashboard/components/ParentDashboard").then((m) => m.ParentDashboard), { loading: LoadingScreen });
@@ -82,7 +81,6 @@ export default function GenericSlugDispatcherClient() {
   // 1. Platform Screens (Super Admin only)
   if (currentUser.role === "super_admin") {
     switch (slug) {
-      case "profile": return <UserProfileScreen />;
       case "dashboard": return <SuperAdminDashboard />;
       case "tenants": return <SuperAdminTenants />;
       case "deleted-tenants": return <SuperAdminDeletedTenants />;

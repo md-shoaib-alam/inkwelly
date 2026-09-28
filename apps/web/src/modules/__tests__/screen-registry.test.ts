@@ -14,22 +14,22 @@ function resolvesToAFile(specifier: string): boolean {
   );
 }
 
-// Counts measured on the pre-move tree, 2026-09-28; raised to 69/60 on 2026-09-29 when the
-// IAM landing screen and Permissions Catalog were added, and to 70/61 for Role Assignments.
-// Changing one of these numbers must be a deliberate act in a task step, never a side effect
-// of a rewrite.
+// Counts measured on the pre-move tree, 2026-09-28; raised to 69/60 on 2026-09-29 for the
+// IAM landing screen and Permissions Catalog, to 70/61 for Role Assignments, then dropped to
+// 69/60 and 25/19 when the profile screen was removed. Changing one of these numbers must be a
+// deliberate act in a task step, never a side effect of a rewrite.
 const REGISTRIES = [
   {
     name: "tenant-screen-dispatcher",
     path: "src/app/(authenticated)/[slug]/[screen]/tenant-screen-dispatcher.tsx",
-    specifiers: 70,
-    keys: 61,
+    specifiers: 69,
+    keys: 60,
   },
   {
     name: "generic-slug-dispatcher",
     path: "src/app/(authenticated)/[slug]/generic-slug-dispatcher.tsx",
-    specifiers: 26,
-    keys: 20,
+    specifiers: 25,
+    keys: 19,
   },
 ];
 

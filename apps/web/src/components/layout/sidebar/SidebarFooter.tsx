@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Settings, User, Crown, KeyRound, LogOut } from "lucide-react";
+import { Settings, Crown, KeyRound, LogOut } from "lucide-react";
 import type { AppUser } from "@/store/use-app-store";
 
 interface SidebarFooterProps {
@@ -65,13 +65,6 @@ export function SidebarFooter({
 
   const renderDropdownItems = () => (
     <>
-      <DropdownMenuItem 
-        className="cursor-pointer gap-2"
-        onClick={() => onNavigate("profile")}
-      >
-        <User className="size-4 text-emerald-500" />
-        My Profile
-      </DropdownMenuItem>
       {currentUser.role === "admin" && (
         <>
           <DropdownMenuItem 
