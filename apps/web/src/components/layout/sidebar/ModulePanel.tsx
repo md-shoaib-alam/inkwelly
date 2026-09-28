@@ -25,20 +25,20 @@ export function ModulePanel({
     <div className="flex w-full min-w-0 shrink-0 flex-col overflow-hidden bg-white dark:bg-[#0A0A0A] border-r border-slate-200/80 dark:border-zinc-800/80 h-full lg:w-[min(288px,calc(100vw-10.25rem))]">
       {/* Module header */}
       <div className="flex items-center gap-3 px-5 pt-5 pb-4 shrink-0">
-        <div className="size-11 rounded-xl bg-amber-50 dark:bg-amber-400/10 border border-amber-100/80 dark:border-amber-400/20 flex items-center justify-center text-[#C99312] dark:text-amber-400 shrink-0">
+        <div className="size-11 rounded-xl bg-brand/10 flex items-center justify-center text-brand shrink-0">
           {module.icon}
         </div>
         <div className="flex-1 min-w-0">
-          <h2 className="text-lg font-extrabold tracking-tight text-emerald-950 dark:text-emerald-50 truncate">
+          <h2 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-zinc-50 truncate">
             {module.label}
           </h2>
-          <div className="mt-1 h-1 w-7 rounded-full bg-amber-400" />
+          <div className="mt-1 h-1 w-7 rounded-full bg-brand" />
         </div>
         <button
           type="button"
           onClick={onToggleCollapse}
           aria-label={backToRail ? "Back to modules" : "Collapse navigation panel"}
-          className="size-8 shrink-0 rounded-full border border-slate-200 dark:border-zinc-800 flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
+          className="size-8 shrink-0 rounded-full border border-slate-200 dark:border-zinc-800 flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
         >
           <ChevronLeft className="size-4" />
         </button>
@@ -67,9 +67,9 @@ export function ModulePanel({
                     aria-current={isActive ? "page" : undefined}
                     className={cn(
                       "flex w-full items-center gap-3 h-11 px-3 rounded-xl text-[15px] font-medium transition-colors cursor-pointer outline-none",
-                      "focus-visible:ring-2 focus-visible:ring-emerald-500/40",
+                      "focus-visible:ring-2 focus-visible:ring-brand/50",
                       isActive
-                        ? "bg-[#DCF5E9] dark:bg-emerald-400/10 text-emerald-950 dark:text-emerald-100 font-semibold"
+                        ? "bg-brand/10 text-slate-900 dark:text-white font-semibold"
                         : "text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100"
                     )}
                   >
@@ -77,7 +77,7 @@ export function ModulePanel({
                       className={cn(
                         "shrink-0 transition-colors",
                         isActive
-                          ? "text-emerald-700 dark:text-emerald-400"
+                          ? "text-brand"
                           : "text-slate-400 dark:text-zinc-500"
                       )}
                     >
@@ -92,7 +92,7 @@ export function ModulePanel({
                         {entry.badge}
                       </Badge>
                     ) : isActive ? (
-                      <ChevronsRight className="size-4 shrink-0 text-emerald-700 dark:text-emerald-400" />
+                      <ChevronsRight className="size-4 shrink-0 text-brand" />
                     ) : null}
                   </button>
                 );

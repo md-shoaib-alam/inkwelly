@@ -27,11 +27,11 @@ export function ModuleRail({
   return (
     <nav
       aria-label="Modules"
-      className="flex w-[108px] shrink-0 flex-col overflow-hidden bg-[#06231D] h-full"
+      className="flex w-[108px] shrink-0 flex-col overflow-hidden border-r border-slate-200/80 bg-white dark:border-zinc-800/80 dark:bg-[#0A0A0A] h-full"
     >
       {/* Brand / school mark */}
       <div className="flex justify-center pt-4 pb-3 shrink-0">
-        <div className="size-11 rounded-2xl bg-white/[0.07] ring-1 ring-white/10 overflow-hidden flex items-center justify-center">
+        <div className="size-11 rounded-2xl bg-slate-100 ring-1 ring-slate-200/80 dark:bg-zinc-900 dark:ring-zinc-800 overflow-hidden flex items-center justify-center">
           {tenantLogo ? (
             <img
               src={tenantLogo}
@@ -40,7 +40,7 @@ export function ModuleRail({
               loading="eager"
             />
           ) : (
-            <GraduationCap className="size-6 text-[#F2B33D]" />
+            <GraduationCap className="size-6 text-brand" />
           )}
         </div>
       </div>
@@ -59,35 +59,26 @@ export function ModuleRail({
               aria-current={isActive ? "page" : undefined}
               className={cn(
                 "group flex w-full flex-col items-center gap-1.5 rounded-xl px-1 pt-1 pb-2 outline-none transition-colors cursor-pointer",
-                "focus-visible:ring-2 focus-visible:ring-[#F2B33D]/60",
-                !isActive && "hover:bg-white/[0.04]"
+                "focus-visible:ring-2 focus-visible:ring-brand/50",
+                !isActive && "hover:bg-slate-100/80 dark:hover:bg-zinc-800/60"
               )}
             >
               <span
                 className={cn(
                   "flex h-10 w-full items-center justify-center rounded-2xl transition-all duration-200",
                   isActive
-                    ? "bg-[#F2B33D] shadow-lg shadow-black/25"
-                    : "bg-transparent group-hover:bg-white/[0.06]"
+                    ? "bg-brand-solid text-white shadow-sm"
+                    : "bg-transparent text-slate-600 group-hover:bg-slate-100 dark:text-zinc-400 dark:group-hover:bg-zinc-800"
                 )}
               >
-                <span
-                  className={cn(
-                    "transition-colors",
-                    isActive
-                      ? "text-[#06231D]"
-                      : "text-[#8FCEAD] group-hover:text-[#CDEBDA]"
-                  )}
-                >
-                  {item.icon}
-                </span>
+                {item.icon}
               </span>
               <span
                 className={cn(
-                  "text-[10.5px] font-semibold leading-tight text-center transition-colors",
+                  "text-[10.5px] leading-tight text-center transition-colors",
                   isActive
-                    ? "text-white"
-                    : "text-[#7FB69E] group-hover:text-[#CDEBDA]"
+                    ? "font-semibold text-slate-900 dark:text-zinc-50"
+                    : "font-medium text-slate-600 group-hover:text-slate-900 dark:text-zinc-400 dark:group-hover:text-zinc-100"
                 )}
               >
                 {item.label}
@@ -101,7 +92,7 @@ export function ModuleRail({
           type="button"
           onClick={onExpand}
           aria-label="Show module navigation"
-          className="hidden lg:flex mx-2 mb-3 h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-white/[0.07] text-[#8FCEAD] ring-1 ring-white/10 transition-colors hover:bg-white/[0.12] hover:text-white outline-none focus-visible:ring-2 focus-visible:ring-[#F2B33D]/60 cursor-pointer"
+          className="hidden lg:flex mx-2 mb-3 h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-100 text-slate-600 ring-1 ring-slate-200/80 transition-colors hover:bg-slate-200/70 hover:text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-brand/50 cursor-pointer dark:bg-zinc-900 dark:text-zinc-400 dark:ring-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-white"
         >
           <PanelLeftOpen className="size-4" />
           <span className="text-[11px] font-semibold">Menu</span>

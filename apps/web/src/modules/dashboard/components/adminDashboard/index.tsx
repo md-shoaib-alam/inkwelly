@@ -69,7 +69,7 @@ export function AdminDashboard() {
     <div className="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6">
       {(isExpired || isExpiringSoon) && (
         <div
-          className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm ${
+          className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-base leading-6 ${
             isExpired
               ? "border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300"
               : "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300"

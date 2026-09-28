@@ -31,7 +31,7 @@ export function ModuleGrid({ cards, pinned, onTogglePin, onNavigate }: ModuleGri
           const faceClasses = cn(
             "flex h-full w-full flex-col items-center gap-1 rounded-2xl border border-slate-200/80 bg-white p-5 text-center outline-none transition-all dark:border-zinc-800 dark:bg-zinc-950",
             isLive
-              ? "cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg hover:shadow-slate-900/5 focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+              ? "cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg hover:shadow-slate-900/5 focus-visible:ring-2 focus-visible:ring-brand/50"
               : "opacity-70",
           );
 
@@ -45,10 +45,10 @@ export function ModuleGrid({ cards, pinned, onTogglePin, onNavigate }: ModuleGri
               >
                 <card.icon className="size-6" />
               </span>
-              <span className="text-[15px] font-bold leading-tight text-slate-900 dark:text-slate-50">
+              <span className="text-base font-semibold leading-6 text-slate-900 dark:text-zinc-50">
                 {card.title}
               </span>
-              <span className="text-[13px] leading-snug text-slate-500 dark:text-slate-400">
+              <span className="text-base leading-6 text-slate-900 dark:text-zinc-100">
                 {card.subtitle}
               </span>
               <span className="mt-auto pt-2">
@@ -87,9 +87,9 @@ export function ModuleGrid({ cards, pinned, onTogglePin, onNavigate }: ModuleGri
                   aria-label={`${isPinned ? "Unpin" : "Pin"} ${card.title}`}
                   aria-pressed={isPinned}
                   className={cn(
-                    "absolute right-2.5 top-2.5 flex size-7 items-center justify-center rounded-lg outline-none transition-all focus-visible:ring-2 focus-visible:ring-emerald-500/50",
+                    "absolute right-2.5 top-2.5 flex size-7 items-center justify-center rounded-lg outline-none transition-all focus-visible:ring-2 focus-visible:ring-brand/50",
                     isPinned
-                      ? "text-teal-600 dark:text-teal-400"
+                      ? "text-brand"
                       : "text-slate-300 opacity-0 hover:text-slate-500 focus-visible:opacity-100 group-hover:opacity-100 dark:text-zinc-600",
                   )}
                 >

@@ -38,6 +38,8 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-brand: var(--brand);
+  --color-brand-solid: var(--brand-solid);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -59,6 +61,11 @@
 
 :root {
   --radius: 0.625rem;
+  /* #155DFC carries white text at 5.25:1 in either mode, but as text on the dark
+     surface it only reaches 3.6:1 — so the accent flips per mode and the solid
+     pill that always holds white content does not. */
+  --brand: #155DFC;
+  --brand-solid: #155DFC;
   --background: #F8F8F6;
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -124,6 +131,8 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --brand: #60A5FA;
+  --brand-solid: #155DFC;
 }
 
 /* Sonner Toast Customizations - Full Soft Pastel Palette */
