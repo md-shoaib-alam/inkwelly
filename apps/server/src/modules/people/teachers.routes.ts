@@ -1,13 +1,13 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import { hashPassword } from '../lib/passwords';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import { hashPassword } from '../../lib/passwords';
+import * as schema from '../../db/schema';
 import { eq, and, or, sql, desc, count, ilike, inArray } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { requirePermission } from '../lib/permissions';
-import { dataCache } from '../lib/cache';
-import { posthog, captureError } from '../lib/monitoring/posthog';
-import { TeacherService } from '../services/teacher.service';
+import { requireAuth } from '../../lib/auth';
+import { requirePermission } from '../../lib/permissions';
+import { dataCache } from '../../lib/cache';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
+import { TeacherService } from './teacher.service';
 
 export const teachersRoutes = new Elysia({ prefix: '/teachers' })
   .use(requireAuth)

@@ -2,10 +2,10 @@
  * ParentService — Shared Service Layer
  * Used by: REST /routes/parents.ts  AND  GraphQL academic.resolvers.ts
  */
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, count, ilike } from 'drizzle-orm';
-import { dataCache } from '../lib/cache';
+import { dataCache } from '../../lib/cache';
 
 export interface ParentListParams {
   tenantId: string;

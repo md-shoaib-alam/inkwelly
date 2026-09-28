@@ -1,11 +1,11 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import { hashPassword } from '../lib/passwords';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import { hashPassword } from '../../lib/passwords';
+import * as schema from '../../db/schema';
 import { eq, and, desc, sql, inArray, ilike } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { invalidateUserPermissions, requirePermission } from '../lib/permissions';
-import { posthog, captureError } from '../lib/monitoring/posthog';
+import { requireAuth } from '../../lib/auth';
+import { invalidateUserPermissions, requirePermission } from '../../lib/permissions';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
 
 export const staffRoutes = new Elysia({ prefix: '/staff' })
   .use(requireAuth)

@@ -1,0 +1,7 @@
+export { classesRoutes } from './classes.routes';
+export { subjectsRoutes } from './subjects.routes';
+export { promotionsRoutes } from './promotions.routes';
+export { ClassService } from './class.service';
+export type { ClassListParams } from './class.service';
+export { SubjectService } from './subject.service';
+export type { SubjectListParams } from './subject.service';

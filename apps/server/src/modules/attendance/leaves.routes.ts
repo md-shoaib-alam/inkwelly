@@ -1,10 +1,10 @@
 import { Elysia, t } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, desc, asc, gte, lte, ilike, or, count } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { invalidateUnreadCount } from '../lib/notifications';
-import { posthog, captureError } from '../lib/monitoring/posthog';
+import { requireAuth } from '../../lib/auth';
+import { invalidateUnreadCount } from '../../lib/notifications';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
 
 // Leave history grows unbounded, so a page load must never return the whole
 // table: newest-first with a bounded window instead.

@@ -1,15 +1,15 @@
-import { db } from '../lib/db';
-import { hashPassword } from '../lib/passwords';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import { hashPassword } from '../../lib/passwords';
+import * as schema from '../../db/schema';
 import { eq, and, or, sql, desc, count, ilike, inArray, isNull } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { requirePermission } from '../lib/permissions';
-import { dataCache } from '../lib/cache';
-import { posthog, captureError } from '../lib/monitoring/posthog';
-import { createAuditLog } from '../lib/audit-helper';
+import { requireAuth } from '../../lib/auth';
+import { requirePermission } from '../../lib/permissions';
+import { dataCache } from '../../lib/cache';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
+import { createAuditLog } from '../../lib/audit-helper';
 import Elysia, { t } from 'elysia';
-import { formatDate } from '../lib/date-utils';
-import { StudentService } from '../services/student.service';
+import { formatDate } from '../../lib/date-utils';
+import { StudentService } from './student.service';
 
 const PHONE_PATTERN = '^\\+?[0-9\\-()\\s]{7,20}$';
 const DATE_PATTERN = '^\\d{4}-\\d{2}-\\d{2}$';

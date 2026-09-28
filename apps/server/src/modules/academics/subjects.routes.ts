@@ -1,12 +1,12 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, inArray, asc } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { requirePermission } from '../lib/permissions';
-import { posthog, captureError } from '../lib/monitoring/posthog';
-import { dataCache } from '../lib/cache';
-import { SubjectService } from '../services/subject.service';
+import { requireAuth } from '../../lib/auth';
+import { requirePermission } from '../../lib/permissions';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
+import { dataCache } from '../../lib/cache';
+import { SubjectService } from './subject.service';
 
 export const subjectsRoutes = new Elysia({ prefix: '/subjects' })
   .use(requireAuth)

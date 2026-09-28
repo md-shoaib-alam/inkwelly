@@ -1,15 +1,15 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, or, sql, desc, count, gte, inArray } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { requirePermission } from '../lib/permissions';
-import { dataCache } from '../lib/cache';
-import { redis } from '../lib/redis';
-import { posthog, captureError } from '../lib/monitoring/posthog';
-import { pushQueue, notificationQueue } from '../lib/queue';
-import { isQuietHours } from '../lib/quiet-hours';
-import { formatDate } from '../lib/date-utils';
+import { requireAuth } from '../../lib/auth';
+import { requirePermission } from '../../lib/permissions';
+import { dataCache } from '../../lib/cache';
+import { redis } from '../../lib/redis';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
+import { pushQueue, notificationQueue } from '../../lib/queue';
+import { isQuietHours } from '../../lib/quiet-hours';
+import { formatDate } from '../../lib/date-utils';
 
 export const attendanceRoutes = new Elysia({ prefix: '/attendance' })
   .use(requireAuth)

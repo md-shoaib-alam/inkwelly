@@ -1,9 +1,9 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, or, desc, inArray, count, asc, sql } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { posthog, captureError } from '../lib/monitoring/posthog';
+import { requireAuth } from '../../lib/auth';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
 
 // Idle TTL for a rotating QR session. A successful scan burns the code and the kiosk
 // mints a fresh one within ~1s, so this only bounds how long a photo of the screen

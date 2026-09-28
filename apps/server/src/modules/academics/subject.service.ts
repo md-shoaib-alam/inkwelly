@@ -2,10 +2,10 @@
  * SubjectService — Shared Service Layer
  * Used by: REST /routes/subjects.ts  AND  GraphQL academic.resolvers.ts
  */
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, desc, count, ilike, inArray, asc } from 'drizzle-orm';
-import { dataCache } from '../lib/cache';
+import { dataCache } from '../../lib/cache';
 
 export interface SubjectListParams {
   tenantId: string;

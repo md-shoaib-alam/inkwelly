@@ -2,10 +2,10 @@
  * TeacherService — Shared Service Layer
  * Used by: REST /routes/teachers.ts  AND  GraphQL academic.resolvers.ts
  */
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, or, desc, count, ilike, inArray, sql } from 'drizzle-orm';
-import { dataCache } from '../lib/cache';
+import { dataCache } from '../../lib/cache';
 
 export interface TeacherListParams {
   tenantId: string;

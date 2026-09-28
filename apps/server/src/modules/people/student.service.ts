@@ -10,10 +10,10 @@
  * needs to be made in ONE place only.
  */
 
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, or, desc, inArray, count, ilike, isNull, sql, exists } from 'drizzle-orm';
-import { dataCache } from '../lib/cache';
+import { dataCache } from '../../lib/cache';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

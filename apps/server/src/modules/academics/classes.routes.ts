@@ -1,12 +1,12 @@
 import { Elysia } from 'elysia';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { eq, and, or, sql, desc, count, exists, inArray } from 'drizzle-orm';
-import { requireAuth } from '../lib/auth';
-import { requirePermission } from '../lib/permissions';
-import { dataCache } from '../lib/cache';
-import { posthog, captureError } from '../lib/monitoring/posthog';
-import { ClassService } from '../services/class.service';
+import { requireAuth } from '../../lib/auth';
+import { requirePermission } from '../../lib/permissions';
+import { dataCache } from '../../lib/cache';
+import { posthog, captureError } from '../../lib/monitoring/posthog';
+import { ClassService } from './class.service';
 
 class ClassDeleteBlocked extends Error {}
 

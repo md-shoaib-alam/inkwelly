@@ -5,10 +5,10 @@ import { checkAuth, paginate, requireModule, requireSchoolAdmin, assertTenantOwn
 import { invalidateUserPermissions, invalidateRolePermissions } from '../../lib/permissions'
 import { dataCache } from '../../lib/cache'
 import { formatDate } from '../../lib/date-utils'
-import { StudentService } from '../../services/student.service'
-import { TeacherService } from '../../services/teacher.service'
-import { ClassService } from '../../services/class.service'
-import { SubjectService } from '../../services/subject.service'
+import { StudentService } from '../../modules/people/student.service'
+import { TeacherService } from '../../modules/people/teacher.service'
+import { ClassService } from '../../modules/academics/class.service'
+import { SubjectService } from '../../modules/academics/subject.service'
 
 export const academicQueries = {
   subjects: async (_: unknown, args: { tenantId?: string; page?: number; limit?: number }, context: any) => {
