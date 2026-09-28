@@ -71,3 +71,21 @@ test("finance keys are still routed across both registries", () => {
   }
   expect(generic.has("billing")).toBe(true);
 });
+
+// The staff permission guard and the screen switch must both read the resolved
+// key. Reading the raw `screen` param was a privilege escalation once URLs became
+// module-scoped: /slug/academics/classes puts "academics" in `screen`, which is in
+// neither STAFF_FORBIDDEN_SCREENS nor STAFF_SCREEN_MODULES, so the guard checked
+// the wrong word and passed. If you are about to undo this, undo the module-scoped
+// URLs instead — or add /slug/academics/classes as a staff user and watch it render
+// the admin class editor.
+test("the dispatcher guards and switches on the resolved key, not the raw param", () => {
+  const src = readFileSync(
+    join(APP_ROOT, "src/app/(authenticated)/[slug]/[screen]/tenant-screen-dispatcher.tsx"),
+    "utf8",
+  );
+  expect(src).toMatch(/STAFF_FORBIDDEN_SCREENS\.has\(screenKey\)/);
+  expect(src).toMatch(/STAFF_SCREEN_MODULES\[screenKey\]/);
+  expect(src).toMatch(/switch \(screenKey\) \{/);
+  expect(src).not.toMatch(/STAFF_FORBIDDEN_SCREENS\.has\(screen\)/);
+});

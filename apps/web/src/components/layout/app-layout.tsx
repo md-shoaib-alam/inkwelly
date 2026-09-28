@@ -9,7 +9,8 @@ import { hasPermission, isRootAdmin } from "@/lib/permissions";
 import { ChangePasswordModal } from "@/components/modals/change-password-modal";
 import { Sidebar } from "./sidebar";
 import { ModuleSidebar } from "./sidebar/module-sidebar";
-import { getAdminRail } from "./sidebar/module-nav-config";
+import { getAdminRail, isAdminModuleScreen } from "./sidebar/module-nav-config";
+import { parseRoute, qualifiedKey } from "@/lib/routing/module-routes";
 import { Header } from "./header";
 import { navItems } from "./nav-config";
 import { useIsFetching } from "@tanstack/react-query";
@@ -54,23 +55,25 @@ function isPlatformRoute(screen: string): boolean {
   return PLATFORM_ROUTES.has(screen);
 }
 
-function isTenantRootPath(p: string, currentUser: any, currentTenantSlug: string | null): boolean {
-  return p === currentUser?.tenantId ||
-         p === currentTenantSlug ||
-         p === currentUser?.tenantSlug;
+function tenantRootPredicate(currentUser: any, currentTenantSlug: string | null) {
+  return (first: string) =>
+    first === currentUser?.tenantId ||
+    first === currentTenantSlug ||
+    first === currentUser?.tenantSlug;
 }
 
+// Delegates to the shared contract so the sidebar's active row and the
+// dispatcher's switch cannot drift apart on what a path means.
 function resolveScreenFromPathname(
   pathname: string,
   currentUser: any,
   currentTenantSlug: string | null
 ): string {
-  const parts = pathname.split("/").filter(Boolean);
-  if (parts.length >= 2) return parts[1];
-  if (parts.length === 1) {
-    return isTenantRootPath(parts[0], currentUser, currentTenantSlug) ? "dashboard" : parts[0];
-  }
-  return "dashboard";
+  const { module, screen } = parseRoute(pathname, {
+    isModuleScreen: isAdminModuleScreen,
+    isTenantRoot: tenantRootPredicate(currentUser, currentTenantSlug),
+  });
+  return module ? qualifiedKey(module, screen) : screen;
 }
 
 function shouldIncludeItem(

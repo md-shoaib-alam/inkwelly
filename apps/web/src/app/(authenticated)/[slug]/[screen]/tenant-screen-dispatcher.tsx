@@ -5,6 +5,8 @@ import { useParams, redirect } from 'next/navigation';
 import { useAppStore } from '@/store/use-app-store';
 import { hasPermission } from '@/lib/permissions';
 import { navItems } from '@/components/layout/nav-config';
+import { isAdminModuleScreen } from '@/components/layout/sidebar/module-nav-config';
+import { componentKey, parseRoute } from '@/lib/routing/module-routes';
 import dynamic from 'next/dynamic';
 import { FullPageSkeleton } from "@/components/ui/full-page-skeleton";
 
@@ -131,9 +133,18 @@ const STAFF_FORBIDDEN_SCREENS = new Set([
 ]);
 
 export default function TenantScreenDispatcherClient() {
-  const { slug, screen } = useParams();
+  const { slug, screen, detail } = useParams();
   const mounted = useHydrated();
   const { currentUser } = useAppStore();
+
+  // This route always puts the tenant in the first segment, so parts[0] is the
+  // root by construction and can never be a module name.
+  // A module-scoped admin URL arrives as screen=module, detail=screen.
+  const route = parseRoute(`/${slug}/${screen}${detail ? `/${detail}` : ''}`, {
+    isModuleScreen: isAdminModuleScreen,
+    isTenantRoot: (first) => first === slug,
+  });
+  const screenKey = componentKey(route.module, route.screen);
 
   // REDIRECTION LOGIC (DURING RENDER)
   if (mounted && currentUser && typeof slug === 'string' && typeof screen === 'string') {
@@ -167,9 +178,9 @@ export default function TenantScreenDispatcherClient() {
     // Permission guard for staff users
     if (currentUser.role === 'staff') {
       const denied =
-        STAFF_FORBIDDEN_SCREENS.has(screen) ||
-        (STAFF_SCREEN_MODULES[screen] !== undefined &&
-          !hasPermission(currentUser, STAFF_SCREEN_MODULES[screen], 'view'));
+        STAFF_FORBIDDEN_SCREENS.has(screenKey) ||
+        (STAFF_SCREEN_MODULES[screenKey] !== undefined &&
+          !hasPermission(currentUser, STAFF_SCREEN_MODULES[screenKey], 'view'));
 
       if (denied) {
         const tid = currentUser.tenantSlug || currentUser.tenantId || slug;
@@ -177,7 +188,7 @@ export default function TenantScreenDispatcherClient() {
       }
     }
 
-    switch (screen) {
+    switch (screenKey) {
       case 'dashboard': 
         if (currentUser.role === 'super_admin' && slug === 'tenants') return <SuperAdminDashboard />;
         return currentUser.role === 'staff' ? <StaffDashboard /> : <AdminDashboard />;

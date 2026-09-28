@@ -565,6 +565,18 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
   ],
 };
 
+/**
+ * True when `screen` is a declared sub-link of admin module `module`. This is what
+ * tells `/demo-academy/academics/classes` (a module-scoped screen) apart from
+ * `/demo-academy/students/STU-123` (a screen with a detail param) — both are three
+ * segments, and nothing but this index can tell them apart.
+ */
+export function isAdminModuleScreen(module: string, screen: string): boolean {
+  return (
+    adminPanelSections[module]?.some((s) => s.items.some((i) => i.key === screen)) ?? false
+  );
+}
+
 // Rail rows that aren't purchasable modules, so they aren't in the catalogue either.
 const adminRailChrome: ModuleNavItem[] = [
   direct("dashboard", "Dashboard", <LayoutDashboard className={iconCls} />),
