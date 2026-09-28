@@ -1,7 +1,7 @@
 # Feature-Module Restructure — Design
 
 Date: 2026-09-28
-Status: awaiting user review
+Status: server complete (all 16 modules + boundary lint) — web and mobile pending
 Scope: `apps/web`, `apps/server`, `apps/mobile` inside the `@inkwelly` turborepo
 
 ## 1. Problem
@@ -153,3 +153,14 @@ Plus two new guard tests added in step 1, because typecheck alone cannot catch a
 ## 10. What "done" looks like
 
 `apps/{web,server,mobile}/src/modules/<16 domains>/`, `app/**` byte-identical, zero URL or screen-key changes, `components/screens/` gone from web, `routes/`+`services/`+per-domain `graphql/` gone from server, boundary lint rules failing CI on cross-module internals, and `turbo run typecheck test build lint` all green.
+
+## 11. Server result — deviations found while executing
+
+The server slice is complete. Four things differed from this spec and are recorded so web and mobile don't re-discover them.
+
+1. **§4 assumed `graphql/**` shrinks to client setup + `index.ts` only.** It does not. `typeDefs/inputs.typeDefs.ts`, `responses.typeDefs.ts` and `root.typeDefs.ts` are cross-domain base types, and `resolvers/helpers.ts` is shared by every resolver. They stay in `graphql/` as a shared layer, exactly like `lib/` and `db/` under rule 2.
+2. **`academic.resolvers.ts` (742 lines) and `academic.typeDefs.ts` (178 lines) span two modules** — academics *and* assessment. The taxonomy in §3 has no rule for a file belonging to two modules. Per decision 2 (relocate only) they were parked in `modules/academics/`; splitting them belongs to the oversized-file pass. Same for `auth.resolvers.ts`, which spans auth and people.
+3. **§6's lint recipe is inert as written.** Two eslint-plugin-boundaries 7.2 traps: `file: { pathNot: ["index.ts"] }` is silently ignored (file selectors accept only `categories`), and without `settings["import/resolver"]` the bundled resolver never tries `.ts`, so every dependency classifies as `unknown` and no policy can match. The working shape is file categories with `{ anyOf: ["module-internal"], noneOf: ["barrel"] }`. A policy that enforces nothing prints a one-line warning and otherwise looks green — always prove the rule with a throwaway violation.
+4. **`route-resolution.test.ts` must be in the relocator's referrer set.** §5 rule 6 co-locates tests with their subject, but this test asserts on the composition root, so it lives at `src/` and its imports rewrite on every domain move.
+
+Verified with `turbo run lint typecheck test` (32 pass / 0 fail) plus a live boot — Elysia's AOT compile registers every route group, which typecheck alone cannot prove.
