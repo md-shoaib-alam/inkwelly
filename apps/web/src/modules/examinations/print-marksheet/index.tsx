@@ -11,10 +11,10 @@ import { api, apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYears } from '@/modules/academics/hooks/use-academic-years';
-import { MarksheetPreviewPage } from './adminExams/MarksheetPreviewPage';
+import { MarksheetPreviewPage } from '@/modules/assessment/components/adminExams/MarksheetPreviewPage';
 import { Badge } from '@/components/ui/badge';
-import { getGroupedExams } from './adminExams/utils';
-import { ExamRecord } from './adminExams/types';
+import { getGroupedExams } from '@/modules/assessment/components/adminExams/utils';
+import { ExamRecord } from '@/modules/assessment/components/adminExams/types';
 import { FullPageSkeleton } from "@/components/ui/full-page-skeleton";
 import { toast } from "sonner";
 import { useAppStore } from "@/store/use-app-store";
@@ -322,7 +322,7 @@ export function AdminPrintMarksheetContent() {
                                         } else {
                                           toast.promise(
                                             (async () => {
-                                              const { handleMarksheetPreviewNewTab } = await import('./adminExams/marksheetPrinter');
+                                              const { handleMarksheetPreviewNewTab } = await import('@/modules/assessment/components/adminExams/marksheetPrinter');
                                               await handleMarksheetPreviewNewTab({
                                                 classId: c.id,
                                                 classNameStr: c.name,

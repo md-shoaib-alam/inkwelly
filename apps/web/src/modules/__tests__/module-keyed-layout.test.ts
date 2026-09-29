@@ -65,3 +65,11 @@ describe("money-book", () => {
     expect(rowHasScreen("money-book", "expenses")).toBe(true);
   });
 });
+
+describe("examinations", () => {
+  test("every examinations row lives under modules/examinations/", () => {
+    for (const row of ["exams", "results-entry", "published-results", "print-marksheet", "admit-cards"]) {
+      expect(rowHasScreen("examinations", row)).toBe(true);
+    }
+  });
+});

@@ -49,9 +49,11 @@ const StaffAttendance = dynamic(() => import('@/modules/employee-attendance/teac
 const EmployeeStaffAttendance = dynamic(() => import('@/modules/employee-attendance/staff-attendance').then(m => m.EmployeeStaffAttendance), { loading: LoadingScreen });
 const LeavesTeacherLeaves = dynamic(() => import('@/modules/leaves/teacher-leaves').then(m => m.LeavesTeacherLeaves), { loading: LoadingScreen });
 const LeavesStaffLeaves = dynamic(() => import('@/modules/leaves/staff-leaves').then(m => m.LeavesStaffLeaves), { loading: LoadingScreen });
-const AdminExams = dynamic(() => import('@/modules/assessment/components/AdminExams').then(m => m.AdminExams), { loading: LoadingScreen });
-const AdminPrintMarksheet = dynamic(() => import('@/modules/assessment/components/AdminPrintMarksheet').then(m => m.AdminPrintMarksheet), { loading: LoadingScreen });
-const AdminAdmitCards = dynamic(() => import('@/modules/certificates/components/AdminAdmitCards').then(m => m.AdminAdmitCards), { loading: LoadingScreen });
+const AdminExams = dynamic(() => import('@/modules/examinations/exams').then(m => m.AdminExams), { loading: LoadingScreen });
+const ExaminationsResultsEntry = dynamic(() => import('@/modules/examinations/results-entry').then(m => m.ExaminationsResultsEntry), { loading: LoadingScreen });
+const ExaminationsPublishedResults = dynamic(() => import('@/modules/examinations/published-results').then(m => m.ExaminationsPublishedResults), { loading: LoadingScreen });
+const AdminPrintMarksheet = dynamic(() => import('@/modules/examinations/print-marksheet').then(m => m.AdminPrintMarksheet), { loading: LoadingScreen });
+const AdminAdmitCards = dynamic(() => import('@/modules/examinations/admit-cards').then(m => m.AdminAdmitCards), { loading: LoadingScreen });
 const AcademicYearsScreen = dynamic(() => import('@/modules/academics/components/AdminAcademicYears').then(m => m.AcademicYearsScreen), { loading: LoadingScreen });
 const ExpensesScreen = dynamic(() => import('@/modules/money-book/expenses').then(m => m.ExpensesScreen), { loading: LoadingScreen });
 const AdminSubscription = dynamic(() => import('@/modules/tenancy/components/AdminSubscription').then(m => m.SchoolSubscriptionScreen), { loading: LoadingScreen });
@@ -253,8 +255,8 @@ export default function TenantScreenDispatcherClient() {
         if (currentUser.role === 'staff') return <TeacherMyAttendance />;
         redirect(`/${currentUser.tenantSlug || currentUser.tenantId || slug}/dashboard`);
       case 'exams': return <AdminExams key="exams" initialTab="exams" />;
-      case 'results-entry': return <AdminExams key="results" initialTab="results" />;
-      case 'published-results': return <AdminExams key="published" initialTab="published" />;
+      case 'results-entry': return <ExaminationsResultsEntry key="results" />;
+      case 'published-results': return <ExaminationsPublishedResults key="published" />;
       case 'print-marksheet': return <AdminPrintMarksheet />;
       case 'admit-cards': return <AdminAdmitCards />;
       default: {

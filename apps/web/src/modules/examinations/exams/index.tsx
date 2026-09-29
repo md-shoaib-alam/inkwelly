@@ -9,22 +9,22 @@ import {
   formatTime, 
   getStatusBadge, 
   getExamTypeBadge 
-} from './adminExams/utils';
+} from '@/modules/assessment/components/adminExams/utils';
 
 // Sub-components
-import { ExamsHeader } from './adminExams/ExamsHeader';
-import { ExamDialogs } from './adminExams/ExamDialogs';
-import { ViewResultsDialog } from './adminExams/ViewResultsDialog';
-import { ActiveExamsView } from './adminExams/ActiveExamsView';
-import { PublishedResultsView } from './adminExams/PublishedResultsView';
-import { TabulationLedgerPreviewPage } from './adminExams/TabulationLedgerPreviewPage';
-import { useExamsState } from './adminExams/useExamsState';
-import { CreateExamWizard } from './adminExams/CreateExamWizard';
+import { ExamsHeader } from '@/modules/assessment/components/adminExams/ExamsHeader';
+import { ExamDialogs } from '@/modules/assessment/components/adminExams/ExamDialogs';
+import { ViewResultsDialog } from '@/modules/assessment/components/adminExams/ViewResultsDialog';
+import { ActiveExamsView } from '@/modules/assessment/components/adminExams/ActiveExamsView';
+import { PublishedResultsView } from '@/modules/assessment/components/adminExams/PublishedResultsView';
+import { TabulationLedgerPreviewPage } from '@/modules/assessment/components/adminExams/TabulationLedgerPreviewPage';
+import { useExamsState } from '@/modules/assessment/components/adminExams/useExamsState';
+import { CreateExamWizard } from '@/modules/assessment/components/adminExams/CreateExamWizard';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
 // Dynamic loading for "Low Stack" performance optimization
-const ResultsView = dynamic(() => import('./adminExams/ResultsView').then(m => m.ResultsView), {
+const ResultsView = dynamic(() => import('@/modules/assessment/components/adminExams/ResultsView').then(m => m.ResultsView), {
   loading: () => <TabLoadingSkeleton />
 });
 
