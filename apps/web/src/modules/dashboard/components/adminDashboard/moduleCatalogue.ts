@@ -38,6 +38,7 @@ import {
   ScrollText,
   Settings,
   Shield,
+  Sparkles,
   SquarePen,
   Store,
   Tag,
@@ -111,7 +112,7 @@ export interface ModuleCard {
 // reads its rail order from it too. Cards that live here but aren't in the reference
 // grid sit next to their closest topic instead of trailing at the bottom.
 export const moduleCatalogue: ModuleCard[] = [
-  { id: "academics", title: "Academics", subtitle: "Subjects & syllabus", icon: GraduationCap, tint: "emerald", screen: "subjects", permModule: "subjects", inRail: true },
+  { id: "academics", title: "Academics", subtitle: "Subjects & syllabus", icon: GraduationCap, tint: "emerald", screen: "academics-dashboard", permModule: "subjects", inRail: true },
   { id: "timetable", title: "Timetable", subtitle: "Periods & schedule", icon: Clock, tint: "cyan", screen: "timetable", permModule: "timetable" },
   { id: "students", title: "Students", subtitle: "Admissions & records", icon: Users, tint: "emerald", screen: "students", permModule: "students", inRail: true },
   { id: "promotions", title: "Promotions", subtitle: "Class promotions", icon: School, tint: "purple", screen: "promotions", permModule: "promotions" },
@@ -162,6 +163,7 @@ export const moduleCatalogue: ModuleCard[] = [
   { id: "iam", title: "IAM", subtitle: "Roles & permissions", panelTitle: "Identity & Access Management", icon: Shield, tint: "violet", screen: "iam-dashboard", inRail: true },
   { id: "reports", title: "Reports", subtitle: "Exports & analytics", icon: BarChart3, tint: "violet", screen: "reports", permModule: "reports" },
   { id: "audit-logs", title: "Audit Logs", subtitle: "Activity trail", icon: ScrollText, tint: "indigo", screen: null },
+  { id: "ai-connect", title: "AI Connect", subtitle: "ChatGPT & Claude", panelTitle: "AI Connect (MCP)", icon: Sparkles, tint: "amber", screen: "ai-connect", inRail: true },
   { id: "sports", title: "Sports", subtitle: "Events & scores", icon: Medal, tint: "slate", screen: null },
   { id: "tasks", title: "Tasks", subtitle: "Checklists & follow-ups", icon: ListTodo, tint: "slate", screen: null },
   { id: "assets", title: "Assets", subtitle: "Inventory & tracking", icon: Boxes, tint: "slate", screen: null },

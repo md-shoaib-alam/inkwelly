@@ -9,6 +9,7 @@ import { StudentService } from '../students'
 import { TeacherService } from '../employees'
 import { ClassService } from './class.service'
 import { SubjectService } from './subject.service'
+import { AcademicsDashboardService } from './academics-dashboard.service'
 
 export const academicQueries = {
   subjects: async (_: unknown, args: { tenantId?: string; page?: number; limit?: number }, context: any) => {
@@ -459,6 +460,18 @@ export const academicQueries = {
     return db.query.academicYears.findFirst({
       where: and(eq(schema.academicYears.tenantId, tenantId), eq(schema.academicYears.isCurrent, true))
     });
+  },
+
+  academicsCommandCenter: async (
+    _: unknown,
+    args: { tenantId?: string; academicYear?: string },
+    context: any,
+  ) => {
+    const { user } = await requireModule(context, 'classes', 'view');
+    const tenantId = await tenantFromArg(user, args.tenantId);
+    if (!tenantId) throw new Error('Tenant context required');
+
+    return AcademicsDashboardService.commandCenter(tenantId, args.academicYear);
   },
 }
 

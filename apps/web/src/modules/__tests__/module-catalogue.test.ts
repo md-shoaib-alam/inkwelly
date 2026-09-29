@@ -64,11 +64,11 @@ describe("admin module catalogue", () => {
 
   test("a card is drawn as coming soon exactly when it has no screen", () => {
     // The grid derives the dashed, colourless, inert card from `screen === null`, so this
-    // split is the whole of the dashboard's coming-soon styling. 25 of 47 measured 2026-09-29,
-    // after Transport was given a real landing screen and a rail entry.
+    // split is the whole of the dashboard's coming-soon styling. 25 of 48 measured 2026-09-29,
+    // after AI Connect was given a status-only landing screen so its rail entry routes.
     const unbuilt = moduleCatalogue.filter((c) => c.screen === null);
     expect(unbuilt.length).toBe(25);
-    expect(moduleCatalogue.length - unbuilt.length).toBe(22);
+    expect(moduleCatalogue.length - unbuilt.length).toBe(23);
     // A dashed card must never be reachable from the rail or the favourites strip.
     const dashedButRoutable = unbuilt.filter((c) => c.inRail).map((c) => c.id);
     expect(dashedButRoutable).toEqual([]);

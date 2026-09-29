@@ -76,21 +76,23 @@ describe("examinations", () => {
 
 describe("academics", () => {
   test("every academics row lives under modules/academics/<row>/", () => {
-    for (const row of ["classes", "subjects", "academic-years", "timetable", "calendar", "school-settings"]) {
+    for (const row of ["academics-dashboard", "classes", "subjects", "academic-years", "timetable", "calendar", "school-settings"]) {
       expect(rowHasScreen("academics", row)).toBe(true);
     }
   });
 });
 
-// The 33 live rows this plan gives a folder, read off adminPanelSections and cross-checked
+// The 35 live rows that have a folder, read off adminPanelSections and cross-checked
 // against the dispatcher's case keys. A row whose bare key is shared with a sibling module is
 // NOT here -- see the deferral list two tests down. A new row that can be addressed today must
 // appear here AND as a folder.
 const LIVE_ROWS: [string, string][] = [
   ["iam", "iam-dashboard"], ["iam", "roles"], ["iam", "role-assignments"],
   ["iam", "permissions-catalog"],
+  ["academics", "academics-dashboard"],
   ["academics", "academic-years"], ["academics", "classes"], ["academics", "subjects"],
   ["academics", "timetable"], ["academics", "calendar"], ["academics", "school-settings"],
+  ["ai-connect", "ai-connect"],
   ["students", "students"], ["students", "promotions"], ["students", "bulk-promote"],
   ["students", "graduated"], ["students", "certificates"],
   ["employees", "teachers"], ["employees", "staff"], ["employees", "parents"],
@@ -105,12 +107,12 @@ const LIVE_ROWS: [string, string][] = [
 ];
 
 describe("the module-keyed convention", () => {
-  test("33 of the 52 live rows have their own folder", () => {
-    expect(LIVE_ROWS.length).toBe(33);
+  test("35 of the 54 live rows have their own folder", () => {
+    expect(LIVE_ROWS.length).toBe(35);
     for (const [module, row] of LIVE_ROWS) expect(rowHasScreen(module, row)).toBe(true);
   });
 
-  test("the other 19 of the 52 live rows are 9 collapses and 10 deferrals", () => {
+  test("the other 19 of the 54 live rows are 9 collapses and 10 deferrals", () => {
     // Collapsed onto a sibling folder in the same module, because their cases are stacked
     // fall-throughs with identical props:
     //   student-fees/fees <- fee-categories, fee-concessions, check-payments, make-payment,
@@ -133,8 +135,9 @@ describe("the module-keyed convention", () => {
       expect(rowHasScreen(module, row)).toBe(false);
     }
 
-    // 33 folders built by this plan + 9 collapsed + 10 deferred = 52 live rows.
-    expect(33 + 9 + 10).toBe(52);
+    // 35 folders (33 built by this plan + AI Connect and the Academics command center)
+    // + 9 collapsed + 10 deferred = 54 live rows, counted off adminPanelSections on 2026-09-29.
+    expect(35 + 9 + 10).toBe(54);
   });
 
   test("no admin screen is still filed by domain", () => {

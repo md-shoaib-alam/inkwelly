@@ -21,14 +21,15 @@ function resolvesToAFile(specifier: string): boolean {
 // Task 5, which gave bulk-promote and graduated their own entries, and to 74 by Task 7, which gave
 // staff-attendance and the two remaining leave tabs their own, and to 75 by Task 8, which gave transport-fee a
 // thin entry over the shared fee screen. 75 -> 77 on 2026-09-29: the eight thin entries each take their own
-// specifier. Changing one of these numbers
+// specifier, and 77/62 -> 78/63 the same day for the AI Connect landing screen, and 78/63 -> 79/64
+// for the Academics command center. Changing one of these numbers
 // must be a deliberate act in a task step, never a side effect of a rewrite.
 const REGISTRIES = [
   {
     name: "tenant-screen-dispatcher",
     path: "src/app/(authenticated)/[slug]/[screen]/tenant-screen-dispatcher.tsx",
-    specifiers: 77,
-    keys: 62,
+    specifiers: 79,
+    keys: 64,
   },
   {
     name: "generic-slug-dispatcher",

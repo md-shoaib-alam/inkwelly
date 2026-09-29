@@ -52,6 +52,8 @@ import {
   SlidersHorizontal,
   Plus,
   Lock,
+  KeyRound,
+  Wrench,
 } from "lucide-react";
 import type { AppUser, UserRole } from "@/store/use-app-store";
 import { hasPermission } from "@/lib/permissions";
@@ -436,7 +438,7 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
     {
       label: "Overview",
       items: [
-        { key: "academics-dashboard", label: "Dashboard", icon: <LayoutDashboard className={iconCls} />, disabled: true },
+        { key: "academics-dashboard", label: "Dashboard", icon: <LayoutDashboard className={iconCls} /> },
       ],
     },
     {
@@ -766,6 +768,33 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
       items: [
         { key: "geofences", label: "Geofences", icon: <Shield className={iconCls} />, disabled: true },
         { key: "transport-configuration", label: "Configuration", icon: <Settings className={iconCls} />, disabled: true },
+      ],
+    },
+  ],
+  "ai-connect": [
+    {
+      label: "Overview",
+      items: [
+        { key: "ai-connect", label: "Dashboard", icon: <LayoutDashboard className={iconCls} /> },
+      ],
+    },
+    {
+      label: "Access control",
+      items: [
+        { key: "credential-issue", label: "Issue credential", icon: <Plus className={iconCls} />, disabled: true },
+        { key: "credentials", label: "Credentials", icon: <KeyRound className={iconCls} />, disabled: true },
+      ],
+    },
+    {
+      label: "Activity",
+      items: [
+        { key: "call-history", label: "Call History", icon: <History className={iconCls} />, disabled: true },
+      ],
+    },
+    {
+      label: "Catalog",
+      items: [
+        { key: "tool-catalog", label: "Tool Catalog", icon: <Wrench className={iconCls} />, disabled: true },
       ],
     },
   ],

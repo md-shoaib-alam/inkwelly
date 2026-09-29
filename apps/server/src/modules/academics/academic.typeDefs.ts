@@ -164,9 +164,83 @@ export const academicTypeDefs = `#graphql
     isCurrent: Boolean
   }
 
+  type AcademicsSession {
+    name: String!
+    isCurrent: Boolean!
+    startDate: String!
+    endDate: String!
+    totalDays: Int!
+    dayNumber: Int!
+    percentComplete: Int!
+  }
+
+  type AcademicsStats {
+    classes: Int!
+    students: Int!
+    teachers: Int!
+    subjects: Int!
+    offerings: Int!
+    taught: Int!
+    grades: Int!
+    classesWithOfferings: Int!
+    ratio: Float!
+    ratioLabel: String!
+    ratioBand: String!
+  }
+
+  type AcademicsReadinessAxis {
+    key: String!
+    label: String!
+    tracked: Boolean!
+    percent: Int!
+    detail: String!
+  }
+
+  type AcademicsReadiness {
+    score: Int!
+    axes: [AcademicsReadinessAxis!]!
+  }
+
+  type AcademicsStage {
+    key: String!
+    label: String!
+    classes: Int!
+    students: Int!
+  }
+
+  type AcademicsGrowthPoint {
+    year: String!
+    students: Int!
+    exams: Int!
+  }
+
+  type AcademicsGrowth {
+    sessions: Int!
+    points: [AcademicsGrowthPoint!]!
+  }
+
+  type AcademicsFinding {
+    code: String!
+    severity: String!
+    count: Int!
+    title: String!
+    detail: String!
+    screen: String!
+  }
+
+  type AcademicsCommandCenter {
+    session: AcademicsSession
+    stats: AcademicsStats!
+    readiness: AcademicsReadiness!
+    stages: [AcademicsStage!]!
+    growth: AcademicsGrowth!
+    findings: [AcademicsFinding!]!
+  }
+
   extend type Query {
     academicYears: [AcademicYear!]!
     currentAcademicYear: AcademicYear
+    academicsCommandCenter(tenantId: String, academicYear: String): AcademicsCommandCenter!
   }
 
   extend type Mutation {

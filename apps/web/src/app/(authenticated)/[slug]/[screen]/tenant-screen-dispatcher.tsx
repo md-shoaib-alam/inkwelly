@@ -36,6 +36,7 @@ const TransportTransportFee = dynamic(() => import('@/modules/transport/transpor
 const AdminRoles = dynamic(() => import('@/modules/iam/roles').then(m => m.AdminRoles), { loading: LoadingScreen });
 const AdminIamDashboard = dynamic(() => import('@/modules/iam/iam-dashboard').then(m => m.AdminIamDashboard), { loading: LoadingScreen });
 const AdminPermissionsCatalog = dynamic(() => import('@/modules/iam/permissions-catalog').then(m => m.AdminPermissionsCatalog), { loading: LoadingScreen });
+const AdminAiConnect = dynamic(() => import('@/modules/ai-connect/ai-connect').then(m => m.AdminAiConnect), { loading: LoadingScreen });
 const AdminRoleAssignments = dynamic(() => import('@/modules/iam/role-assignments').then(m => m.AdminRoleAssignments), { loading: LoadingScreen });
 const AdminStaff = dynamic(() => import('@/modules/employees/staff').then(m => m.AdminStaff), { loading: LoadingScreen });
 const AdminTickets = dynamic(() => import('@/modules/support/components/AdminTickets').then(m => m.AdminTickets), { loading: LoadingScreen });
@@ -55,6 +56,7 @@ const ExaminationsPublishedResults = dynamic(() => import('@/modules/examination
 const AdminPrintMarksheet = dynamic(() => import('@/modules/examinations/print-marksheet').then(m => m.AdminPrintMarksheet), { loading: LoadingScreen });
 const AdminAdmitCards = dynamic(() => import('@/modules/examinations/admit-cards').then(m => m.AdminAdmitCards), { loading: LoadingScreen });
 const AcademicYearsScreen = dynamic(() => import('@/modules/academics/academic-years').then(m => m.AcademicYearsScreen), { loading: LoadingScreen });
+const AdminAcademicsDashboard = dynamic(() => import('@/modules/academics/academics-dashboard').then(m => m.AdminAcademicsDashboard), { loading: LoadingScreen });
 const ExpensesScreen = dynamic(() => import('@/modules/money-book/expenses').then(m => m.ExpensesScreen), { loading: LoadingScreen });
 const AdminSubscription = dynamic(() => import('@/modules/tenancy/components/AdminSubscription').then(m => m.SchoolSubscriptionScreen), { loading: LoadingScreen });
 const ManagePlanScreen = dynamic(() => import('@/modules/tenancy/components/AdminManagePlan').then(m => m.ManagePlanScreen), { loading: LoadingScreen });
@@ -140,6 +142,8 @@ const STAFF_FORBIDDEN_SCREENS = new Set([
   'iam-dashboard',
   'permissions-catalog',
   'school-settings',
+  'academics-dashboard',
+  'ai-connect',
 ]);
 
 export default function TenantScreenDispatcherClient() {
@@ -233,9 +237,11 @@ export default function TenantScreenDispatcherClient() {
       case 'seed-defaults': return <AdminIamDashboard />;
       case 'permissions-catalog': return <AdminPermissionsCatalog />;
       case 'role-assignments': return <AdminRoleAssignments />;
+      case 'ai-connect': return <AdminAiConnect />;
       case 'staff': return <AdminStaff />;
       case 'school-settings': return <AdminSchoolSettings />;
       case 'academic-years': return <AcademicYearsScreen />;
+      case 'academics-dashboard': return <AdminAcademicsDashboard />;
       case 'expenses': return <ExpensesScreen />;
       case 'tickets': return <AdminTickets />;
       case 'school-subscription': return <AdminSubscription />;
