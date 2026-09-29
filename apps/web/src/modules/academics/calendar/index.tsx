@@ -6,13 +6,13 @@ import { useModulePermissions } from "@/modules/access-control/hooks/use-permiss
 import { Eye } from "lucide-react";
 import { toast } from "sonner";
 
-import { CalendarEvent, EventFormData, EMPTY_FORM, EVENT_TYPE_COLORS } from "./adminCalendar/types";
-import { formatDateISO, eventFallsOnDate, getDaysInMonth, getFirstDayOfWeek } from "./adminCalendar/utils";
-import { CalendarHeader } from "./adminCalendar/calendar-header";
-import { CalendarGrid } from "./adminCalendar/calendar-grid";
-import { CalendarAgenda } from "./adminCalendar/calendar-agenda";
-import { CalendarDialogs } from "./adminCalendar/calendar-dialogs";
-import { useCalendarEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from "./adminCalendar/calendar-hooks";
+import { CalendarEvent, EventFormData, EMPTY_FORM, EVENT_TYPE_COLORS } from "@/modules/timetable/components/adminCalendar/types";
+import { formatDateISO, eventFallsOnDate, getDaysInMonth, getFirstDayOfWeek } from "@/modules/timetable/components/adminCalendar/utils";
+import { CalendarHeader } from "@/modules/timetable/components/adminCalendar/calendar-header";
+import { CalendarGrid } from "@/modules/timetable/components/adminCalendar/calendar-grid";
+import { CalendarAgenda } from "@/modules/timetable/components/adminCalendar/calendar-agenda";
+import { CalendarDialogs } from "@/modules/timetable/components/adminCalendar/calendar-dialogs";
+import { useCalendarEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from "@/modules/timetable/components/adminCalendar/calendar-hooks";
 
 type State = {
   currentYear: number;

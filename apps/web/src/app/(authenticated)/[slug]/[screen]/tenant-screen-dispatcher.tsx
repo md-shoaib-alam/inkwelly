@@ -24,13 +24,13 @@ const SuperAdminDashboard = dynamic(() => import('@/modules/dashboard/components
 const AdminStudents = dynamic(() => import('@/modules/students/students').then(m => m.AdminStudents), { loading: LoadingScreen });
 const AdminTeachers = dynamic(() => import('@/modules/employees/teachers').then(m => m.AdminTeachers), { loading: LoadingScreen });
 const AdminParents = dynamic(() => import('@/modules/employees/parents').then(m => m.AdminParents), { loading: LoadingScreen });
-const AdminClasses = dynamic(() => import('@/modules/academics/components/AdminClasses').then(m => m.AdminClasses), { loading: LoadingScreen });
-const AdminSubjects = dynamic(() => import('@/modules/academics/components/AdminSubjects').then(m => m.AdminSubjects), { loading: LoadingScreen });
+const AdminClasses = dynamic(() => import('@/modules/academics/classes').then(m => m.AdminClasses), { loading: LoadingScreen });
+const AdminSubjects = dynamic(() => import('@/modules/academics/subjects').then(m => m.AdminSubjects), { loading: LoadingScreen });
 const AdminAttendance = dynamic(() => import('@/modules/student-attendance/attendance').then(m => m.AdminAttendance), { loading: LoadingScreen });
 const AdminFees = dynamic(() => import('@/modules/student-fees/fees').then(m => m.AdminFees), { loading: LoadingScreen });
 const AdminNotices = dynamic(() => import('@/modules/communication/components/AdminNotices').then(m => m.AdminNotices), { loading: LoadingScreen });
-const AdminTimetable = dynamic(() => import('@/modules/timetable/components/AdminTimetable').then(m => m.AdminTimetable), { loading: LoadingScreen });
-const AdminCalendar = dynamic(() => import('@/modules/timetable/components/AdminCalendar').then(m => m.AdminCalendar), { loading: LoadingScreen });
+const AdminTimetable = dynamic(() => import('@/modules/academics/timetable').then(m => m.AdminTimetable), { loading: LoadingScreen });
+const AdminCalendar = dynamic(() => import('@/modules/academics/calendar').then(m => m.AdminCalendar), { loading: LoadingScreen });
 const AdminReports = dynamic(() => import('@/modules/student-fees/reports').then(m => m.AdminReports), { loading: LoadingScreen });
 const TransportTransportFee = dynamic(() => import('@/modules/transport/transport-fee').then(m => m.TransportTransportFee), { loading: LoadingScreen });
 const AdminRoles = dynamic(() => import('@/modules/iam/roles').then(m => m.AdminRoles), { loading: LoadingScreen });
@@ -39,7 +39,7 @@ const AdminPermissionsCatalog = dynamic(() => import('@/modules/iam/permissions-
 const AdminRoleAssignments = dynamic(() => import('@/modules/iam/role-assignments').then(m => m.AdminRoleAssignments), { loading: LoadingScreen });
 const AdminStaff = dynamic(() => import('@/modules/employees/staff').then(m => m.AdminStaff), { loading: LoadingScreen });
 const AdminTickets = dynamic(() => import('@/modules/support/components/AdminTickets').then(m => m.AdminTickets), { loading: LoadingScreen });
-const AdminSchoolSettings = dynamic(() => import('@/modules/tenancy/components/AdminSchoolSettings').then(m => m.AdminSchoolSettings), { loading: LoadingScreen });
+const AdminSchoolSettings = dynamic(() => import('@/modules/academics/school-settings').then(m => m.AdminSchoolSettings), { loading: LoadingScreen });
 const AdminPromotions = dynamic(() => import('@/modules/students/promotions').then(m => m.AdminPromotions), { loading: LoadingScreen });
 const StudentsBulkPromote = dynamic(() => import('@/modules/students/bulk-promote').then(m => m.StudentsBulkPromote), { loading: LoadingScreen });
 const StudentsGraduated = dynamic(() => import('@/modules/students/graduated').then(m => m.StudentsGraduated), { loading: LoadingScreen });
@@ -54,7 +54,7 @@ const ExaminationsResultsEntry = dynamic(() => import('@/modules/examinations/re
 const ExaminationsPublishedResults = dynamic(() => import('@/modules/examinations/published-results').then(m => m.ExaminationsPublishedResults), { loading: LoadingScreen });
 const AdminPrintMarksheet = dynamic(() => import('@/modules/examinations/print-marksheet').then(m => m.AdminPrintMarksheet), { loading: LoadingScreen });
 const AdminAdmitCards = dynamic(() => import('@/modules/examinations/admit-cards').then(m => m.AdminAdmitCards), { loading: LoadingScreen });
-const AcademicYearsScreen = dynamic(() => import('@/modules/academics/components/AdminAcademicYears').then(m => m.AcademicYearsScreen), { loading: LoadingScreen });
+const AcademicYearsScreen = dynamic(() => import('@/modules/academics/academic-years').then(m => m.AcademicYearsScreen), { loading: LoadingScreen });
 const ExpensesScreen = dynamic(() => import('@/modules/money-book/expenses').then(m => m.ExpensesScreen), { loading: LoadingScreen });
 const AdminSubscription = dynamic(() => import('@/modules/tenancy/components/AdminSubscription').then(m => m.SchoolSubscriptionScreen), { loading: LoadingScreen });
 const ManagePlanScreen = dynamic(() => import('@/modules/tenancy/components/AdminManagePlan').then(m => m.ManagePlanScreen), { loading: LoadingScreen });

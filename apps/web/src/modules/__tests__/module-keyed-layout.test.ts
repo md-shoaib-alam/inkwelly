@@ -73,3 +73,11 @@ describe("examinations", () => {
     }
   });
 });
+
+describe("academics", () => {
+  test("every academics row lives under modules/academics/<row>/", () => {
+    for (const row of ["classes", "subjects", "academic-years", "timetable", "calendar", "school-settings"]) {
+      expect(rowHasScreen("academics", row)).toBe(true);
+    }
+  });
+});
