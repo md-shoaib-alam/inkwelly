@@ -20,8 +20,8 @@ import { parseRoute } from "@/lib/routing/module-routes";
 //   3. anything else goes to the one module that owns it (`academics/timetable`).
 describe("qualifyAdminTail", () => {
   test("module roots and unowned screens stay bare", () => {
-    // `/slug/students` addresses the All Students row of the Students module, so
-    // `/slug/students/students` would be a second name for the same thing.
+    // `/slug/students` is the Students module's root, so it needs no module in front of
+    // it; the roster itself is reached as `students/list` (see the landing pin below).
     for (const tail of ["modules", "students", "ai-connect", "notices", "reports", "nope"]) {
       expect(qualifyAdminTail(tail, null)).toBe(tail);
     }
@@ -40,6 +40,7 @@ describe("qualifyAdminTail", () => {
     expect(qualifyAdminTail("fees", null)).toBe("student-fees/fees");
     expect(qualifyAdminTail("exams", null)).toBe("examinations/exams");
     expect(qualifyAdminTail("iam-dashboard", null)).toBe("iam/iam-dashboard");
+    expect(qualifyAdminTail("list", null)).toBe("students/list");
   });
 
   test("the current module wins when it declares the row", () => {
@@ -87,6 +88,7 @@ describe("qualified tails round-trip through parseRoute", () => {
     ["fees", null],
     ["exams", null],
     ["iam-dashboard", null],
+    ["list", null],
     ["reports", "money-book"],
     ["classes", "academics"],
     ["transport-fee", "student-fees"],

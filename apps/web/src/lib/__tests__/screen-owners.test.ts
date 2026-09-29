@@ -55,6 +55,9 @@ describe("canonicalAdminTail", () => {
   test("a bare owned screen becomes its module-qualified tail", () => {
     expect(canonicalAdminTail(null, "timetable")).toBe("academics/timetable");
     expect(canonicalAdminTail(null, "graduated")).toBe("students/graduated");
+    // The Students front door's own row, reached from the landing-owner map rather
+    // than the parented-card map, because the card is the module.
+    expect(canonicalAdminTail(null, "list")).toBe("students/list");
   });
 
   test("an already qualified screen returns null, which is what stops a redirect loop", () => {

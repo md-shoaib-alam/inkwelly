@@ -348,6 +348,10 @@ export default function TenantScreenDispatcherClient() {
       case 'modules': 
         if (currentUser.role === 'super_admin' && slug === 'tenants') return <SuperAdminDashboard />;
         return currentUser.role === 'staff' ? <StaffDashboard /> : <AdminDashboard />;
+      // `list` is the admin roster's own key (`/students/list`); `students` stays the
+      // bare root's key, which is also the staff tree's. Same screen, two spellings --
+      // the shape `session` and `academic-years` already use in this switch.
+      case 'list':
       case 'students': return <AdminStudents />;
       case 'teachers': return <AdminTeachers />;
       case 'parents': return <AdminParents />;

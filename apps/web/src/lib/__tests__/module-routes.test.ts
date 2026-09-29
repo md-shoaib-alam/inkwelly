@@ -9,11 +9,12 @@ import {
   type RouteContext,
 } from "@/lib/routing/module-routes";
 
-// A panel shaped like the real one: `students` owns a `classes` sub-link, and
-// `academics` owns `classes` and `academic-years`. `detail` is deliberately absent.
+// A panel shaped like the real one: `students` owns its front door (`list`) and a
+// `classes` sub-link, and `academics` owns `classes` and `academic-years`. `detail` is
+// deliberately absent.
 const PANEL: Record<string, string[]> = {
   academics: ["classes", "academic-years"],
-  students: ["students", "classes"],
+  students: ["list", "classes"],
   "student-fees": ["classes", "fees"],
 };
 
@@ -42,6 +43,16 @@ describe("parseRoute", () => {
       year: null,
       module: "academics",
       screen: "classes",
+    });
+  });
+
+  test("a module's own front door reads as module + row", () => {
+    // `/students` alone is the bare screen `students`; the roster's address bar carries
+    // the row name, which is what makes it a two-segment route.
+    expect(p("/demo-academy/students/list")).toEqual({
+      year: null,
+      module: "students",
+      screen: "list",
     });
   });
 

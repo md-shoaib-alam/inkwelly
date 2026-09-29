@@ -5,9 +5,10 @@ import { join, resolve } from "node:path";
 import {
   adminLandingRoots,
   adminModuleLandings,
+  adminQualifiedRoots,
+  adminRailTail,
   resolveAdminRoute,
-} from "@/components/layout/sidebar/module-roots";
-import {
+} from "@/components/layout/sidebar/module-roots";import {
   buildAdminRail,
   getDefaultScreen,
   isAdminModuleScreen,
@@ -22,13 +23,13 @@ const routedKeys = new Set(
   [...readFileSync(join(APP_ROOT, DISPATCHER), "utf8").matchAll(KEY_RE)].map((m) => m[2]),
 );
 
-// Nine of the thirteen rail modules open on a screen whose name is not the module's
+// Eleven of the thirteen rail modules open on a screen whose name is not the module's
 // own, which is why `/slug/academics` used to bounce: no dispatcher case is named
 // `academics`. Measured off the rail, so this pin is the list of roots that need
 // resolving, and a card that starts or stops naming its own screen must change it.
 // `academics` is measured against the thirteen purchasable rail modules, not the
-// launcher row. The three not listed (`students`, `leaves`, `ai-connect`) open on a
-// screen of their own name and so need no entry.
+// launcher row. The two not listed (`leaves`, `ai-connect`) open on a screen of their
+// own name and so need no entry.
 const EXPECTED_LANDINGS: [string, string][] = [
   ["academics", "academics-dashboard"],
   ["employee-attendance", "staff-attendance"],
@@ -39,8 +40,73 @@ const EXPECTED_LANDINGS: [string, string][] = [
   ["money-book", "expenses"],
   ["student-attendance", "attendance"],
   ["student-fees", "fees"],
+  ["students", "list"],
   ["transport", "transport-fee"],
 ];
+
+describe("the Students front door carries its row name", () => {
+  // The roster used to be addressed by the bare module root, because its panel row and
+  // the module shared the key `students`. It is now `students/list`, which reads as
+  // what it is and leaves the bare root free to become a Students landing later. The
+  // long spelling is produced by the links themselves: nothing redirects to it, so a
+  // click is one navigation, not two.
+  test("`/students/list` is canonical and is never collapsed to `/students`", () => {
+    expect(resolveAdminRoute("students", "list")).toEqual({
+      module: "students",
+      screen: "list",
+      canonicalTail: null,
+    });
+  });
+
+  test("the bare root keeps its own screen key rather than the landing's", () => {
+    // Bookmarks and the staff accordion both arrive here, and `students` is a live
+    // screen key in the staff, teacher, student and parent dispatcher blocks with a
+    // grant map built from the staff nav tree. Retiring the key would move that grant
+    // off the string it is registered under, so the root keeps routing the way it
+    // always did and only the links change.
+    expect(resolveAdminRoute(null, "students")).toEqual({
+      module: null,
+      screen: "students",
+      canonicalTail: null,
+    });
+    // The panel still knows which row that root renders.
+    expect(adminModuleLandings["students"]).toBe("list");
+    expect(adminLandingRoots["list"]).toBeUndefined();
+  });
+
+  test("a bare `/list` renders the roster directly, with no redirect", () => {
+    expect(resolveAdminRoute(null, "list")).toEqual({
+      module: null,
+      screen: "list",
+      canonicalTail: null,
+    });
+  });
+
+  test("the rail emits the long spelling and every other module is untouched", () => {
+    const students = buildAdminRail().find((m) => m.key === "students")!;
+    expect(adminRailTail(students)).toBe("students/list");
+    const rewritten = buildAdminRail()
+      .filter((m) => m.key !== "students" && adminRailTail(m) !== m.key)
+      .map((m) => `${m.key} -> ${adminRailTail(m)}`);
+    expect(rewritten).toEqual([]);
+  });
+
+  test("both spellings mount the roster", () => {
+    // `list` is stacked on `students` in the same switch, the shape `session` and the
+    // legacy `academic-years` already use, so the root and the qualified row render one
+    // screen while the staff key keeps its own case.
+    expect(routedKeys.has("list")).toBe(true);
+    expect(routedKeys.has("students")).toBe(true);
+    const src = readFileSync(join(APP_ROOT, DISPATCHER), "utf8");
+    expect(src).toMatch(/case 'list':\s*case 'students': return <AdminStudents \/>;/);
+  });
+
+  test("every link builder lands on the long spelling without a hop", () => {
+    expect(qualifyAdminTail("list", "students")).toBe("students/list");
+    // The dashboard grid card is not standing inside a module, so its owner map answers.
+    expect(qualifyAdminTail("list", null)).toBe("students/list");
+  });
+});
 
 describe("module roots", () => {
   test("every rail module is addressable by its own name", () => {
@@ -51,7 +117,7 @@ describe("module roots", () => {
     expect(bounced).toEqual([]);
   });
 
-  test("the landings are exactly the ten non-identity roots", () => {
+  test("the landings are exactly the eleven non-identity roots", () => {
     expect(Object.entries(adminModuleLandings).sort()).toEqual(
       [...EXPECTED_LANDINGS].sort(),
     );
@@ -61,13 +127,20 @@ describe("module roots", () => {
     // A shared landing would make `adminLandingRoots` last-write-wins, and a landing
     // that is also a module id would make one root name two screens.
     const moduleIds = new Set(buildAdminRail().map((m) => m.key));
-    expect(Object.keys(adminLandingRoots).length).toBe(Object.keys(adminModuleLandings).length);
+    // A qualified root has no reverse entry on purpose: its landing is not an alias for
+    // the bare root, so nothing collapses it.
+    expect(Object.keys(adminLandingRoots).length).toBe(
+      Object.keys(adminModuleLandings).length - adminQualifiedRoots.size,
+    );
     expect(Object.keys(adminLandingRoots).filter((l) => moduleIds.has(l))).toEqual([]);
   });
 
   test("every rail row's default screen is what its root renders", () => {
     for (const item of buildAdminRail()) {
-      expect(resolveAdminRoute(null, item.key).screen).toBe(getDefaultScreen(item));
+      // The qualified exception renders its own key at the root and the landing at the
+      // qualified URL, and the two cases are stacked on one component.
+      const expected = adminQualifiedRoots.has(item.key) ? item.key : getDefaultScreen(item);
+      expect(resolveAdminRoute(null, item.key).screen).toBe(expected);
     }
   });
 
@@ -178,6 +251,9 @@ describe("resolveAdminRoute", () => {
 
   test("a root and its long form render the same screen", () => {
     for (const [module, landing] of EXPECTED_LANDINGS) {
+      // The qualified exception has no long form to collapse, and its root keeps its own
+      // key; `both spellings mount the roster` above pins that pair instead.
+      if (adminQualifiedRoots.has(module)) continue;
       const short = resolveAdminRoute(null, module);
       const long = resolveAdminRoute(module, landing);
       expect(componentKey(short.module, short.screen)).toBe(

@@ -70,9 +70,9 @@ const adminOwners = { ...adminScreenOwners, ...adminLandingOwners };
  * a row of six panels, so from Money Book the answer is Money Book's Reports.
  */
 function adminOwnerOf(screen: string, currentModule: string | null): string | null {
-  // A module root keeps the URL it has always had: `/slug/students` is the All
-  // Students row of the Students module, so `/slug/students/students` would name
-  // the same screen twice.
+  // A module root keeps the URL it has always had: `/slug/students` is the Students
+  // module's own key, and the roster hangs off it as `students/list`, so qualifying the
+  // root would name one screen twice.
   if (currentModule && currentModule !== screen && isAdminModuleScreen(currentModule, screen)) {
     return currentModule;
   }

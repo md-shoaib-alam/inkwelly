@@ -86,6 +86,8 @@ export interface ModuleNavItem {
   rootOnly?: boolean;
   /** Where the rail sends you when this module is selected. Falls back to the first sub-link. */
   defaultScreen?: string;
+  /** The front door keeps its row name in the URL (`/slug/students/list`). From ModuleCard. */
+  qualifiedRoot?: boolean;
   /** Spelled-out name for the panel header, when `label` is abbreviated for the rail. */
   panelTitle?: string;
   sections: ModuleNavSection[];
@@ -516,7 +518,7 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
       label: "Overview",
       items: [
         { key: "students-dashboard", label: "Dashboard", icon: <LayoutDashboard className={iconCls} />, disabled: true },
-        { key: "students", label: "All Students", icon: <Users className={iconCls} /> },
+        { key: "list", label: "All Students", icon: <Users className={iconCls} /> },
         { key: "classes", label: "Classes", icon: <School className={iconCls} />, permModule: "classes" },
       ],
     },
@@ -875,6 +877,7 @@ function moduleFromCard(card: ModuleCard): ModuleNavItem {
     icon,
     permModule: card.permModule ?? null,
     defaultScreen: screen,
+    qualifiedRoot: card.qualifiedRoot,
     // A module with no sub-links of its own still needs one item so the panel
     // and the mobile drill-in have somewhere to land.
     sections: adminPanelSections[card.id] ?? [{ items: [{ key: screen, label: card.title, icon }] }],
