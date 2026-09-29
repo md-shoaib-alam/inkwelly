@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { splitKey } from "@/lib/routing/module-routes";
 import type { ModuleNavItem } from "./module-nav-config";
 
 interface ModulePanelProps {
@@ -20,8 +21,14 @@ export function ModulePanel({
   backToRail = false,
   onNavigate,
 }: ModulePanelProps) {
+  // Rows are declared bare; the URL says `academics/timetable`. Module rows are
+  // unique inside a panel, so the screen half is the match and the module half is
+  // only a guard against another module's panel lighting up.
+  const { module: urlModule, screen: rowKey } = splitKey(resolvedScreen);
+  const isRowActive = (key: string) => rowKey === key && (!urlModule || urlModule === module.key);
+
   const activeSection = module.sections.find((s) =>
-    s.items.some((i) => i.key === resolvedScreen)
+    s.items.some((i) => i.key === rowKey)
   );
 
   return (
@@ -75,7 +82,7 @@ export function ModulePanel({
             )}
             <div className="space-y-0.5">
               {section.items.map((entry) => {
-                const isActive = resolvedScreen === entry.key;
+                const isActive = isRowActive(entry.key);
                 if (entry.disabled) {
                   return (
                     <div

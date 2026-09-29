@@ -6,6 +6,7 @@ import { useAcademicYears } from './use-academic-years';
 import { parseRoute, type RouteParts } from '@/lib/routing/module-routes';
 import { yearSlugOf, swapYearUrl } from '@/lib/routing/academic-year-url';
 import { isAdminModuleScreen } from '@/components/layout/sidebar/module-nav-config';
+import { adminModuleIds } from '@/components/layout/sidebar/screen-owners';
 
 /**
  * The single reader of "which academic year is this screen in".
@@ -70,6 +71,14 @@ export function useActiveAcademicYear() {
     year,
     yearSlug: route.year,
     yearSlugs,
+    /**
+     * The module the URL sits inside: `/academics/timetable` gives `academics`, and a
+     * module root (`/student-fees`) gives `student-fees`. The root form names only the
+     * module, but the admin is standing inside it, and that is what lets a row several
+     * panels declare (`reports`) resolve to the one being viewed.
+     */
+    routeModule:
+      route.module ?? (adminModuleIds.has(route.screen) ? route.screen : null),
     setActiveYear,
   };
 }

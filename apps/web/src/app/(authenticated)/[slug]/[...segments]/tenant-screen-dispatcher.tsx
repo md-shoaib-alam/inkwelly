@@ -6,6 +6,7 @@ import { useAppStore } from '@/store/use-app-store';
 import { hasPermission } from '@/lib/permissions';
 import { navItems } from '@/components/layout/nav-config';
 import { isAdminModuleScreen } from '@/components/layout/sidebar/module-nav-config';
+import { canonicalAdminTail } from '@/components/layout/sidebar/screen-owners';
 import { componentKey, parseRoute } from '@/lib/routing/module-routes';
 import { canonicalTenantUrl, yearSlugOf } from '@/lib/routing/academic-year-url';
 import { decideYearGate } from '@/lib/routing/year-gate';
@@ -256,6 +257,24 @@ export default function TenantScreenDispatcherClient() {
     redirect(
       canonicalTenantUrl({ slug, segments, yearSlug: gate.toYearSlug, search }),
     );
+  }
+
+  // A bookmarked bare admin URL (`/slug/2026-2027/timetable`) converges onto the
+  // module-qualified one the sidebar now emits. One hop, never a loop: the target
+  // parses back with a module set, which is exactly when `canonicalAdminTail`
+  // answers null. Staff, teacher, student and parent keep their bare keys.
+  if (!route.module && (currentUser.role === 'admin' || currentUser.role === 'super_admin')) {
+    const qualified = canonicalAdminTail(null, screen);
+    if (qualified) {
+      redirect(
+        canonicalTenantUrl({
+          slug,
+          segments: qualified.split('/'),
+          yearSlug: route.year ?? activeYearSlug,
+          search: searchParams?.toString() ? `?${searchParams.toString()}` : '',
+        }),
+      );
+    }
   }
 
   if (currentUser.role === 'super_admin' || currentUser.role === 'admin' || currentUser.role === 'staff') {

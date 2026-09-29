@@ -388,10 +388,20 @@ export const moduleNavItems: Partial<Record<UserRole, ModuleNavItem[]>> = {
   ],
 };
 
+/**
+ * The rail item a resolved screen belongs to. `screen` is what the URL says, so it
+ * can be qualified (`academics/timetable`) or bare (`dashboard`, and every
+ * non-admin role's rows): the module half of a qualified key is the answer, and the
+ * row search is only for the bare case.
+ */
 export function findModuleForScreen(
   items: ModuleNavItem[],
   screen: string
 ): ModuleNavItem | undefined {
+  const slash = screen.indexOf("/");
+  if (slash !== -1) {
+    return items.find((m) => m.key === screen.slice(0, slash));
+  }
   return items.find((m) =>
     m.sections.some((s) => s.items.some((i) => i.key === screen))
   );

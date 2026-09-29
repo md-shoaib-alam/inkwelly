@@ -8,10 +8,21 @@ import {
   getDefaultScreen,
   type ModuleNavItem,
 } from "./module-nav-config";
+import { qualifyAdminTail } from "./screen-owners";
 import { ModuleRail } from "./ModuleRail";
 import { ModulePanel } from "./ModulePanel";
 
 const COLLAPSED_STORAGE_KEY = "inkwelly_module_sidebar_collapsed";
+
+/**
+ * The tail a rail click sends you to, qualified against the module being *entered*
+ * rather than the one the URL is still on: Transport's landing screen is also a row
+ * of the Student Fees panel, so qualifying it against the current module would keep
+ * `student-fees` in the address bar and light up the wrong panel.
+ */
+function landingTail(module: ModuleNavItem): string {
+  return qualifyAdminTail(getDefaultScreen(module), module.key);
+}
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -108,14 +119,14 @@ export function ModuleSidebar({
         // If the module is a single direct item, navigate right away.
         const totalItems = module.sections.flatMap((s) => s.items).length;
         if (totalItems === 1) {
-          navigateTo(getDefaultScreen(module));
+          navigateTo(landingTail(module));
           setSidebarOpen(false);
         }
         return;
       }
 
       if (collapsed) toggleCollapsed();
-      navigateTo(getDefaultScreen(module));
+      navigateTo(landingTail(module));
     },
     [isMobile, collapsed, toggleCollapsed, navigateTo, setSidebarOpen]
   );
