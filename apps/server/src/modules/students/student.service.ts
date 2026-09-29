@@ -12,7 +12,7 @@
 
 import { db } from '../../lib/db';
 import * as schema from '../../db/schema';
-import { eq, and, or, desc, inArray, count, ilike, isNull, sql, exists } from 'drizzle-orm';
+import { eq, and, ne, or, desc, inArray, count, ilike, isNull, sql, exists } from 'drizzle-orm';
 import { dataCache } from '../../lib/cache';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -80,7 +80,7 @@ function normalizePagination(page?: number, limit?: number) {
   };
 }
 
-function buildWhereConditions(tenantId: string, params: StudentListParams, tableAlias: string = 'students') {
+export function buildWhereConditions(tenantId: string, params: StudentListParams, tableAlias: string = 'students') {
   const conditions: any[] = [
     sql`${sql.raw(`"${tableAlias}"."deletedAt"`)} IS NULL`,
     sql`EXISTS (
@@ -102,7 +102,12 @@ function buildWhereConditions(tenantId: string, params: StudentListParams, table
   }
 
   const statusFilter = params.status || 'active';
-  if (statusFilter !== 'all') {
+  if (statusFilter === 'inactive') {
+    // Nothing is stored as 'inactive'; the column records where a student went, so
+    // inactive is every status that is not active. Matching the word literally
+    // returned an empty list, which reads as an empty school.
+    conditions.push(ne(schema.students.status, 'active'));
+  } else if (statusFilter !== 'all') {
     conditions.push(eq(schema.students.status, statusFilter));
   }
 

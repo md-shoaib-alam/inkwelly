@@ -1,4 +1,6 @@
 import { test, expect, describe } from "bun:test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   buildChangeClassRequests,
   validateChangeClassForm,
@@ -98,5 +100,30 @@ describe("class change requests", () => {
       expect(request.effectiveDate).toBe("2026-10-01");
       expect(request.reason).toBe("Family relocation");
     }
+  });
+});
+
+// Line endings carry no meaning for what these pins assert, but they do break the
+// regexes if a working copy is saved with CRLF.
+const read = (p: string) => readFileSync(p, "utf8").replace(/\r\n/g, "\n");
+const SCREEN = read(resolve(import.meta.dir, "..", "students", "class-change", "index.tsx"));
+
+/**
+ * The screen used to open on every student and then quote a separate active count in
+ * its heading, so a school of 4406 active students read as "5000 students · 4406
+ * active" while the row below it said "of 5000 entries". One number, from the query
+ * that draws the rows, is the whole fix.
+ */
+describe("the class change roster opens on the students you can actually move", () => {
+  test("the status filter starts on active, not on all", () => {
+    expect(SCREEN).toMatch(/const \[statusFilter, setStatusFilter\] = useState\("active"\)/);
+  });
+
+  test("the heading reports the same total the table is showing", () => {
+    expect(SCREEN).toMatch(/\{totalItems\} students · move between classes/);
+  });
+
+  test("no second query exists to disagree with the first", () => {
+    expect(SCREEN).not.toMatch(/activeCount/);
   });
 });

@@ -50,7 +50,7 @@ function AdminClassChangeContent() {
   const [search, setSearch] = useState("");
   const [classFilter, setClassFilter] = useState("all");
   const [genderFilter, setGenderFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("active");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_PAGE_SIZE);
 
@@ -69,18 +69,6 @@ function AdminClassChangeContent() {
     genderFilter,
     currentPage,
     itemsPerPage,
-  );
-
-  // The header quotes two session counts, and the table's own status filter is
-  // about the table, so the active count comes from its own one-row read.
-  const { data: activeCount } = useStudents(
-    currentTenantId || undefined,
-    classFilter === "all" ? undefined : classFilter,
-    undefined,
-    "active",
-    undefined,
-    1,
-    1,
   );
 
   const students = useMemo(
@@ -184,8 +172,7 @@ function AdminClassChangeContent() {
           Class change
         </h1>
         <p className="mt-1 text-[12px] sm:text-[13px] text-slate-500 dark:text-zinc-400">
-          {totalItems} students · {activeCount?.total ?? 0} active · move between
-          classes within this school
+          {totalItems} students · move between classes within this school
         </p>
       </div>
 
