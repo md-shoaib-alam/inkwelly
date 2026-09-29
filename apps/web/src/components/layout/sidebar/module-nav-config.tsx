@@ -402,6 +402,11 @@ export function findModuleForScreen(
   if (slash !== -1) {
     return items.find((m) => m.key === screen.slice(0, slash));
   }
+  // A module root (`/slug/academics`) names the rail row rather than a panel row, so
+  // the row search below would find nothing and the rail would fall back to Dashboard.
+  // Measured against all 44 live row keys: the id check changes no answer.
+  const byId = items.find((m) => m.key === screen);
+  if (byId) return byId;
   return items.find((m) =>
     m.sections.some((s) => s.items.some((i) => i.key === screen))
   );
@@ -455,7 +460,10 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
     {
       label: "Structure",
       items: [
-        { key: "academic-years", label: "Sessions", icon: <CalendarDays className={iconCls} /> },
+        // The URL reads `/academics/session`. The screen key is `session` for admins;
+        // `academic-years` stays as the legacy alias in the dispatcher and as the staff
+        // accordion's own key below, so old bookmarks and staff links keep landing.
+        { key: "session", label: "Sessions", icon: <CalendarDays className={iconCls} /> },
         { key: "classes", label: "Classes", icon: <School className={iconCls} /> },
       ],
     },

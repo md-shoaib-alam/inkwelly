@@ -22,14 +22,15 @@ function resolvesToAFile(specifier: string): boolean {
 // staff-attendance and the two remaining leave tabs their own, and to 75 by Task 8, which gave transport-fee a
 // thin entry over the shared fee screen. 75 -> 77 on 2026-09-29: the eight thin entries each take their own
 // specifier, and 77/62 -> 78/63 the same day for the AI Connect landing screen, and 78/63 -> 79/64
-// for the Academics command center. Changing one of these numbers
+// for the Academics command center, and 64 -> 65 keys for `session`, the Academics panel row's
+// own key next to the legacy `academic-years` alias. Changing one of these numbers
 // must be a deliberate act in a task step, never a side effect of a rewrite.
 const REGISTRIES = [
   {
     name: "tenant-screen-dispatcher",
     path: "src/app/(authenticated)/[slug]/[...segments]/tenant-screen-dispatcher.tsx",
     specifiers: 79,
-    keys: 64,
+    keys: 65,
   },
   {
     name: "generic-slug-dispatcher",

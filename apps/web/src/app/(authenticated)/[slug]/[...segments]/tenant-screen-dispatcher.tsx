@@ -7,6 +7,7 @@ import { hasPermission } from '@/lib/permissions';
 import { navItems } from '@/components/layout/nav-config';
 import { isAdminModuleScreen } from '@/components/layout/sidebar/module-nav-config';
 import { canonicalAdminTail } from '@/components/layout/sidebar/screen-owners';
+import { resolveAdminRoute } from '@/components/layout/sidebar/module-roots';
 import { componentKey, parseRoute } from '@/lib/routing/module-routes';
 import { canonicalTenantUrl, yearSlugOf } from '@/lib/routing/academic-year-url';
 import { decideYearGate } from '@/lib/routing/year-gate';
@@ -191,7 +192,12 @@ export default function TenantScreenDispatcherClient() {
     isTenantRoot: (first) => first === slug,
     yearSlugs,
   });
-  const screenKey = componentKey(route.module, route.screen);
+  // A rail module's front door is a different string from its id for nine of the
+  // twelve (`academics` opens `academics-dashboard`), so the URL and the rendered
+  // screen are resolved separately: `screenKey` is what mounts, and the guard in the
+  // admin branch below rewrites the address bar to the short form.
+  const adminRoute = resolveAdminRoute(route.module, route.screen);
+  const screenKey = componentKey(adminRoute.module, adminRoute.screen);
   const screen = route.screen;
 
   // REDIRECTION LOGIC (DURING RENDER)
@@ -259,6 +265,24 @@ export default function TenantScreenDispatcherClient() {
     );
   }
 
+  // A module's front door has two long spellings that both belong on the short one:
+  // `/slug/academics/academics-dashboard` names the same screen twice, and a bare
+  // `/slug/academics-dashboard` is that screen rather than a root. This runs before
+  // the block below so a landing is one hop from `/slug/academics` instead of two.
+  if (
+    adminRoute.canonicalTail &&
+    (currentUser.role === 'admin' || currentUser.role === 'super_admin')
+  ) {
+    redirect(
+      canonicalTenantUrl({
+        slug,
+        segments: adminRoute.canonicalTail.split('/'),
+        yearSlug: route.year ?? activeYearSlug,
+        search: searchParams?.toString() ? `?${searchParams.toString()}` : '',
+      }),
+    );
+  }
+
   // A bookmarked bare admin URL (`/slug/2026-2027/timetable`) converges onto the
   // module-qualified one the sidebar now emits. One hop, never a loop: the target
   // parses back with a module set, which is exactly when `canonicalAdminTail`
@@ -323,6 +347,10 @@ export default function TenantScreenDispatcherClient() {
       case 'ai-connect': return <AdminAiConnect />;
       case 'staff': return <AdminStaff />;
       case 'school-settings': return <AdminSchoolSettings />;
+      // `session` is the Academics panel row; `academic-years` stays routable for the
+      // staff accordion, the year gate's no-year escape hatch, and old bookmarks. They
+      // are one screen, so the folder is still `modules/academics/academic-years`.
+      case 'session':
       case 'academic-years': return <AcademicYearsScreen />;
       case 'academics-dashboard': return <AdminAcademicsDashboard />;
       case 'expenses': return <ExpensesScreen />;

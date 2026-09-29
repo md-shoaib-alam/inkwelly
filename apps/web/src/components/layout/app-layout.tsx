@@ -10,6 +10,7 @@ import { ChangePasswordModal } from "@/components/modals/change-password-modal";
 import { Sidebar } from "./sidebar";
 import { ModuleSidebar } from "./sidebar/module-sidebar";
 import { getAdminRail, isAdminModuleScreen } from "./sidebar/module-nav-config";
+import { adminModuleLandings } from "./sidebar/module-roots";
 import { parseRoute, qualifiedKey } from "@/lib/routing/module-routes";
 import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";
 import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
@@ -78,7 +79,12 @@ function resolveScreenFromPathname(
     isTenantRoot: tenantRootPredicate(currentUser, currentTenantSlug),
     yearSlugs,
   });
-  return module ? qualifiedKey(module, screen) : screen;
+  if (module) return qualifiedKey(module, screen);
+  // A module root (`/slug/academics`) is not a row key, so the sidebar would light
+  // nothing. Resolving it to the row it renders keeps the rail and the panel in
+  // agreement with the address bar.
+  const landing = adminModuleLandings[screen];
+  return landing ? qualifiedKey(screen, landing) : screen;
 }
 
 function shouldIncludeItem(

@@ -75,6 +75,11 @@ describe("examinations", () => {
 });
 
 describe("academics", () => {
+  // One sanctioned exception to "folder is named after the row": the admin panel row
+  // is now `session` (`/academics/session`) while the folder stays `academic-years`,
+  // because both dispatcher cases mount the same screen and the folder has another
+  // task's uncommitted work in it. Moving it renames the folder AND deletes the
+  // `case 'academic-years'` fallback the staff accordion and the year gate still use.
   test("every academics row lives under modules/academics/<row>/", () => {
     for (const row of ["academics-dashboard", "classes", "subjects", "academic-years", "timetable", "calendar", "school-settings"]) {
       expect(rowHasScreen("academics", row)).toBe(true);
