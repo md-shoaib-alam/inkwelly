@@ -37,3 +37,14 @@ describe("employees", () => {
     }
   });
 });
+
+describe("attendance and leaves", () => {
+  test("each row lives under its own sidebar module", () => {
+    expect(rowHasScreen("student-attendance", "attendance")).toBe(true);
+    expect(rowHasScreen("employee-attendance", "teacher-attendance")).toBe(true);
+    expect(rowHasScreen("employee-attendance", "staff-attendance")).toBe(true);
+    for (const row of ["student-leaves", "teacher-leaves", "staff-leaves"]) {
+      expect(rowHasScreen("leaves", row)).toBe(true);
+    }
+  });
+});

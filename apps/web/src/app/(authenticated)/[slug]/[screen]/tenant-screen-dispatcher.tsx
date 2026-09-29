@@ -26,7 +26,7 @@ const AdminTeachers = dynamic(() => import('@/modules/employees/teachers').then(
 const AdminParents = dynamic(() => import('@/modules/employees/parents').then(m => m.AdminParents), { loading: LoadingScreen });
 const AdminClasses = dynamic(() => import('@/modules/academics/components/AdminClasses').then(m => m.AdminClasses), { loading: LoadingScreen });
 const AdminSubjects = dynamic(() => import('@/modules/academics/components/AdminSubjects').then(m => m.AdminSubjects), { loading: LoadingScreen });
-const AdminAttendance = dynamic(() => import('@/modules/attendance/components/AdminAttendance').then(m => m.AdminAttendance), { loading: LoadingScreen });
+const AdminAttendance = dynamic(() => import('@/modules/student-attendance/attendance').then(m => m.AdminAttendance), { loading: LoadingScreen });
 const AdminFees = dynamic(() => import('@/modules/finance/components/AdminFees').then(m => m.AdminFees), { loading: LoadingScreen });
 const AdminNotices = dynamic(() => import('@/modules/communication/components/AdminNotices').then(m => m.AdminNotices), { loading: LoadingScreen });
 const AdminTimetable = dynamic(() => import('@/modules/timetable/components/AdminTimetable').then(m => m.AdminTimetable), { loading: LoadingScreen });
@@ -43,8 +43,11 @@ const AdminPromotions = dynamic(() => import('@/modules/students/promotions').th
 const StudentsBulkPromote = dynamic(() => import('@/modules/students/bulk-promote').then(m => m.StudentsBulkPromote), { loading: LoadingScreen });
 const StudentsGraduated = dynamic(() => import('@/modules/students/graduated').then(m => m.StudentsGraduated), { loading: LoadingScreen });
 const AdminCertificates = dynamic(() => import('@/modules/students/certificates').then(m => m.AdminCertificates), { loading: LoadingScreen });
-const AdminLeaves = dynamic(() => import('@/modules/attendance/components/AdminLeaves').then(m => m.AdminLeaves), { loading: LoadingScreen });
-const StaffAttendance = dynamic(() => import('@/modules/attendance/components/AdminStaffAttendance').then(m => m.StaffAttendance), { loading: LoadingScreen });
+const AdminLeaves = dynamic(() => import('@/modules/leaves/student-leaves').then(m => m.AdminLeaves), { loading: LoadingScreen });
+const StaffAttendance = dynamic(() => import('@/modules/employee-attendance/teacher-attendance').then(m => m.StaffAttendance), { loading: LoadingScreen });
+const EmployeeStaffAttendance = dynamic(() => import('@/modules/employee-attendance/staff-attendance').then(m => m.EmployeeStaffAttendance), { loading: LoadingScreen });
+const LeavesTeacherLeaves = dynamic(() => import('@/modules/leaves/teacher-leaves').then(m => m.LeavesTeacherLeaves), { loading: LoadingScreen });
+const LeavesStaffLeaves = dynamic(() => import('@/modules/leaves/staff-leaves').then(m => m.LeavesStaffLeaves), { loading: LoadingScreen });
 const AdminExams = dynamic(() => import('@/modules/assessment/components/AdminExams').then(m => m.AdminExams), { loading: LoadingScreen });
 const AdminPrintMarksheet = dynamic(() => import('@/modules/assessment/components/AdminPrintMarksheet').then(m => m.AdminPrintMarksheet), { loading: LoadingScreen });
 const AdminAdmitCards = dynamic(() => import('@/modules/certificates/components/AdminAdmitCards').then(m => m.AdminAdmitCards), { loading: LoadingScreen });
@@ -238,13 +241,13 @@ export default function TenantScreenDispatcherClient() {
       case 'bulk-promote': return <StudentsBulkPromote key="bulk-prom" />;
       case 'graduated': return <StudentsGraduated key="graduated-prom" />;
       case 'certificates': return <AdminCertificates />;
-      case 'leaves': return <AdminLeaves key="teacher-leaves-main" initialTab="teacher" />;
+      case 'leaves': return <LeavesTeacherLeaves key="teacher-leaves-main" />;
       case 'student-leaves': return <AdminLeaves key="student-leaves" initialTab="student" />;
-      case 'teacher-leaves': return <AdminLeaves key="teacher-leaves" initialTab="teacher" />;
-      case 'staff-leaves': return <AdminLeaves key="staff-leaves" initialTab="staff" />;
+      case 'teacher-leaves': return <LeavesTeacherLeaves key="teacher-leaves" />;
+      case 'staff-leaves': return <LeavesStaffLeaves key="staff-leaves" />;
       case 'grades': return <TeacherGrades />;
       case 'teacher-attendance': return <StaffAttendance key="teacher-att" initialTab="teacher" />;
-      case 'staff-attendance': return <StaffAttendance key="staff-att" initialTab="staff" />;
+      case 'staff-attendance': return <EmployeeStaffAttendance key="staff-att" />;
       case 'my-attendance':
         if (currentUser.role === 'staff') return <TeacherMyAttendance />;
         redirect(`/${currentUser.tenantSlug || currentUser.tenantId || slug}/dashboard`);
