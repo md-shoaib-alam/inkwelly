@@ -13,13 +13,23 @@
  * `module-nav-config`.
  */
 
-export type RouteParts = { module: string | null; screen: string };
+export type RouteParts = {
+  year: string | null;
+  module: string | null;
+  screen: string;
+};
 
 export type RouteContext = {
   /** True when `screen` is a declared sub-link of module `module`. */
   isModuleScreen: (module: string, screen: string) => boolean;
   /** True when a single leading path segment names the tenant rather than a screen. */
   isTenantRoot: (first: string) => boolean;
+  /**
+   * The tenant's own year slugs. Membership, not shape, decides what segment 1
+   * means: year names are free text, so `2024-2025` may be a year or a screen
+   * depending on who owns it. Omit it and nothing is treated as a year.
+   */
+  yearSlugs?: string[];
 };
 
 export function qualifiedKey(module: string, screen: string): string {
@@ -37,22 +47,34 @@ export function splitKey(key: string): { module: string | null; screen: string }
  * three segments. `isModuleScreen` is what tells a module-scoped screen apart from
  * the legacy screen-with-detail shape, so an unknown second segment keeps the
  * behaviour it has always had.
+ *
+ * A `year: null` result is not an error; it means the caller must canonicalise the
+ * URL (spec §3), except for the screen the gate itself renders.
  */
 export function parseRoute(pathname: string, ctx: RouteContext): RouteParts {
   const parts = pathname.split("/").filter(Boolean);
 
-  if (parts.length === 0) return { module: null, screen: "dashboard" };
+  if (parts.length === 0) return { year: null, module: null, screen: "dashboard" };
   if (parts.length === 1) {
     return ctx.isTenantRoot(parts[0])
-      ? { module: null, screen: "dashboard" }
-      : { module: null, screen: parts[0] };
+      ? { year: null, module: null, screen: "dashboard" }
+      : { year: null, module: null, screen: parts[0] };
   }
 
-  const [, first, second] = parts;
-  if (second && ctx.isModuleScreen(first, second)) {
-    return { module: first, screen: second };
+  const rest = parts.slice(1);
+  let year: string | null = null;
+  if (rest[0] && ctx.yearSlugs?.includes(rest[0])) {
+    year = rest[0];
+    rest.shift();
   }
-  return { module: null, screen: first };
+
+  if (rest.length === 0) return { year, module: null, screen: "dashboard" };
+
+  const [first, second] = rest;
+  if (second && ctx.isModuleScreen(first, second)) {
+    return { year, module: first, screen: second };
+  }
+  return { year, module: null, screen: first };
 }
 
 /**

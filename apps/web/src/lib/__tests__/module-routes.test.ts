@@ -25,11 +25,12 @@ const p = (pathname: string) => parseRoute(pathname, ctx);
 
 describe("parseRoute", () => {
   test("a bare tenant root is the dashboard", () => {
-    expect(p("/demo-academy")).toEqual({ module: null, screen: "dashboard" });
+    expect(p("/demo-academy")).toEqual({ year: null, module: null, screen: "dashboard" });
   });
 
   test("one segment after the tenant is a bare screen", () => {
     expect(p("/demo-academy/school-settings")).toEqual({
+      year: null,
       module: null,
       screen: "school-settings",
     });
@@ -37,6 +38,7 @@ describe("parseRoute", () => {
 
   test("module + screen when the pair is a declared sub-link", () => {
     expect(p("/demo-academy/academics/classes")).toEqual({
+      year: null,
       module: "academics",
       screen: "classes",
     });
@@ -45,6 +47,7 @@ describe("parseRoute", () => {
   test("three segments that are NOT a declared sub-link stay a bare screen", () => {
     // `/students/STU-123` is the legacy screen/detail shape and must keep working.
     expect(p("/demo-academy/students/STU-123")).toEqual({
+      year: null,
       module: null,
       screen: "students",
     });
@@ -57,6 +60,7 @@ describe("parseRoute", () => {
 
   test("an unknown module falls back to today's behaviour", () => {
     expect(p("/demo-academy/not-a-module/classes")).toEqual({
+      year: null,
       module: null,
       screen: "not-a-module",
     });
@@ -106,4 +110,81 @@ test("a module-scoped URL resolves to the same component key as the bare screen"
 
 test("a qualified key never leaks its module name as the screen", () => {
   expect(componentKey("academics", "classes")).not.toBe("academics");
+});
+
+// The year block below is a second context on purpose: the tests above carry no
+// `yearSlugs`, which is what proves the widened contract leaves today's callers
+// alone. `ctx` and `p` are already taken by that first block.
+const YEARS = ["2026-2027", "2025-2026"];
+const yearCtx = (over: Partial<RouteContext> = {}): RouteContext => ({
+  isModuleScreen: (module, screen) => module === "academics" && screen === "classes",
+  isTenantRoot: (first) => first === "demo",
+  yearSlugs: YEARS,
+  ...over,
+});
+
+describe("parseRoute with a year segment", () => {
+  test("recognised year at index 1 becomes the year and drops out of the screen path", () => {
+    expect(parseRoute("/demo/2026-2027/exams", yearCtx())).toEqual({
+      year: "2026-2027",
+      module: null,
+      screen: "exams",
+    });
+    expect(parseRoute("/demo/2026-2027/academics/classes", yearCtx())).toEqual({
+      year: "2026-2027",
+      module: "academics",
+      screen: "classes",
+    });
+  });
+
+  test("a bare or qualified URL still resolves to its screen, with no year", () => {
+    expect(parseRoute("/demo/exams", yearCtx())).toEqual({
+      year: null,
+      module: null,
+      screen: "exams",
+    });
+    expect(parseRoute("/demo/academics/classes", yearCtx())).toEqual({
+      year: null,
+      module: "academics",
+      screen: "classes",
+    });
+  });
+
+  test("an unrecognised segment at index 1 is a screen, not a year", () => {
+    expect(parseRoute("/demo/2024-2025/exams", yearCtx())).toEqual({
+      year: null,
+      module: null,
+      screen: "2024-2025",
+    });
+  });
+
+  test("a year with nothing after it means the dashboard", () => {
+    expect(parseRoute("/demo/2026-2027", yearCtx())).toEqual({
+      year: "2026-2027",
+      module: null,
+      screen: "dashboard",
+    });
+  });
+
+  test("the year is not read when the first segment is the tenant root", () => {
+    expect(parseRoute("/demo", yearCtx())).toEqual({
+      year: null,
+      module: null,
+      screen: "dashboard",
+    });
+  });
+
+  test("no yearSlugs at all keeps the old behaviour exactly", () => {
+    const bare = yearCtx({ yearSlugs: undefined });
+    expect(parseRoute("/demo/academics/classes", bare)).toEqual({
+      year: null,
+      module: "academics",
+      screen: "classes",
+    });
+    expect(parseRoute("/demo/students/STU-123", bare)).toEqual({
+      year: null,
+      module: null,
+      screen: "students",
+    });
+  });
 });
