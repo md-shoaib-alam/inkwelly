@@ -25,12 +25,12 @@ function getInitialUser(): { isLoggedIn: boolean; currentUser: AppUser | null } 
 }
 
 function getInitialScreen(currentUser: AppUser | null): string {
-  if (typeof window === 'undefined') return 'dashboard';
+  if (typeof window === 'undefined') return 'module';
   try {
     const saved = localStorage.getItem(STORAGE_KEYS.LAST_SCREEN);
     if (saved && currentUser && isValidScreen(currentUser.role, saved)) return saved;
   } catch { /* ignore */ }
-  return parseScreenFromPath(window.location.pathname) || 'dashboard';
+  return parseScreenFromPath(window.location.pathname) || 'module';
 }
 
 function getInitialSidebar(): boolean {
@@ -109,7 +109,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({
       isLoggedIn: true,
       currentUser: user,
-      currentScreen: 'dashboard',
+      currentScreen: 'module',
       currentTenantId: user.tenantId || null,
       currentTenantSlug: user.tenantSlug || null,
       currentTenantName: user.tenantName || null,
@@ -145,7 +145,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({
       isLoggedIn: false,
       currentUser: null,
-      currentScreen: 'dashboard',
+      currentScreen: 'module',
       sidebarOpen: false,
       currentTenantId: null,
       currentTenantSlug: null,

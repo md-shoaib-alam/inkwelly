@@ -32,7 +32,7 @@ import { FullPageSkeleton } from "@/components/ui/full-page-skeleton";
 import { AdminDashboardSkeleton } from "@/modules/dashboard/components/adminDashboard/DashboardSkeleton";
 
 const PLATFORM_ROUTES = new Set([
-  "dashboard",
+  "module",
   "tenants",
   "deleted-tenants",
   "bulk-attendance-import",
@@ -91,7 +91,7 @@ function shouldIncludeItem(
   item: any,
   currentUser: any
 ): boolean {
-  if (item.key === "dashboard") return true;
+  if (item.key === "module") return true;
   if (item.rootOnly) return isRootAdmin(currentUser);
   if (!item.permModule) return true;
   return hasPermission(currentUser, item.permModule, "view");
@@ -357,7 +357,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const useModuleSidebar = isAdmin && moduleItems.length > 0;
   // On the admin dashboard the module grid is the navigation, so the rail is there
   // for phones only — the hamburger still opens it below the lg breakpoint.
-  const hideRailOnDesktop = resolvedScreen === "dashboard";
+  const hideRailOnDesktop = resolvedScreen === "module";
 
   // --- SUBSCRIPTION CHECK LOGIC ---
   const isExpired = useMemo(() => {
@@ -387,7 +387,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   if (!currentUser) {
-    if (resolvedScreen === "dashboard") {
+    if (resolvedScreen === "module") {
       return <AdminDashboardSkeleton />;
     }
     return <FullPageSkeleton />;

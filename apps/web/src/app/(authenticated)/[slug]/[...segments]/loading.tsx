@@ -11,7 +11,7 @@ export default function ScreenLoading() {
   // The last segment is the screen for every shape except a year-only URL,
   // which gets the generic skeleton for a moment; reading the year here would
   // mean duplicating parseRoute's membership rule in a server component.
-  if (segments[segments.length - 1] === "dashboard") {
+  if (segments[segments.length - 1] === "module") {
     return <AdminDashboardSkeleton />;
   }
 

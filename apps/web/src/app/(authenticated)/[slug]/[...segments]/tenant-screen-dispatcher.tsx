@@ -8,7 +8,7 @@ import { navItems } from '@/components/layout/nav-config';
 import { isAdminModuleScreen } from '@/components/layout/sidebar/module-nav-config';
 import { canonicalAdminTail } from '@/components/layout/sidebar/screen-owners';
 import { resolveAdminRoute } from '@/components/layout/sidebar/module-roots';
-import { componentKey, parseRoute } from '@/lib/routing/module-routes';
+import { componentKey, LEGACY_SCREEN_KEYS, parseRoute } from '@/lib/routing/module-routes';
 import { canonicalTenantUrl, yearSlugOf } from '@/lib/routing/academic-year-url';
 import { decideYearGate } from '@/lib/routing/year-gate';
 import { useActiveAcademicYear } from '@/modules/academics/hooks/use-active-academic-year';
@@ -181,7 +181,7 @@ export default function TenantScreenDispatcherClient() {
   const activeYearSlug =
     yearSlug ?? yearSlugOf(years.find((y: any) => y.isCurrent)?.name ?? years[0]?.name ?? '');
   const dashboardUrl = (tenant: string) =>
-    canonicalTenantUrl({ slug: tenant, segments: ['dashboard'], yearSlug: activeYearSlug, search: '' });
+    canonicalTenantUrl({ slug: tenant, segments: ['module'], yearSlug: activeYearSlug, search: '' });
 
   // This route always puts the tenant in the first segment, so parts[0] is the
   // root by construction and can never be a module name.
@@ -216,7 +216,7 @@ export default function TenantScreenDispatcherClient() {
   }
 
   if (!mounted || !currentUser || typeof slug !== 'string') {
-    if (screen === 'dashboard') {
+    if (screen === 'module') {
       return <DashboardLoadingScreen />;
     }
     return <LoadingScreen />;
@@ -228,7 +228,7 @@ export default function TenantScreenDispatcherClient() {
   const isTenantMatch = (urlSlug === userTenantId || urlSlug === userTenantSlug);
 
   if (currentUser.role !== 'super_admin' && !isTenantMatch) {
-    if (screen === 'dashboard') {
+    if (screen === 'module') {
       return <DashboardLoadingScreen />;
     }
     return <LoadingScreen />;
@@ -248,7 +248,7 @@ export default function TenantScreenDispatcherClient() {
   });
 
   if (gate.kind === 'skeleton') {
-    return screen === 'dashboard' ? <DashboardLoadingScreen /> : <LoadingScreen />;
+    return screen === 'module' ? <DashboardLoadingScreen /> : <LoadingScreen />;
   }
   if (gate.kind === 'notice') {
     return <NoAcademicYearNotice tenant={String(slug)} />;
@@ -277,6 +277,20 @@ export default function TenantScreenDispatcherClient() {
       canonicalTenantUrl({
         slug,
         segments: adminRoute.canonicalTail.split('/'),
+        yearSlug: route.year ?? activeYearSlug,
+        search: searchParams?.toString() ? `?${searchParams.toString()}` : '',
+      }),
+    );
+  }
+
+  // The launcher's URL used to read `/dashboard`. A bookmark or a saved tab still
+  // arrives with the retired key, and the parser hands it through untouched so this
+  // arm can see it; one hop, because `module` is not itself a legacy key.
+  if (LEGACY_SCREEN_KEYS[screen]) {
+    redirect(
+      canonicalTenantUrl({
+        slug,
+        segments: [LEGACY_SCREEN_KEYS[screen]],
         yearSlug: route.year ?? activeYearSlug,
         search: searchParams?.toString() ? `?${searchParams.toString()}` : '',
       }),
@@ -316,7 +330,7 @@ export default function TenantScreenDispatcherClient() {
     }
 
     switch (screenKey) {
-      case 'dashboard': 
+      case 'module': 
         if (currentUser.role === 'super_admin' && slug === 'tenants') return <SuperAdminDashboard />;
         return currentUser.role === 'staff' ? <StaffDashboard /> : <AdminDashboard />;
       case 'students': return <AdminStudents />;
@@ -378,7 +392,7 @@ export default function TenantScreenDispatcherClient() {
       case 'admit-cards': return <AdminAdmitCards />;
       default: {
         const tid = currentUser.tenantSlug || currentUser.tenantId || slug;
-        if (screen !== 'dashboard') {
+        if (screen !== 'module') {
           redirect(dashboardUrl(tid));
         }
       }
@@ -387,7 +401,7 @@ export default function TenantScreenDispatcherClient() {
 
   if (currentUser.role === 'teacher') {
     switch (screen) {
-      case 'dashboard': return <TeacherDashboard />;
+      case 'module': return <TeacherDashboard />;
       case 'my-classes': return <TeacherClasses />;
       case 'my-subjects': return <TeacherSubjects />;
       case 'take-attendance': return <TeacherAttendance />;
@@ -406,7 +420,7 @@ export default function TenantScreenDispatcherClient() {
       case 'tickets': return <TeacherTickets />;
       default: {
         const tid = currentUser.tenantSlug || currentUser.tenantId || slug;
-        if (screen !== 'dashboard') {
+        if (screen !== 'module') {
           redirect(dashboardUrl(tid));
         }
       }
@@ -415,7 +429,7 @@ export default function TenantScreenDispatcherClient() {
 
   if (currentUser.role === 'student') {
     switch (screen) {
-      case 'dashboard': return <StudentDashboard />;
+      case 'module': return <StudentDashboard />;
       case 'my-classes': return <StudentClasses />;
       case 'my-grades': return <StudentGrades />;
       case 'school-exams': return <StudentGrades key="school-exams" initialTab="exams" />;
@@ -433,7 +447,7 @@ export default function TenantScreenDispatcherClient() {
       case 'leaves': return <StudentLeaves />;
       default: {
         const tid = currentUser.tenantSlug || currentUser.tenantId || slug;
-        if (screen !== 'dashboard') {
+        if (screen !== 'module') {
           redirect(dashboardUrl(tid));
         }
       }
@@ -442,7 +456,7 @@ export default function TenantScreenDispatcherClient() {
 
   if (currentUser.role === 'parent') {
     switch (screen) {
-      case 'dashboard': return <ParentDashboard />;
+      case 'module': return <ParentDashboard />;
       case 'children': return <ParentChildren />;
       case 'homework': return <ParentHomework />;
       case 'grades': return <ParentGrades />;
@@ -458,7 +472,7 @@ export default function TenantScreenDispatcherClient() {
       case 'view-marksheet': return <StudentMarksheet />;
       default: {
         const tid = currentUser.tenantSlug || currentUser.tenantId || slug;
-        if (screen !== 'dashboard') {
+        if (screen !== 'module') {
           redirect(dashboardUrl(tid));
         }
       }
@@ -469,7 +483,7 @@ export default function TenantScreenDispatcherClient() {
   // they are at an invalid screen. Redirect them to their dashboard.
   if (mounted && currentUser) {
     const fallback = currentUser.tenantSlug || currentUser.tenantId || slug || "";
-    redirect(fallback ? dashboardUrl(fallback) : "/dashboard");
+    redirect(fallback ? dashboardUrl(fallback) : "/module");
   }
 
   return <NotFoundScreen />;

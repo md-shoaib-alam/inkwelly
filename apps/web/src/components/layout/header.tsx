@@ -83,7 +83,7 @@ export function Header({
   }, [currentUser]);
 
   const effectiveIsMinimal = layoutPref === "minimal" || prefFromStorage === "minimal";
-  const shouldShowDashboard = resolvedScreen !== "dashboard" && effectiveIsMinimal;
+  const shouldShowDashboard = resolvedScreen !== "module" && effectiveIsMinimal;
   const { status: yearStatus, years, year, yearSlug, setActiveYear } = useActiveAcademicYear();
   const tenantHref = useTenantHref();
 
@@ -162,7 +162,7 @@ export function Header({
             variant="outline"
             size="sm"
             className="flex items-center gap-1.5 sm:gap-2 h-8.5 sm:h-9 px-2.5 sm:px-3.5 text-xs font-semibold text-slate-800 dark:text-zinc-100 bg-white dark:bg-zinc-900 hover:bg-blue-50 dark:hover:bg-zinc-800 border border-slate-200/80 dark:border-zinc-800 hover:border-blue-300 dark:hover:border-blue-700 hover:text-blue-600 dark:hover:text-blue-400 rounded-xl shadow-2xs transition-all cursor-pointer shrink-0"
-            onClick={() => navigateTo("dashboard")}
+            onClick={() => navigateTo("module")}
           >
             <LayoutDashboard className="size-3.5 sm:size-4 text-blue-600 dark:text-blue-400 shrink-0" />
             <span className="hidden sm:inline">Back to Dashboard</span>

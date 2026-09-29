@@ -23,7 +23,9 @@ function resolvesToAFile(specifier: string): boolean {
 // thin entry over the shared fee screen. 75 -> 77 on 2026-09-29: the eight thin entries each take their own
 // specifier, and 77/62 -> 78/63 the same day for the AI Connect landing screen, and 78/63 -> 79/64
 // for the Academics command center, and 64 -> 65 keys for `session`, the Academics panel row's
-// own key next to the legacy `academic-years` alias. Changing one of these numbers
+// own key next to the legacy `academic-years` alias, and 19 -> 20 on 2026-09-29 for the `module`
+// launcher key (the tenant file renamed rather than grew; the generic one keeps a `dashboard`
+// case purely to redirect the retired URL). Changing one of these numbers
 // must be a deliberate act in a task step, never a side effect of a rewrite.
 const REGISTRIES = [
   {
@@ -36,7 +38,7 @@ const REGISTRIES = [
     name: "generic-slug-dispatcher",
     path: "src/app/(authenticated)/[slug]/generic-slug-dispatcher.tsx",
     specifiers: 25,
-    keys: 19,
+    keys: 20,
   },
 ];
 

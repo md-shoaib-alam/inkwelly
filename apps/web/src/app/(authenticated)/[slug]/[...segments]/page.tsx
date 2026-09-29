@@ -14,6 +14,14 @@ const titleCase = (value: string) =>
     .join(' ');
 
 /**
+ * The tab title comes from the URL segment, so the renamed launcher would read
+ * "Module | School" — true of the address, useless to someone looking for their
+ * dashboard. Everything else on screen already takes its wording from the nav
+ * label, so this one entry is the whole exception.
+ */
+const SCREEN_DISPLAY_NAMES: Record<string, string> = { module: "Dashboard" };
+
+/**
  * Cosmetic only. Routing decides what segment 1 means by membership in the
  * tenant's own year list (module-routes.parseRoute), never by shape, so a
  * free-text name like "FY 2026" is allowed to appear in a document title.
@@ -29,7 +37,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // segment sits last.
   const hasDetail = tail.length > 1;
   const displaySlug = titleCase(slug);
-  const displayScreen = titleCase(hasDetail ? tail[0] : (tail[0] ?? 'dashboard'));
+  const displayScreen =
+    SCREEN_DISPLAY_NAMES[tail[0] ?? 'module'] ?? titleCase(tail[0] ?? 'module');
   const displayDetail = hasDetail ? decodeURIComponent(tail[tail.length - 1]) : null;
 
   const screenLabel = displayDetail ? `${displayDetail} - ${displayScreen}` : displayScreen;

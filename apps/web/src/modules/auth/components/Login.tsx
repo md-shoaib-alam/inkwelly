@@ -100,10 +100,10 @@ export function LoginScreen() {
           customRole: userData.customRole || null,
         });
         const tenantId = userData.tenantSlug || userData.tenantId;
-        // The tenant root, not `/dashboard`: only the root dispatcher knows how
+        // The tenant root, not `/module`: only the root dispatcher knows how
         // to find this school's active year, and the session's year list is not
         // loaded yet at this instant.
-        window.location.href = tenantId ? `/${tenantId}` : "/dashboard";
+        window.location.href = tenantId ? `/${tenantId}` : "/module";
         return `Welcome back, ${userData.name}!`;
       },
       error: (err: any) => { setLoading(false); return err.message || "Authentication failed"; },

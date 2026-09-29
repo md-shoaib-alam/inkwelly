@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   canonicalOwner,
   componentKey,
+  LEGACY_SCREEN_KEYS,
   parseRoute,
   qualifiedKey,
   splitKey,
@@ -24,8 +25,8 @@ const ctx: RouteContext = {
 const p = (pathname: string) => parseRoute(pathname, ctx);
 
 describe("parseRoute", () => {
-  test("a bare tenant root is the dashboard", () => {
-    expect(p("/demo-academy")).toEqual({ year: null, module: null, screen: "dashboard" });
+  test("a bare tenant root is the module launcher", () => {
+    expect(p("/demo-academy")).toEqual({ year: null, module: null, screen: "module" });
   });
 
   test("one segment after the tenant is a bare screen", () => {
@@ -71,7 +72,7 @@ describe("key helpers", () => {
   test("qualifiedKey and splitKey round-trip", () => {
     expect(splitKey(qualifiedKey("academics", "classes"))).toEqual({ module: "academics", screen: "classes" });
     expect(splitKey(qualifiedKey("student-fees", "classes"))).toEqual({ module: "student-fees", screen: "classes" });
-    expect(splitKey("dashboard")).toEqual({ module: null, screen: "dashboard" });
+    expect(splitKey("module")).toEqual({ module: null, screen: "module" });
   });
 
   test("componentKey maps only the declared pairs and otherwise passes through", () => {
@@ -79,7 +80,7 @@ describe("key helpers", () => {
     expect(componentKey("student-fees", "classes")).toBe("classes");
     expect(componentKey("students", "classes")).toBe("class-roster");
     expect(componentKey(null, "classes")).toBe("classes");
-    expect(componentKey(null, "dashboard")).toBe("dashboard");
+    expect(componentKey(null, "module")).toBe("module");
   });
 });
 
@@ -97,7 +98,8 @@ describe("canonicalOwner", () => {
   });
 
   test("an unowned screen is left alone", () => {
-    expect(canonicalOwner("dashboard", owners, moduleIds)).toBeNull();
+    // The launcher is a bare screen, not a module's row, so it never gains a prefix.
+    expect(canonicalOwner("module", owners, moduleIds)).toBeNull();
   });
 });
 
@@ -158,17 +160,38 @@ describe("parseRoute with a year segment", () => {
     });
   });
 
-  test("a year with nothing after it means the dashboard", () => {
+  test("a year with nothing after it means the module launcher", () => {
     expect(parseRoute("/demo/2026-2027", yearCtx())).toEqual({
       year: "2026-2027",
       module: null,
-      screen: "dashboard",
+      screen: "module",
     });
   });
 
   test("the year is not read when the first segment is the tenant root", () => {
     expect(parseRoute("/demo", yearCtx())).toEqual({
       year: null,
+      module: null,
+      screen: "module",
+    });
+  });
+
+  // The launcher is not inside a module, so its own URL must never gain a prefix and
+  // must never be read as one. `module` is a screen key, not a module id.
+  test("the module launcher parses as a bare screen, with and without a year", () => {
+    expect(p("/demo-academy/module")).toEqual({ year: null, module: null, screen: "module" });
+    expect(parseRoute("/demo/2026-2027/module", yearCtx())).toEqual({
+      year: "2026-2027",
+      module: null,
+      screen: "module",
+    });
+  });
+
+  // The redirect arm needs the old key to still arrive as itself; if the parser
+  // quietly renamed it there would be nothing left to redirect from.
+  test("the retired `dashboard` key still parses as itself so it can be redirected", () => {
+    expect(parseRoute("/demo/2026-2027/dashboard", yearCtx())).toEqual({
+      year: "2026-2027",
       module: null,
       screen: "dashboard",
     });
@@ -186,5 +209,17 @@ describe("parseRoute with a year segment", () => {
       module: null,
       screen: "students",
     });
+  });
+});
+
+describe("LEGACY_SCREEN_KEYS", () => {
+  test("the retired dashboard key points at the launcher", () => {
+    expect(LEGACY_SCREEN_KEYS["dashboard"]).toBe("module");
+  });
+
+  test("no key chains, so one redirect always lands on a live screen", () => {
+    for (const target of Object.values(LEGACY_SCREEN_KEYS)) {
+      expect(LEGACY_SCREEN_KEYS[target]).toBeUndefined();
+    }
   });
 });

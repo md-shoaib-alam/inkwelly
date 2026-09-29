@@ -41,13 +41,13 @@ const ALLOWLIST: Allowed[] = [
   },
   {
     file: "app/(authenticated)/[slug]/generic-slug-dispatcher.tsx",
-    text: "redirect(fallback ? `/${fallback}` : \"/dashboard\")",
+    text: "redirect(fallback ? `/${fallback}` : \"/module\")",
     reason:
       "fail-safe hop to the user's own tenant root, which resolves its own year on the next pass.",
   },
   {
     file: "modules/auth/components/Login.tsx",
-    text: "window.location.href = tenantId ? `/${tenantId}` : \"/dashboard\"",
+    text: "window.location.href = tenantId ? `/${tenantId}` : \"/module\"",
     reason:
       "the post-login landing goes to the tenant root, which is where the year is first resolved; nothing is known about the school's sessions yet.",
   },

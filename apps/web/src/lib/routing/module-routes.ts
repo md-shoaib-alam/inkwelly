@@ -1,7 +1,7 @@
 /**
  * The whole routing contract for admin module screens.
  *
- * A screen key is either bare (`dashboard`) or module-qualified
+ * A screen key is either bare (`module`) or module-qualified
  * (`academics/classes`). Qualified keys are how admin module screens are
  * addressed; bare keys keep working for every other role and for existing
  * bookmarks.
@@ -54,10 +54,10 @@ export function splitKey(key: string): { module: string | null; screen: string }
 export function parseRoute(pathname: string, ctx: RouteContext): RouteParts {
   const parts = pathname.split("/").filter(Boolean);
 
-  if (parts.length === 0) return { year: null, module: null, screen: "dashboard" };
+  if (parts.length === 0) return { year: null, module: null, screen: "module" };
   if (parts.length === 1) {
     return ctx.isTenantRoot(parts[0])
-      ? { year: null, module: null, screen: "dashboard" }
+      ? { year: null, module: null, screen: "module" }
       : { year: null, module: null, screen: parts[0] };
   }
 
@@ -68,7 +68,7 @@ export function parseRoute(pathname: string, ctx: RouteContext): RouteParts {
     rest.shift();
   }
 
-  if (rest.length === 0) return { year, module: null, screen: "dashboard" };
+  if (rest.length === 0) return { year, module: null, screen: "module" };
 
   const [first, second] = rest;
   if (second && ctx.isModuleScreen(first, second)) {
@@ -106,3 +106,15 @@ export function canonicalOwner(
   if (moduleIds.has(screen)) return null;
   return owners[screen] ?? null;
 }
+
+/**
+ * Retired keys that still arrive from bookmarks, and the live screen each one means.
+ *
+ * The parser deliberately does not apply this — a stale key has to stay
+ * distinguishable from the screen it redirects to, or the dispatcher could never
+ * tell "you are on the launcher" from "you asked for the old name". Values must
+ * never themselves be keys here, so one redirect always lands.
+ */
+export const LEGACY_SCREEN_KEYS: Record<string, string> = {
+  dashboard: "module",
+};

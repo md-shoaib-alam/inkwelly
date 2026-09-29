@@ -39,7 +39,7 @@ export function canonicalTenantUrl(opts: {
   search?: string;
 }): string {
   const tail = `${opts.segments.join("/")}${opts.search ?? ""}`;
-  return academicYearUrl(opts.slug, opts.yearSlug, tail || "dashboard");
+  return academicYearUrl(opts.slug, opts.yearSlug, tail || "module");
 }
 
 /**
@@ -58,6 +58,6 @@ export function swapYearUrl(opts: {
     opts.fromYearSlug && opts.segments[0] === opts.fromYearSlug
       ? opts.segments.slice(1)
       : opts.segments;
-  const tail = `${rest.join("/")}${opts.search ?? ""}` || "dashboard";
+  const tail = `${rest.join("/")}${opts.search ?? ""}` || "module";
   return academicYearUrl(opts.slug, opts.toYearSlug, tail);
 }
