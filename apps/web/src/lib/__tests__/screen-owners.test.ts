@@ -63,7 +63,7 @@ describe("canonicalAdminTail", () => {
   });
 
   test("unowned keys are left alone", () => {
-    for (const screen of ["module", "students", "reports", "notices", "tickets", "nope"]) {
+    for (const screen of ["modules", "students", "reports", "notices", "tickets", "nope"]) {
       expect(canonicalAdminTail(null, screen)).toBeNull();
     }
   });

@@ -1,7 +1,7 @@
 /**
  * The whole routing contract for admin module screens.
  *
- * A screen key is either bare (`module`) or module-qualified
+ * A screen key is either bare (`modules`) or module-qualified
  * (`academics/classes`). Qualified keys are how admin module screens are
  * addressed; bare keys keep working for every other role and for existing
  * bookmarks.
@@ -54,10 +54,10 @@ export function splitKey(key: string): { module: string | null; screen: string }
 export function parseRoute(pathname: string, ctx: RouteContext): RouteParts {
   const parts = pathname.split("/").filter(Boolean);
 
-  if (parts.length === 0) return { year: null, module: null, screen: "module" };
+  if (parts.length === 0) return { year: null, module: null, screen: "modules" };
   if (parts.length === 1) {
     return ctx.isTenantRoot(parts[0])
-      ? { year: null, module: null, screen: "module" }
+      ? { year: null, module: null, screen: "modules" }
       : { year: null, module: null, screen: parts[0] };
   }
 
@@ -68,7 +68,7 @@ export function parseRoute(pathname: string, ctx: RouteContext): RouteParts {
     rest.shift();
   }
 
-  if (rest.length === 0) return { year, module: null, screen: "module" };
+  if (rest.length === 0) return { year, module: null, screen: "modules" };
 
   const [first, second] = rest;
   if (second && ctx.isModuleScreen(first, second)) {
@@ -116,5 +116,6 @@ export function canonicalOwner(
  * never themselves be keys here, so one redirect always lands.
  */
 export const LEGACY_SCREEN_KEYS: Record<string, string> = {
-  dashboard: "module",
+  dashboard: "modules",
+  module: "modules",
 };

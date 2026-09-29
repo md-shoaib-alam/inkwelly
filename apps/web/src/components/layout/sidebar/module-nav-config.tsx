@@ -100,7 +100,7 @@ function direct(key: string, label: string, icon: React.ReactNode, permModule?: 
 export const moduleNavItems: Partial<Record<UserRole, ModuleNavItem[]>> = {
 
   teacher: [
-    direct("module", "Dashboard", <LayoutDashboard className={iconCls} />),
+    direct("modules", "Dashboard", <LayoutDashboard className={iconCls} />),
     direct("my-classes", "My Classes", <School className={iconCls} />),
     direct("my-subjects", "My Subjects", <BookOpen className={iconCls} />),
     {
@@ -153,7 +153,7 @@ export const moduleNavItems: Partial<Record<UserRole, ModuleNavItem[]>> = {
   ],
 
   student: [
-    direct("module", "Dashboard", <LayoutDashboard className={iconCls} />),
+    direct("modules", "Dashboard", <LayoutDashboard className={iconCls} />),
     direct("my-classes", "My Classes", <School className={iconCls} />),
     {
       key: "grades",
@@ -178,7 +178,7 @@ export const moduleNavItems: Partial<Record<UserRole, ModuleNavItem[]>> = {
   ],
 
   parent: [
-    direct("module", "Dashboard", <LayoutDashboard className={iconCls} />),
+    direct("modules", "Dashboard", <LayoutDashboard className={iconCls} />),
     direct("children", "My Children", <Users className={iconCls} />),
     direct("homework", "Homework", <FileText className={iconCls} />),
     {
@@ -205,7 +205,7 @@ export const moduleNavItems: Partial<Record<UserRole, ModuleNavItem[]>> = {
   ],
 
   staff: [
-    direct("module", "Dashboard", <LayoutDashboard className={iconCls} />),
+    direct("modules", "Dashboard", <LayoutDashboard className={iconCls} />),
     {
       key: "academics",
       label: "Academics",
@@ -390,7 +390,7 @@ export const moduleNavItems: Partial<Record<UserRole, ModuleNavItem[]>> = {
 
 /**
  * The rail item a resolved screen belongs to. `screen` is what the URL says, so it
- * can be qualified (`academics/timetable`) or bare (`module`, and every
+ * can be qualified (`academics/timetable`) or bare (`modules`, and every
  * non-admin role's rows): the module half of a qualified key is the answer, and the
  * row search is only for the bare case.
  */
@@ -843,7 +843,7 @@ export function isAdminModuleScreen(module: string, screen: string): boolean {
 
 // Rail rows that aren't purchasable modules, so they aren't in the catalogue either.
 const adminRailChrome: ModuleNavItem[] = [
-  direct("module", "Dashboard", <LayoutDashboard className={iconCls} />),
+  direct("modules", "Dashboard", <LayoutDashboard className={iconCls} />),
 ];
 
 function moduleFromCard(card: ModuleCard): ModuleNavItem {

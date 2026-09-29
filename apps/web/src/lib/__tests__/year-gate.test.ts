@@ -38,7 +38,7 @@ describe("the year gate's happy path", () => {
 
 describe("the year gate at a school with no session", () => {
   test('an admin is sent to set one up', () => {
-    expect(g({ status: 'empty', yearSlug: null, screen: 'module' })).toEqual({
+    expect(g({ status: 'empty', yearSlug: null, screen: 'modules' })).toEqual({
       kind: 'to-setup',
     });
   });

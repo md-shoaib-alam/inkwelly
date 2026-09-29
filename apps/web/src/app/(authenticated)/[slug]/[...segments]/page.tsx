@@ -19,7 +19,7 @@ const titleCase = (value: string) =>
  * dashboard. Everything else on screen already takes its wording from the nav
  * label, so this one entry is the whole exception.
  */
-const SCREEN_DISPLAY_NAMES: Record<string, string> = { module: "Dashboard" };
+const SCREEN_DISPLAY_NAMES: Record<string, string> = { modules: "Dashboard" };
 
 /**
  * Cosmetic only. Routing decides what segment 1 means by membership in the
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const hasDetail = tail.length > 1;
   const displaySlug = titleCase(slug);
   const displayScreen =
-    SCREEN_DISPLAY_NAMES[tail[0] ?? 'module'] ?? titleCase(tail[0] ?? 'module');
+    SCREEN_DISPLAY_NAMES[tail[0] ?? 'modules'] ?? titleCase(tail[0] ?? 'modules');
   const displayDetail = hasDetail ? decodeURIComponent(tail[tail.length - 1]) : null;
 
   const screenLabel = displayDetail ? `${displayDetail} - ${displayScreen}` : displayScreen;

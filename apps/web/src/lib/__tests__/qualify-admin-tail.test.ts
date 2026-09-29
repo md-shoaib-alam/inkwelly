@@ -22,7 +22,7 @@ describe("qualifyAdminTail", () => {
   test("module roots and unowned screens stay bare", () => {
     // `/slug/students` addresses the All Students row of the Students module, so
     // `/slug/students/students` would be a second name for the same thing.
-    for (const tail of ["module", "students", "ai-connect", "notices", "reports", "nope"]) {
+    for (const tail of ["modules", "students", "ai-connect", "notices", "reports", "nope"]) {
       expect(qualifyAdminTail(tail, null)).toBe(tail);
     }
   });

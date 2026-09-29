@@ -72,7 +72,7 @@ describe("admin module rail", () => {
   test("the dashboard is reachable from the rail", () => {
     // Every live grid screen is reachable by tapping it, so the rail only has to
     // keep the dashboard itself available for the rest to be one tap away. Its key
-    // is `module` — the URL reads `/slug/session/module`.
-    expect(railKeys).toContain("module");
+    // is `modules` — the URL reads `/slug/session/modules`.
+    expect(railKeys).toContain("modules");
   });
 });

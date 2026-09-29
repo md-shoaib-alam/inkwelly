@@ -26,7 +26,7 @@ const p = (pathname: string) => parseRoute(pathname, ctx);
 
 describe("parseRoute", () => {
   test("a bare tenant root is the module launcher", () => {
-    expect(p("/demo-academy")).toEqual({ year: null, module: null, screen: "module" });
+    expect(p("/demo-academy")).toEqual({ year: null, module: null, screen: "modules" });
   });
 
   test("one segment after the tenant is a bare screen", () => {
@@ -72,7 +72,7 @@ describe("key helpers", () => {
   test("qualifiedKey and splitKey round-trip", () => {
     expect(splitKey(qualifiedKey("academics", "classes"))).toEqual({ module: "academics", screen: "classes" });
     expect(splitKey(qualifiedKey("student-fees", "classes"))).toEqual({ module: "student-fees", screen: "classes" });
-    expect(splitKey("module")).toEqual({ module: null, screen: "module" });
+    expect(splitKey("modules")).toEqual({ module: null, screen: "modules" });
   });
 
   test("componentKey maps only the declared pairs and otherwise passes through", () => {
@@ -80,7 +80,7 @@ describe("key helpers", () => {
     expect(componentKey("student-fees", "classes")).toBe("classes");
     expect(componentKey("students", "classes")).toBe("class-roster");
     expect(componentKey(null, "classes")).toBe("classes");
-    expect(componentKey(null, "module")).toBe("module");
+    expect(componentKey(null, "modules")).toBe("modules");
   });
 });
 
@@ -99,7 +99,7 @@ describe("canonicalOwner", () => {
 
   test("an unowned screen is left alone", () => {
     // The launcher is a bare screen, not a module's row, so it never gains a prefix.
-    expect(canonicalOwner("module", owners, moduleIds)).toBeNull();
+    expect(canonicalOwner("modules", owners, moduleIds)).toBeNull();
   });
 });
 
@@ -164,7 +164,7 @@ describe("parseRoute with a year segment", () => {
     expect(parseRoute("/demo/2026-2027", yearCtx())).toEqual({
       year: "2026-2027",
       module: null,
-      screen: "module",
+      screen: "modules",
     });
   });
 
@@ -172,18 +172,18 @@ describe("parseRoute with a year segment", () => {
     expect(parseRoute("/demo", yearCtx())).toEqual({
       year: null,
       module: null,
-      screen: "module",
+      screen: "modules",
     });
   });
 
   // The launcher is not inside a module, so its own URL must never gain a prefix and
-  // must never be read as one. `module` is a screen key, not a module id.
+  // must never be read as one. `modules` is a screen key, not a module id.
   test("the module launcher parses as a bare screen, with and without a year", () => {
-    expect(p("/demo-academy/module")).toEqual({ year: null, module: null, screen: "module" });
-    expect(parseRoute("/demo/2026-2027/module", yearCtx())).toEqual({
+    expect(p("/demo-academy/modules")).toEqual({ year: null, module: null, screen: "modules" });
+    expect(parseRoute("/demo/2026-2027/modules", yearCtx())).toEqual({
       year: "2026-2027",
       module: null,
-      screen: "module",
+      screen: "modules",
     });
   });
 
@@ -214,7 +214,7 @@ describe("parseRoute with a year segment", () => {
 
 describe("LEGACY_SCREEN_KEYS", () => {
   test("the retired dashboard key points at the launcher", () => {
-    expect(LEGACY_SCREEN_KEYS["dashboard"]).toBe("module");
+    expect(LEGACY_SCREEN_KEYS["dashboard"]).toBe("modules");
   });
 
   test("no key chains, so one redirect always lands on a live screen", () => {

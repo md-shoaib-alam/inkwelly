@@ -69,7 +69,7 @@ export interface NavItem {
 export const navItems: Record<UserRole, NavItem[]> = {
   super_admin: [
     {
-      key: "module",
+      key: "modules",
       label: "Platform Dashboard",
       icon: <LayoutDashboard className="size-4" />,
       permModule: null,
@@ -210,7 +210,7 @@ export const navItems: Record<UserRole, NavItem[]> = {
   ],
   admin: [
     {
-      key: "module",
+      key: "modules",
       label: "Dashboard",
       icon: <LayoutDashboard className="size-4" />,
     },
@@ -300,7 +300,7 @@ export const navItems: Record<UserRole, NavItem[]> = {
   ],
   teacher: [
     {
-      key: "module",
+      key: "modules",
       label: "Dashboard",
       icon: <LayoutDashboard className="size-4" />,
     },
@@ -389,7 +389,7 @@ export const navItems: Record<UserRole, NavItem[]> = {
   ],
   student: [
     {
-      key: "module",
+      key: "modules",
       label: "Dashboard",
       icon: <LayoutDashboard className="size-4" />,
     },
@@ -450,7 +450,7 @@ export const navItems: Record<UserRole, NavItem[]> = {
   ],
   parent: [
     {
-      key: "module",
+      key: "modules",
       label: "Dashboard",
       icon: <LayoutDashboard className="size-4" />,
     },
@@ -511,7 +511,7 @@ export const navItems: Record<UserRole, NavItem[]> = {
   ],
   staff: [
     {
-      key: "module",
+      key: "modules",
       label: "Dashboard",
       icon: <LayoutDashboard className="size-4" />,
       permModule: null,

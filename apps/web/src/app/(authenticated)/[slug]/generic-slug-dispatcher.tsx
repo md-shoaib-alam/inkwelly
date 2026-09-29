@@ -86,7 +86,7 @@ export default function GenericSlugDispatcherClient() {
         role: currentUser.role,
         status: yearStatus,
         yearSlug: null,
-        screen: 'module',
+        screen: 'modules',
         maySetUp:
           currentUser.role === 'admin' ||
           hasPermission(currentUser, 'academic-years', 'view'),
@@ -95,7 +95,7 @@ export default function GenericSlugDispatcherClient() {
       if (gate.kind === 'skeleton') return <DashboardLoadingScreen />;
       if (gate.kind === 'canonicalise') {
         redirect(
-          canonicalTenantUrl({ slug, segments: ['module'], yearSlug: gate.toYearSlug, search: '' }),
+          canonicalTenantUrl({ slug, segments: ['modules'], yearSlug: gate.toYearSlug, search: '' }),
         );
       }
       // A school with no session belongs on its setup screen; a non-admin lands
@@ -106,7 +106,7 @@ export default function GenericSlugDispatcherClient() {
         redirect(`/${slug}/academic-years`);
       }
       redirect(
-        canonicalTenantUrl({ slug, segments: ['module'], yearSlug: activeYearSlug, search: '' }),
+        canonicalTenantUrl({ slug, segments: ['modules'], yearSlug: activeYearSlug, search: '' }),
       );
     }
   }
@@ -116,8 +116,8 @@ export default function GenericSlugDispatcherClient() {
   // 1. Platform Screens (Super Admin only)
   if (currentUser.role === "super_admin") {
     switch (slug) {
-      case "dashboard": redirect("/module");
-      case "module": return <SuperAdminDashboard />;
+      case "dashboard": redirect("/modules");
+      case "modules": return <SuperAdminDashboard />;
       case "tenants": return <SuperAdminTenants />;
       case "deleted-tenants": return <SuperAdminDeletedTenants />;
       case "bulk-attendance-import": return <SuperAdminBulkAttendance />;
@@ -152,7 +152,7 @@ export default function GenericSlugDispatcherClient() {
     const fallback = currentUser.tenantSlug || currentUser.tenantId || "";
     // The tenant root again, for the same reason as arm 1: this file cannot
     // know the year of a school it has not resolved.
-    redirect(fallback ? `/${fallback}` : "/module");
+    redirect(fallback ? `/${fallback}` : "/modules");
   }
 
   return <NotFoundScreen />;

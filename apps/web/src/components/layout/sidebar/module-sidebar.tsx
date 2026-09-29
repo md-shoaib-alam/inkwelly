@@ -147,7 +147,7 @@ export function ModuleSidebar({
   // On mobile the drawer shows the rail and panel side-by-side, except on the
   // dashboard, where the module grid behind the drawer is already the navigation.
   // On desktop: toggle via collapsed state.
-  const showPanel = isMobile ? activeModule.key !== "module" : !collapsed;
+  const showPanel = isMobile ? activeModule.key !== "modules" : !collapsed;
 
   return (
     <aside

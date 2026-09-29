@@ -50,20 +50,20 @@ export function invalidateCache(key?: string): void {
   }
 }
 
-// `dashboard` stays reserved after retiring the key: a stale bookmark must read as
-// the platform screen it was, not as a school whose slug happens to be `dashboard`.
+// `dashboard` and `module` stay reserved after retiring each key: a stale bookmark must
+// read as the platform screen it was, not as a school whose slug happens to be that word.
 const RESERVED_PLATFORM_KEYWORDS = [
-  'login', 'api', 'admin', 'super-admin', 'module', 'dashboard', 'tenants', 
+  'login', 'api', 'admin', 'super-admin', 'modules', 'module', 'dashboard', 'tenants', 
   'billing', 'users', 'audit-logs', 'analytics', 'platform-analytics', 
   'integrations', 'roles', 'staff', 'settings', 'manage-admins', 'subscriptions'
 ];
 
 export function parseScreenFromPath(pathname: string): string {
   const parts = pathname.split('/').filter(Boolean);
-  if (parts.length === 0) return 'module';
+  if (parts.length === 0) return 'modules';
   if (RESERVED_PLATFORM_KEYWORDS.includes(parts[0])) return parts[0];
-  if (parts.length >= 2) return parts[1] || 'module';
-  return 'module';
+  if (parts.length >= 2) return parts[1] || 'modules';
+  return 'modules';
 }
 
 export function parseTenantFromPath(pathname: string): string | null {
@@ -74,12 +74,12 @@ export function parseTenantFromPath(pathname: string): string | null {
 }
 
 const validScreens: Record<UserRole, string[]> = {
-  super_admin: ['module', 'tenants', 'billing', 'users', 'audit-logs', 'platform-analytics', 'integrations', 'roles', 'staff', 'settings', 'manage-admins'],
-  admin: ['module', 'students', 'teachers', 'parents', 'classes', 'subjects', 'attendance', 'fees', 'notices', 'timetable', 'calendar', 'reports', 'roles', 'staff', 'tickets', 'school-settings', 'academic-years', 'expenses', 'promotions', 'bulk-promote', 'graduated', 'certificates', 'leaves', 'student-leaves', 'teacher-leaves', 'staff-leaves', 'grades', 'teacher-attendance', 'staff-attendance', 'exams', 'results-entry', 'published-results', 'admit-cards'],
-  teacher: ['module', 'my-classes', 'my-subjects', 'attendance', 'my-attendance', 'take-attendance', 'grade-management', 'assessments', 'school-exams', 'assignments', 'homework', 'leaves', 'timetable', 'notices', 'calendar', 'tickets'],
-  student: ['module', 'my-classes', 'my-grades', 'school-exams', 'assessments', 'my-attendance', 'assignments', 'homework', 'timetable', 'notices', 'fees', 'calendar', 'tickets'],
-  parent: ['module', 'children', 'grades', 'school-exams', 'assessments', 'homework', 'attendance', 'fees', 'notices', 'timetable', 'subscription', 'calendar', 'tickets'],
-  staff: ['module', 'students', 'teachers', 'attendance', 'teacher-attendance', 'staff-attendance', 'my-attendance', 'fees', 'expenses', 'grades', 'notices', 'timetable', 'calendar', 'classes', 'subjects', 'reports', 'certificates', 'tickets', 'academic-years'],
+  super_admin: ['modules', 'tenants', 'billing', 'users', 'audit-logs', 'platform-analytics', 'integrations', 'roles', 'staff', 'settings', 'manage-admins'],
+  admin: ['modules', 'students', 'teachers', 'parents', 'classes', 'subjects', 'attendance', 'fees', 'notices', 'timetable', 'calendar', 'reports', 'roles', 'staff', 'tickets', 'school-settings', 'academic-years', 'expenses', 'promotions', 'bulk-promote', 'graduated', 'certificates', 'leaves', 'student-leaves', 'teacher-leaves', 'staff-leaves', 'grades', 'teacher-attendance', 'staff-attendance', 'exams', 'results-entry', 'published-results', 'admit-cards'],
+  teacher: ['modules', 'my-classes', 'my-subjects', 'attendance', 'my-attendance', 'take-attendance', 'grade-management', 'assessments', 'school-exams', 'assignments', 'homework', 'leaves', 'timetable', 'notices', 'calendar', 'tickets'],
+  student: ['modules', 'my-classes', 'my-grades', 'school-exams', 'assessments', 'my-attendance', 'assignments', 'homework', 'timetable', 'notices', 'fees', 'calendar', 'tickets'],
+  parent: ['modules', 'children', 'grades', 'school-exams', 'assessments', 'homework', 'attendance', 'fees', 'notices', 'timetable', 'subscription', 'calendar', 'tickets'],
+  staff: ['modules', 'students', 'teachers', 'attendance', 'teacher-attendance', 'staff-attendance', 'my-attendance', 'fees', 'expenses', 'grades', 'notices', 'timetable', 'calendar', 'classes', 'subjects', 'reports', 'certificates', 'tickets', 'academic-years'],
 };
 
 export function isValidScreen(role: UserRole, screen: string): boolean {

@@ -120,7 +120,7 @@ export function SendNotificationScreen() {
                 </Label>
                 <Input 
                   id="link" 
-                  placeholder="e.g. https://localhost:3000/module" 
+                  placeholder="e.g. https://localhost:3000/modules" 
                   value={link}
                   onChange={(e) => setLink(e.target.value)}
                 />

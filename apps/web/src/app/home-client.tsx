@@ -62,8 +62,8 @@ export default function HomeClient({ initialHasToken }: { initialHasToken: boole
     if (parts.length === 0 && (expectedPrefix || isSuperAdmin)) {
       const url = !expectedPrefix
         ? `/${currentScreen}`
-        : currentScreen === "module"
-          ? `/${expectedPrefix}/module`
+        : currentScreen === "modules"
+          ? `/${expectedPrefix}/modules`
           : `/${expectedPrefix}/${currentScreen}`;
 
       redirect(url);

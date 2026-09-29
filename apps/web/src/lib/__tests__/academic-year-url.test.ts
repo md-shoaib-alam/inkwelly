@@ -104,6 +104,6 @@ describe("swapYearUrl", () => {
         fromYearSlug: "2026-2027",
         toYearSlug: "2025-2026",
       }),
-    ).toBe("/demo/2025-2026/module");
+    ).toBe("/demo/2025-2026/modules");
   });
 });
