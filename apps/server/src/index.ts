@@ -35,6 +35,7 @@ import { authRoutes } from './modules/auth/index';
 import { dashboardRoutes } from './modules/dashboard/dashboard.routes';
 import { studentsRoutes } from './modules/students/students.routes';
 import { admissionsRoutes } from './modules/students/admissions.routes';
+import { bulkUpdateRoutes } from './modules/students/bulk-update.routes';
 import { teachersRoutes } from './modules/employees/teachers.routes';
 import { classesRoutes } from './modules/academics/classes.routes';
 import { attendanceRoutes } from './modules/student-attendance/attendance.routes';
@@ -297,6 +298,7 @@ const app = new Elysia()
       .use(dashboardRoutes)
       .use(studentsRoutes)
       .use(admissionsRoutes)
+      .use(bulkUpdateRoutes)
       .use(teachersRoutes)
       .use(classesRoutes)
       .use(attendanceRoutes)
@@ -343,6 +345,7 @@ const app = new Elysia()
       .use(dashboardRoutes)
       .use(studentsRoutes)
       .use(admissionsRoutes)
+      .use(bulkUpdateRoutes)
       .use(teachersRoutes)
       .use(classesRoutes)
       .use(attendanceRoutes)

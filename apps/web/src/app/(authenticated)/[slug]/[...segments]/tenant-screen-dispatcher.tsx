@@ -79,6 +79,7 @@ const AdminStudentsDashboard = dynamic(() => import('@/modules/students/students
 const AdminClassChange = dynamic(() => import('@/modules/students/class-change').then(m => m.AdminClassChange), { loading: LoadingScreen });
 const AdminStudentTrash = dynamic(() => import('@/modules/students/student-trash').then(m => m.AdminStudentTrash), { loading: LoadingScreen });
 const AdminAdmissions = dynamic(() => import('@/modules/students/admissions').then(m => m.AdminAdmissions), { loading: LoadingScreen });
+const AdminBulkUpdate = dynamic(() => import('@/modules/students/bulk-update').then(m => m.AdminBulkUpdate), { loading: LoadingScreen });
 const ExpensesScreen = dynamic(() => import('@/modules/money-book/expenses').then(m => m.ExpensesScreen), { loading: LoadingScreen });
 const AdminSubscription = dynamic(() => import('@/modules/tenancy/components/AdminSubscription').then(m => m.SchoolSubscriptionScreen), { loading: LoadingScreen });
 const ManagePlanScreen = dynamic(() => import('@/modules/tenancy/components/AdminManagePlan').then(m => m.ManagePlanScreen), { loading: LoadingScreen });
@@ -141,6 +142,8 @@ const STAFF_EXTRA_PERMISSIONS: Record<string, string> = {
   // Admissions writes to the same roster the students module owns; the server
   // gates the POST on the same permission.
   'admissions': 'students',
+  // Bulk update edits the same roster, so it borrows the same grant.
+  'bulk-update': 'students',
 };
 
 /**
@@ -369,6 +372,7 @@ export default function TenantScreenDispatcherClient() {
       case 'class-change': return <AdminClassChange />;
       case 'student-trash': return <AdminStudentTrash />;
       case 'admissions': return <AdminAdmissions />;
+      case 'bulk-update': return <AdminBulkUpdate />;
       case 'teachers': return <AdminTeachers />;
       case 'parents': return <AdminParents />;
       case 'classes': return <AdminClasses />;

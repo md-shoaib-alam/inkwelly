@@ -531,7 +531,7 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
       items: [
         { key: "admissions", label: "Admissions", icon: <UserPlus className={iconCls} />, permModule: "students" },
         { key: "student-documents", label: "Documents", icon: <FileText className={iconCls} />, disabled: true },
-        { key: "bulk-update", label: "Bulk Update", icon: <Layers className={iconCls} />, disabled: true },
+        { key: "bulk-update", label: "Bulk Update", icon: <Layers className={iconCls} />, permModule: "students" },
         { key: "class-change", label: "Class Change", icon: <RotateCcw className={iconCls} />, permModule: "students" },
         { key: "promotions", label: "Promotion", icon: <TrendingUp className={iconCls} />, permModule: "promotions" },
         { key: "transfers", label: "Transfer", icon: <ArrowLeftRight className={iconCls} />, disabled: true },
