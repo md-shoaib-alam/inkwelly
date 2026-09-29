@@ -70,11 +70,6 @@ export const UNTRACKED_TILES = [
     reason: 'No identifier column exists, so there is nothing to match duplicates on.',
   },
   {
-    key: 'activity',
-    label: 'Recent activity',
-    reason: 'Student profile edits are not written to an activity log.',
-  },
-  {
     key: 'religion',
     label: 'Religion',
     reason: 'No religion field exists on a student record.',
@@ -247,6 +242,14 @@ function dayOfYear(isoMonthDay: string): number {
   const d = parts[1];
   if (!m || !d) return -1;
   return Math.floor(Date.UTC(2024, m - 1, d) / 86400000);
+}
+
+/** Whole days between two `YYYY-MM-DD` dates, clamped at zero for a clock skew. */
+export function daysSince(iso: string, today: string): number {
+  const at = Date.parse(`${iso}T00:00:00Z`);
+  const now = Date.parse(`${today}T00:00:00Z`);
+  if (Number.isNaN(at) || Number.isNaN(now)) return 0;
+  return Math.max(0, Math.round((now - at) / 86400000));
 }
 
 type Student = {
@@ -474,6 +477,20 @@ export const StudentsDashboardService = {
         daysAway: b.away,
       }));
 
+    // --- Recent profile changes. `updatedAt` is the only stamp a student row keeps, so
+    // this is "last touched" and not an audit trail — it cannot say who or what changed.
+    const recentActivity = active
+      .filter((r) => r.updatedAt)
+      .sort((a, b) => (a.updatedAt! < b.updatedAt! ? 1 : -1))
+      .slice(0, 6)
+      .map((r) => ({
+        id: r.id,
+        name: r.name,
+        className: `${classById.get(r.classId)?.name ?? 'Unassigned'} - ${classById.get(r.classId)?.section ?? '—'}`,
+        at: r.updatedAt!,
+        daysAgo: daysSince(r.updatedAt!, today),
+      }));
+
     // --- Composition ---
     const stageOf = (r: Student) => nepStageKey(classById.get(r.classId)?.grade);
     const stages = NEP_STAGES.map((stage) => ({
@@ -559,6 +576,7 @@ export const StudentsDashboardService = {
       enrolment,
       birthdays,
       alerts,
+      recentActivity,
       untracked: UNTRACKED_TILES,
     };
   },

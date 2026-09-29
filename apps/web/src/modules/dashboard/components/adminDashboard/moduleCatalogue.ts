@@ -103,17 +103,15 @@ export interface ModuleCard {
    */
   inRail?: boolean;
   /**
-   * Spell this module's front door with its row name in the address bar
-   * (`/slug/students/list`) instead of collapsing it to the bare root
-   * (`/slug/academics`).
+   * Keep this module's bare root serving its own screen key for the roles that have
+   * that key in their nav tree, so only an admin's root becomes the landing.
    *
-   * The collapse is right for a landing whose key repeats the module — `academics`
-   * opening `academics/academics-dashboard` says the same thing twice — and wrong for
-   * one whose row name is the meaningful half. The bare root keeps rendering either
-   * way; this only decides what the rail, the panel and the grid card link to, so no
-   * navigation pays for a redirect.
+   * `students` is the roster's row in the staff, teacher, student and parent trees,
+   * and each of those permission maps is derived from its own tree — moving the word
+   * would move a grant with it. Everything else collapses: `/slug/academics` and
+   * `/slug/students` both open their module's dashboard.
    */
-  qualifiedRoot?: boolean;
+  rootServesOwnScreen?: boolean;
   /**
    * Unabbreviated name for the module panel header only. The rail column is 84px
    * at 10px text, so a long `title` truncates there; this lets the panel spell the
@@ -142,7 +140,7 @@ export interface ModuleCard {
 export const moduleCatalogue: ModuleCard[] = [
   { id: "academics", title: "Academics", subtitle: "Subjects & syllabus", icon: GraduationCap, tint: "emerald", screen: "academics-dashboard", permModule: "subjects", inRail: true },
   { id: "timetable", title: "Timetable", subtitle: "Periods & schedule", icon: Clock, tint: "cyan", screen: "timetable", permModule: "timetable", parent: "academics" },
-  { id: "students", title: "Students", subtitle: "Admissions & records", icon: Users, tint: "emerald", screen: "list", permModule: "students", inRail: true, qualifiedRoot: true },
+  { id: "students", title: "Students", subtitle: "Admissions & records", icon: Users, tint: "emerald", screen: "students-dashboard", permModule: "students", inRail: true, rootServesOwnScreen: true },
   { id: "students-dashboard", title: "Dashboard", subtitle: "Enrolment & records at a glance", icon: LayoutDashboard, tint: "emerald", screen: "students-dashboard", permModule: "students", parent: "students" },
   { id: "promotions", title: "Promotions", subtitle: "Class promotions", icon: School, tint: "purple", screen: "promotions", permModule: "promotions", parent: "students" },
   { id: "class-change", title: "Class Change", subtitle: "Move students between classes", icon: MoveRight, tint: "emerald", screen: "class-change", permModule: "students", parent: "students" },

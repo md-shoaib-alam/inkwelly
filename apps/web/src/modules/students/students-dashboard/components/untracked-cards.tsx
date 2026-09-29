@@ -1,0 +1,69 @@
+"use client";
+
+import { CheckSquare, Layers, ShieldCheck } from "lucide-react";
+import { Card, SoonNote } from "./card";
+
+/**
+ * The three cards the shipped design shows that this build has no table behind. Each
+ * keeps its real frame, its place in the grid and the reason the server gives for the
+ * gap, and renders no numbers — an empty bar or a zero would read as a measurement.
+ *
+ * The field names in `ComplianceCard` are the four the server's own reason names, so
+ * they are a promise about what a column would hold, not a claim about this school.
+ */
+
+function reasonFor(reasons: Record<string, string>, key: string): string {
+  return reasons[key] ?? "This build has no table that records it yet.";
+}
+
+export function CategoryCard({ reasons }: { reasons: Record<string, string> }) {
+  return (
+    <Card
+      title="Category"
+      subtitle="Reservation mix"
+      icon={Layers}
+      tint="bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
+    >
+      <SoonNote reason={reasonFor(reasons, "category")} />
+    </Card>
+  );
+}
+
+export function DocumentsCard({ reasons }: { reasons: Record<string, string> }) {
+  return (
+    <Card
+      title="Document completeness"
+      subtitle="Uploads tracked per student"
+      icon={CheckSquare}
+      tint="bg-teal-50 text-teal-600 dark:bg-teal-500/15 dark:text-teal-300"
+    >
+      <SoonNote reason={reasonFor(reasons, "documents")} />
+    </Card>
+  );
+}
+
+const COMPLIANCE_FIELDS = ["Aadhaar linked", "APAAR ID", "RTE students", "CWSN"];
+
+export function ComplianceCard({ reasons }: { reasons: Record<string, string> }) {
+  return (
+    <Card
+      title="Compliance"
+      bodyClassName="px-5 pb-5 space-y-3"
+    >
+      <div className="grid grid-cols-2 gap-3">
+        {COMPLIANCE_FIELDS.map((f) => (
+          <div
+            key={f}
+            className="rounded-xl bg-slate-50/80 dark:bg-zinc-900/40 px-4 py-3"
+          >
+            <p className="text-[15px] font-semibold leading-6 text-slate-400 dark:text-zinc-500">
+              Soon
+            </p>
+            <p className="text-[12px] text-slate-500 dark:text-zinc-400">{f}</p>
+          </div>
+        ))}
+      </div>
+      <SoonNote reason={reasonFor(reasons, "compliance")} />
+    </Card>
+  );
+}

@@ -11,23 +11,25 @@
  *
  * So a root resolves to its landing screen for rendering, and a landing collapses
  * to its root for the address bar. Both are derived from the rail, never listed by
- * hand, so a card that changes its `screen` moves the URL with it. One module opts
- * out of the collapse with `qualifiedRoot` (see `adminRailTail`), because its landing
- * is a screen the bare root has always served under a name other branches route by.
+ * hand, so a card that changes its `screen` moves the URL with it.
+ *
+ * One thing is not derived: a module whose bare root is also a live screen key for
+ * the non-admin roles (see `adminSharedRoots`). That word cannot move, so the answer
+ * to "what does `/slug/students` render" depends on who is asking — which is why
+ * `resolveAdminRoute` takes a role.
  *
  * Kept separate from `screen-owners.ts` on purpose: that file answers "which module
  * owns this screen" for every row, while this one answers "which screen is this
  * module's front door". The cross-check in `lib/__tests__/module-roots.test.ts` is
  * what stops the two from disagreeing about a landing screen.
  *
- * NOT role-blind-safe. `timetable`, `calendar`, `leaves` and `certificates` are bare
- * keys in the teacher, student and parent blocks too, so only the admin, staff and
- * super_admin branch may call this.
+ * NOT role-blind-safe beyond the one `role` argument: `timetable`, `calendar`,
+ * `leaves` and `certificates` are bare keys in the teacher, student and parent blocks
+ * too, so only the admin, staff and super_admin branch may call this.
  */
 
-import { buildAdminRail, getDefaultScreen, type ModuleNavItem } from "./module-nav-config";
+import { buildAdminRail, getDefaultScreen } from "./module-nav-config";
 import { adminScreenOwners } from "./screen-owners";
-import { qualifiedKey } from "@/lib/routing/module-routes";
 
 export type ResolvedAdminRoute = {
   /** The module to render under, or null for a screen no module owns. */
@@ -58,24 +60,28 @@ for (const item of buildAdminRail()) {
 }
 
 /**
- * The modules whose front door is spelled with its row name in the address bar.
+ * The modules whose bare root is also a live screen key for the roles that have no
+ * module rail of their own.
  *
- * Two of the three root rules do not apply to them. Their bare root stays its own
- * screen key rather than becoming the landing's name, because `students` is also a
- * live screen in the staff dispatcher and the staff grant map is built from the staff
- * nav tree — rewriting the root would move that grant off its key. And their landing
- * does not collapse to the root, because the long spelling is the one on screen.
+ * `students` is the roster's key in the staff, teacher, student and parent nav trees,
+ * and each of those grant maps is derived from its own tree, so the word cannot move
+ * without moving a grant with it. An admin's root is the module's landing; every other
+ * role keeps getting the screen that bare word has always served.
  */
-export const adminQualifiedRoots = new Set(
+export const adminSharedRoots = new Set(
   buildAdminRail()
-    .filter((item) => item.qualifiedRoot)
+    .filter((item) => item.rootServesOwnScreen)
     .map((item) => item.key),
 );
+
+/** Whose module root is its landing screen. Everyone else's is its own screen key. */
+export function servesLandingAtRoot(role: string | null | undefined): boolean {
+  return role === "admin" || role === "super_admin";
+}
 
 /** The reverse, which the tests pin as collision-free. */
 export const adminLandingRoots: Record<string, string> = {};
 for (const [module, landing] of Object.entries(adminModuleLandings)) {
-  if (adminQualifiedRoots.has(module)) continue;
   adminLandingRoots[landing] = module;
 }
 
@@ -83,36 +89,23 @@ function root(module: string, landing: string, canonicalTail: string | null): Re
   return { module, screen: landing, canonicalTail };
 }
 
-/**
- * The tail the rail emits for a module.
- *
- * Normally its own key, because the root renders the landing either way. A
- * `qualifiedRoot` module names its front door instead, so the address bar says
- * `students/list` on the click that made it there rather than trading a hop for the
- * short form.
- */
-export function adminRailTail(item: ModuleNavItem): string {
-  if (!item.qualifiedRoot) return item.key;
-  const landing = getDefaultScreen(item);
-  return landing === item.key ? item.key : qualifiedKey(item.key, landing);
-}
-
 export function resolveAdminRoute(
   module: string | null,
   screen: string,
+  role?: string | null,
 ): ResolvedAdminRoute {
   if (module) {
     // A qualified URL is canonical unless it spells out the module's own front door.
-    return adminModuleLandings[module] === screen && !adminQualifiedRoots.has(module)
+    // A shared root collapses too: the long spelling is only what the *bare* word
+    // means for another role, and this URL already carries the module.
+    return adminModuleLandings[module] === screen
       ? root(module, screen, module)
       : { module, screen, canonicalTail: null };
   }
 
-  // A qualified root's bare name is its own screen key, not the landing's: `students`
-  // must keep routing to the case the staff grant map is registered under.
-  if (!adminQualifiedRoots.has(screen)) {
-    const landing = adminModuleLandings[screen];
-    if (landing) return root(screen, landing, null);
+  const landing = adminModuleLandings[screen];
+  if (landing && !(adminSharedRoots.has(screen) && !servesLandingAtRoot(role))) {
+    return root(screen, landing, null);
   }
 
   const bareLandingRoot = adminLandingRoots[screen];
@@ -121,6 +114,7 @@ export function resolveAdminRoute(
   const owner = adminScreenOwners[screen];
   if (owner) return { module: owner, screen, canonicalTail: null };
 
-  // `dashboard`, an identity root like `/students`, and anything unowned.
+  // `dashboard`, an identity root like `/students` for a staff account, and anything
+  // unowned.
   return { module: null, screen, canonicalTail: null };
 }

@@ -88,6 +88,15 @@ export const studentsDashboardTypeDefs = /* GraphQL */ `#graphql
     reason: String!
   }
 
+  """The last time a student's own record changed."""
+  type StudentActivityEntry {
+    id: String!
+    name: String!
+    className: String!
+    at: String!
+    daysAgo: Int!
+  }
+
   type StudentsCommandCenter {
     session: StudentsSession
     stats: StudentsStats!
@@ -98,6 +107,7 @@ export const studentsDashboardTypeDefs = /* GraphQL */ `#graphql
     enrolment: [StudentEnrolmentPoint!]!
     birthdays: [StudentBirthday!]!
     alerts: [StudentAlert!]!
+    recentActivity: [StudentActivityEntry!]!
     untracked: [StudentsUntrackedTile!]!
   }
 

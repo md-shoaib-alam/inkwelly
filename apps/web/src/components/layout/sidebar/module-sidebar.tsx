@@ -9,7 +9,6 @@ import {
 } from "./module-nav-config";
 import { ModuleRail } from "./ModuleRail";
 import { ModulePanel } from "./ModulePanel";
-import { adminRailTail } from "./module-roots";
 import { decidePanelMode, type PanelMode } from "./panel-mode";
 
 const COLLAPSED_STORAGE_KEY = "inkwelly_module_sidebar_collapsed";
@@ -21,10 +20,7 @@ const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayout
 
 // A rail's tail is its own key: the module root *is* its landing screen, so
 // `/academics` opens the Academics command center and no redirect is needed to
-// get there. It is also unambiguous across modules — `transport` and
-// `student-fees` are different roots even though they share a landing screen.
-// `adminRailTail` keeps that true and adds the one exception, a module whose front
-// door is spelled with its row name.
+// get there.
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -127,7 +123,7 @@ export function ModuleSidebar({
   const handleSelectModule = useCallback(
     (module: ModuleNavItem) => {
       setActiveModuleKey(module.key);
-      const tail = adminRailTail(module);
+      const tail = module.key;
 
       if (isMobile) {
         // Switch panel content; don't close the drawer.

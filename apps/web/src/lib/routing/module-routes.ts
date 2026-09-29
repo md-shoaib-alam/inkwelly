@@ -94,9 +94,9 @@ export function componentKey(module: string | null, screen: string): string {
 
 /**
  * A bookmarked bare key is rewritten to its canonical module so the address bar
- * converges. A key that is also a module id is never rewritten: `/demo-academy/students`
- * means the All Students screen, and silently sending it to a module root would
- * make an existing URL mean something else.
+ * converges. A key that is also a module id is never rewritten — it already names
+ * its module, and `resolveAdminRoute` is what decides which screen that root renders
+ * for the role asking.
  */
 export function canonicalOwner(
   screen: string,

@@ -275,7 +275,7 @@ export function AdminClasses() {
           canEdit={canEdit}
           canDelete={canDelete}
           canManageTeachers={canEdit}
-          onViewStudents={(cls) => push(tenantHref(`students?classId=${cls.id}`))}
+          onViewStudents={(cls) => push(tenantHref(`list?classId=${cls.id}`))}
           onManageTeachers={openTeachersDialog}
           onEdit={openFormDialog}
           onDelete={setDeleteTarget}
@@ -285,7 +285,7 @@ export function AdminClasses() {
           classes={classes}
           canEdit={canEdit}
           canDelete={canDelete}
-          onViewStudents={(cls) => push(tenantHref(`students?classId=${cls.id}`))}
+          onViewStudents={(cls) => push(tenantHref(`list?classId=${cls.id}`))}
           onEdit={openFormDialog}
           onDelete={setDeleteTarget}
           getProgressColor={getProgressColor}

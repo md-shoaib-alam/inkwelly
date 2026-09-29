@@ -207,7 +207,7 @@ export default function TenantScreenDispatcherClient() {
   // twelve (`academics` opens `academics-dashboard`), so the URL and the rendered
   // screen are resolved separately: `screenKey` is what mounts, and the guard in the
   // admin branch below rewrites the address bar to the short form.
-  const adminRoute = resolveAdminRoute(route.module, route.screen);
+  const adminRoute = resolveAdminRoute(route.module, route.screen, currentUser?.role);
   const screenKey = componentKey(adminRoute.module, adminRoute.screen);
   const screen = route.screen;
 

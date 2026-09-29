@@ -196,6 +196,7 @@ function AdminStudentsContent() {
   const classIdParam = searchParams.get("classId");
   const pageParam = searchParams.get("page");
   const limitParam = searchParams.get("limit");
+  const searchParam = searchParams.get("search");
   const studentUrlParam = searchParams.get("student") || searchParams.get("studentId");
 
   // Sync initial URL search params into state (run once on mount)
@@ -203,6 +204,11 @@ function AdminStudentsContent() {
   useEffect(() => {
     if (classIdParam) {
       dispatch({ type: 'SET_CLASS_FILTER', payload: classIdParam });
+    }
+    // Before the page, because `SET_SEARCH` resets to page 1 and a deep link that
+    // carries both should land where it said.
+    if (searchParam) {
+      dispatch({ type: 'SET_SEARCH', payload: searchParam });
     }
     const parsedLimit = limitParam ? Number(limitParam) : NaN;
     if (Number.isInteger(parsedLimit) && parsedLimit > 0) {

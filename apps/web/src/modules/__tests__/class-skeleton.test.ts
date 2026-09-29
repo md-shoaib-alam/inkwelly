@@ -9,6 +9,7 @@ const fromModules = (...p: string[]) => readFileSync(resolve(import.meta.dir, ".
 const fromSrc = (...p: string[]) => readFileSync(resolve(import.meta.dir, "..", "..", ...p), "utf8");
 
 const SKELETON = fromSrc("components", "shared", "classes", "ClassesTableSkeleton.tsx");
+const ROSTER_SKELETON = fromModules("students", "classes", "RosterTableSkeleton.tsx");
 const roster = () => fromModules("students", "classes", "index.tsx");
 const rosterTable = () => fromModules("students", "classes", "ClassRosterTable.tsx");
 const academics = () => fromModules("academics", "classes", "index.tsx");
@@ -32,6 +33,13 @@ const preset = (name: string) => {
   return [...body![1].matchAll(/label: "([^"]*)"/g)].map((m) => m[1]);
 };
 
+/** The roster owns its skeleton outright, so it declares one array and no name. */
+const rosterPreset = () => {
+  const body = ROSTER_SKELETON.match(/const COLUMNS: RosterColumn\[\] = \[([\s\S]*?)\n\];/);
+  expect(body, "the roster skeleton no longer declares its columns in one array").toBeTruthy();
+  return [...body![1].matchAll(/label: "([^"]*)"/g)].map((m) => m[1]);
+};
+
 // A placeholder that previews the wrong layout is worse than a spinner: the admin
 // braces for a grid and gets a table, and the screen reflows under them.
 test("the Academics skeleton previews the Academics table", () => {
@@ -39,7 +47,18 @@ test("the Academics skeleton previews the Academics table", () => {
 });
 
 test("the roster skeleton previews the roster table", () => {
-  expect(preset("ROSTER_TABLE_COLUMNS")).toEqual(rosterHeaders());
+  expect(rosterPreset()).toEqual(rosterHeaders());
+});
+
+// Each module owns its class skeleton. A file holding both column sets is how the
+// two screens drifted back toward one layout in the first place.
+test("neither class skeleton knows about the other screen", () => {
+  expect(SKELETON).not.toContain("ROSTER_TABLE_COLUMNS");
+  expect(SKELETON).not.toContain("Enrolled");
+  expect(ROSTER_SKELETON).not.toContain("CLASS_TABLE_COLUMNS");
+  expect(ROSTER_SKELETON).not.toContain("Class teacher");
+  expect(roster()).not.toContain("@/components/shared/classes");
+  expect(roster()).not.toContain("@/modules/academics");
 });
 
 test("Academics loads the shape its live view mode will render", () => {
@@ -57,7 +76,7 @@ test("the roster loads inside its own page, not in place of it", () => {
   const s = roster();
   expect(s).not.toMatch(/return <ClassRosterSkeleton/);
   expect(s).toContain("listPending");
-  expect(s).toContain("<ClassesTableSkeleton");
+  expect(s).toContain("<RosterTableSkeleton");
 });
 
 /*

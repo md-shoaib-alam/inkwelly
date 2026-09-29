@@ -40,7 +40,15 @@ describe("qualifyAdminTail", () => {
     expect(qualifyAdminTail("fees", null)).toBe("student-fees/fees");
     expect(qualifyAdminTail("exams", null)).toBe("examinations/exams");
     expect(qualifyAdminTail("iam-dashboard", null)).toBe("iam/iam-dashboard");
-    expect(qualifyAdminTail("list", null)).toBe("students/list");
+    expect(qualifyAdminTail("students-dashboard", null)).toBe("students/students-dashboard");
+  });
+
+  test("an ordinary panel row is qualified only from inside its module", () => {
+    // `list` is the All Students row of the Students panel. It is no longer any card's
+    // landing, so from nowhere it stays bare — and still renders the roster, because
+    // `case 'list'` is stacked on the root the other roles get.
+    expect(qualifyAdminTail("list", "students")).toBe("students/list");
+    expect(qualifyAdminTail("list", null)).toBe("list");
   });
 
   test("the current module wins when it declares the row", () => {

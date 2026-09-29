@@ -71,6 +71,15 @@ export type StudentsAlert = {
   screen: string;
 };
 
+/** The last time a student's own record changed — "last touched", not an audit trail. */
+export type StudentsActivityEntry = {
+  id: string;
+  name: string;
+  className: string;
+  at: string;
+  daysAgo: number;
+};
+
 /** A tile the shipped design shows and this build has no table for. */
 export type StudentsUntrackedTile = { key: string; label: string; reason: string };
 
@@ -84,6 +93,7 @@ export type StudentsCommandCenter = {
   enrolment: StudentsEnrolmentPoint[];
   birthdays: StudentsBirthday[];
   alerts: StudentsAlert[];
+  recentActivity: StudentsActivityEntry[];
   untracked: StudentsUntrackedTile[];
 };
 
@@ -126,6 +136,7 @@ const GET_COMMAND_CENTER = `
       enrolment { period label students }
       birthdays { id name className date daysAway }
       alerts { code severity count title detail screen }
+      recentActivity { id name className at daysAgo }
       untracked { key label reason }
     }
   }

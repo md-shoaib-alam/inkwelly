@@ -11,7 +11,7 @@ import { Sidebar } from "./sidebar";
 import { ModuleSidebar } from "./sidebar/module-sidebar";
 import type { PanelMode } from "./sidebar/panel-mode";
 import { getAdminRail, isAdminModuleScreen } from "./sidebar/module-nav-config";
-import { adminModuleLandings } from "./sidebar/module-roots";
+import { adminModuleLandings, adminSharedRoots, servesLandingAtRoot } from "./sidebar/module-roots";
 import { parseRoute, qualifiedKey } from "@/lib/routing/module-routes";
 import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";
 import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
@@ -86,7 +86,11 @@ function resolveScreenFromPathname(
   // nothing. Resolving it to the row it renders keeps the rail and the panel in
   // agreement with the address bar.
   const landing = adminModuleLandings[screen];
-  return landing ? qualifiedKey(screen, landing) : screen;
+  if (!landing) return screen;
+  // A shared root renders its own screen key for the roles that reach it there, so
+  // that is the row the panel has to light — not the landing an admin would get.
+  if (adminSharedRoots.has(screen) && !servesLandingAtRoot(currentUser?.role)) return screen;
+  return qualifiedKey(screen, landing);
 }
 
 function shouldIncludeItem(

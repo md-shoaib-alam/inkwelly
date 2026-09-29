@@ -4,6 +4,7 @@ import {
   UNTRACKED_TILES,
   ageBandOf,
   ageYearsOn,
+  daysSince,
   expectedMinAgeForGrade,
   inWindow,
   medianAge,
@@ -205,7 +206,29 @@ describe("untracked tiles", () => {
       "enrolment",
       "movement",
       "alerts",
+      "recentActivity",
     ];
     expect(keys.filter((k) => computed.includes(k))).toEqual([]);
+  });
+});
+
+describe("recent activity", () => {
+  test("a day count is whole days, not a subtraction of the day-of-month", () => {
+    expect(daysSince("2026-09-29", "2026-09-29")).toBe(0);
+    expect(daysSince("2026-09-28", "2026-09-29")).toBe(1);
+    expect(daysSince("2026-08-31", "2026-09-01")).toBe(1);
+    expect(daysSince("2025-10-01", "2026-09-29")).toBe(363);
+  });
+
+  test("a row stamped in the future reads today, never a negative age", () => {
+    // `updatedAt` is written by the database clock and `today` by this one; either can
+    // lead the other by a few hours, and a `-1d` on the dashboard is not a thing.
+    expect(daysSince("2026-09-30", "2026-09-29")).toBe(0);
+  });
+
+  test("a missing or malformed stamp is today, not NaN", () => {
+    expect(daysSince("", "2026-09-29")).toBe(0);
+    expect(daysSince("not a date", "2026-09-29")).toBe(0);
+    expect(daysSince("2026-09-20", "")).toBe(0);
   });
 });

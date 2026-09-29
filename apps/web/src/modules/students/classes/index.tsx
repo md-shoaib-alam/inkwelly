@@ -8,13 +8,13 @@ import { SearchInput } from "@/components/ui/search-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/shared/pagination";
-import { ROSTER_TABLE_COLUMNS, ClassesTableSkeleton } from "@/components/shared/classes/ClassesTableSkeleton";
+import { RosterTableSkeleton } from "./RosterTableSkeleton";
+import { useTenantHref } from "../hooks/use-tenant-href";
+import { ClassRosterTable } from "./ClassRosterTable";
 import { useAppStore } from "@/store/use-app-store";
 import { useClassFilterOptions, useClassStats, useClassesFiltered } from "@/lib/graphql/hooks";
 import { ALL, defaultClassFilters, filtersAreDefault, formatGradeLabel, type ClassFilters } from "@/lib/class-options";
 import type { ClassInfo } from "@/lib/types";
-import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
-import { ClassRosterTable } from "./ClassRosterTable";
 
 const PAGE_SIZE = 25;
 
@@ -154,11 +154,11 @@ export function ClassRoster() {
       </div>
 
       {listPending || (isPlaceholderData && classes.length === 0) ? (
-        <ClassesTableSkeleton columns={ROSTER_TABLE_COLUMNS} />
+        <RosterTableSkeleton />
       ) : (
         <ClassRosterTable
           classes={classes}
-          onOpen={(cls) => push(tenantHref(`students?classId=${cls.id}`))}
+          onOpen={(cls) => push(tenantHref(`list?classId=${cls.id}`))}
         />
       )}
 
