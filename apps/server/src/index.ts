@@ -36,6 +36,7 @@ import { dashboardRoutes } from './modules/dashboard/dashboard.routes';
 import { studentsRoutes } from './modules/students/students.routes';
 import { admissionsRoutes } from './modules/students/admissions.routes';
 import { bulkUpdateRoutes } from './modules/students/bulk-update.routes';
+import { rosterRoutes } from './modules/students/roster.routes';
 import { teachersRoutes } from './modules/employees/teachers.routes';
 import { classesRoutes } from './modules/academics/classes.routes';
 import { attendanceRoutes } from './modules/student-attendance/attendance.routes';
@@ -70,7 +71,7 @@ import { notificationsRoutes } from './modules/communication/notifications.route
 import { assessmentsRoutes } from './modules/examinations/assessments.routes';
 
 
-import { exportsRoutes, importsRoutes, importRoute } from './modules/data-io/exports.routes';
+import { exportsRoutes, importRoute } from './modules/data-io/exports.routes';
 import { performanceRoutes, healthRoutes } from './modules/platform/performance.routes';
 import { graphqlRoutes } from './graphql/route';
 
@@ -299,6 +300,7 @@ const app = new Elysia()
       .use(studentsRoutes)
       .use(admissionsRoutes)
       .use(bulkUpdateRoutes)
+      .use(rosterRoutes)
       .use(teachersRoutes)
       .use(classesRoutes)
       .use(attendanceRoutes)
@@ -332,7 +334,6 @@ const app = new Elysia()
       .use(integrationsRoutes)
 
       .use(exportsRoutes)
-      .use(importsRoutes)
       .use(importRoute)
       .use(performanceRoutes)
       .use(healthRoutes)
@@ -346,6 +347,7 @@ const app = new Elysia()
       .use(studentsRoutes)
       .use(admissionsRoutes)
       .use(bulkUpdateRoutes)
+      .use(rosterRoutes)
       .use(teachersRoutes)
       .use(classesRoutes)
       .use(attendanceRoutes)
@@ -381,7 +383,6 @@ const app = new Elysia()
 
 
       .use(exportsRoutes)
-      .use(importsRoutes)
       .use(importRoute)
       .use(performanceRoutes)
   )

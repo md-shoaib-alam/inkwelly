@@ -544,7 +544,6 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
     {
       label: "Data",
       items: [
-        { key: "student-import", label: "Import", icon: <Upload className={iconCls} />, disabled: true },
         { key: "reports", label: "Reports", icon: <BarChart3 className={iconCls} />, permModule: "reports" },
       ],
     },

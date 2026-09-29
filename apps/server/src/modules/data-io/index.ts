@@ -1,2 +1,2 @@
 export { reportsRoutes } from './reports.routes';
-export { exportsRoutes, importsRoutes, importRoute } from './exports.routes';
+export { exportsRoutes, importRoute } from './exports.routes';

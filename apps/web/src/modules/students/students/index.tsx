@@ -1,7 +1,8 @@
 "use client";
 
-import { useReducer, useEffect, useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState, Suspense } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -9,31 +10,51 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, RotateCcw } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Eye, ArrowUpDown } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
 import { useModulePermissions } from "@/modules/access-control/hooks/use-permissions";
 import { useAppStore } from "@/store/use-app-store";
-import { useStudents } from "@/lib/graphql/hooks/academic.hooks";
-import { ClassSelect } from "@/components/ui/class-select";
 import { useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/graphql/keys";
+import { ClassSelect } from "@/components/ui/class-select";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { Suspense } from "react";
 
 // Sub-components
-import { StudentTable } from "./adminStudents/StudentTable";
+import { RosterTable } from "./adminStudents/RosterTable";
+import { ColumnsPopover } from "./adminStudents/ColumnsPopover";
 import { StudentDialog } from "./adminStudents/StudentDialog";
 import { StudentSkeleton } from "./adminStudents/StudentSkeleton";
 import { Pagination } from "./adminStudents/Pagination";
-import { ImportExportButtons } from "./adminStudents/ImportExportButtons";
 import { StudentProfileView } from "./adminStudents/StudentProfileView";
 
 // Types
-import type { StudentInfo, ClassInfo, StudentFormData } from "./adminStudents/types";
+import { DEFAULT_VISIBLE, ROSTER_COLUMNS, type RosterRow } from "./adminStudents/columns";
+import type { StudentInfo, StudentFormData } from "./adminStudents/types";
 
-const ITEMS_PER_PAGE = 15;
+const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
+const CATEGORIES = [
+  { value: "general", label: "General" },
+  { value: "obc", label: "OBC" },
+  { value: "sc", label: "SC" },
+  { value: "st", label: "ST" },
+];
+const SORT_OPTIONS = [
+  { value: "name", label: "Name" },
+  { value: "firstName", label: "First name" },
+  { value: "lastName", label: "Last name" },
+  { value: "rollNumber", label: "Roll no." },
+  { value: "admissionNo", label: "Admission no." },
+  { value: "dateOfBirth", label: "DOB" },
+  { value: "admissionDate", label: "Admission date" },
+  { value: "className", label: "Class" },
+  { value: "createdAt", label: "Newest" },
+];
 
 const emptyFormData: StudentFormData = {
   name: "",
@@ -57,6 +78,11 @@ type State = {
   classFilter: string;
   statusFilter: string;
   genderFilter: string;
+  categoryFilter: string;
+  bloodGroupFilter: string;
+  rteFilter: string;
+  sort: string;
+  sortDir: "asc" | "desc";
   currentPage: number;
   itemsPerPage: number;
   dialogOpen: boolean;
@@ -70,6 +96,11 @@ type Action =
   | { type: 'SET_CLASS_FILTER'; payload: string }
   | { type: 'SET_STATUS_FILTER'; payload: string }
   | { type: 'SET_GENDER_FILTER'; payload: string }
+  | { type: 'SET_CATEGORY_FILTER'; payload: string }
+  | { type: 'SET_BLOOD_GROUP_FILTER'; payload: string }
+  | { type: 'SET_RTE_FILTER'; payload: string }
+  | { type: 'SET_SORT'; payload: string }
+  | { type: 'SET_SORT_DIR'; payload: "asc" | "desc" }
   | { type: 'SET_CURRENT_PAGE'; payload: number }
   | { type: 'SET_ITEMS_PER_PAGE'; payload: number }
   | { type: 'OPEN_EDIT'; payload: StudentInfo }
@@ -82,8 +113,13 @@ const initialState: State = {
   classFilter: "all",
   statusFilter: "active",
   genderFilter: "all",
+  categoryFilter: "all",
+  bloodGroupFilter: "all",
+  rteFilter: "all",
+  sort: "name",
+  sortDir: "asc",
   currentPage: 1,
-  itemsPerPage: 15,
+  itemsPerPage: 25,
   dialogOpen: false,
   editingStudent: null,
   formData: emptyFormData,
@@ -100,6 +136,16 @@ function reducer(state: State, action: Action): State {
       return { ...state, statusFilter: action.payload, currentPage: 1 };
     case 'SET_GENDER_FILTER':
       return { ...state, genderFilter: action.payload, currentPage: 1 };
+    case 'SET_CATEGORY_FILTER':
+      return { ...state, categoryFilter: action.payload, currentPage: 1 };
+    case 'SET_BLOOD_GROUP_FILTER':
+      return { ...state, bloodGroupFilter: action.payload, currentPage: 1 };
+    case 'SET_RTE_FILTER':
+      return { ...state, rteFilter: action.payload, currentPage: 1 };
+    case 'SET_SORT':
+      return { ...state, sort: action.payload, currentPage: 1 };
+    case 'SET_SORT_DIR':
+      return { ...state, sortDir: action.payload, currentPage: 1 };
     case 'SET_CURRENT_PAGE':
       return { ...state, currentPage: action.payload };
     case 'SET_ITEMS_PER_PAGE':
@@ -137,7 +183,7 @@ function reducer(state: State, action: Action): State {
 
 function AdminStudentsContent() {
   const { currentTenantId } = useAppStore();
-  const { canCreate, canEdit, canDelete } = useModulePermissions("students");
+  const { canEdit, canDelete } = useModulePermissions("students");
 
   const [state, dispatch] = useReducer(reducer, initialState);
   const {
@@ -145,6 +191,11 @@ function AdminStudentsContent() {
     classFilter,
     statusFilter,
     genderFilter,
+    categoryFilter,
+    bloodGroupFilter,
+    rteFilter,
+    sort,
+    sortDir,
     currentPage,
     itemsPerPage,
     dialogOpen,
@@ -153,45 +204,77 @@ function AdminStudentsContent() {
     submitting,
   } = state;
 
-
   const queryClient = useQueryClient();
 
-  // Queries
-  const { data: studentData, isLoading: loadingStudents } = useStudents(
-    currentTenantId || undefined,
-    classFilter === "all" ? undefined : classFilter,
-    search || undefined,
-    statusFilter,
-    genderFilter,
-    currentPage,
-    itemsPerPage,
-  );
+  const [rows, setRows] = useState<RosterRow[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [reloadTick, setReloadTick] = useState(0);
+  const reload = useCallback(() => setReloadTick((t) => t + 1), []);
 
-  const students = useMemo(() => {
-    const list = studentData?.students || [];
-    return [...list].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, {
-        numeric: true,
-        sensitivity: "base",
-      }),
-    );
-  }, [studentData]);
-  const totalItems = studentData?.total || 0;
-  const totalPages = studentData?.totalPages || 1;
-  const loading = loadingStudents; // only true on first load, not on search refetches
+  useEffect(() => {
+    if (!currentTenantId) return;
+    const controller = new AbortController();
+    setLoading(true);
+
+    const params = new URLSearchParams({
+      page: String(currentPage),
+      limit: String(itemsPerPage),
+      sort,
+      dir: sortDir,
+    });
+    if (search) params.set("search", search);
+    if (classFilter !== "all") params.set("classId", classFilter);
+    if (genderFilter !== "all") params.set("gender", genderFilter);
+    if (statusFilter !== "all") params.set("status", statusFilter);
+    if (categoryFilter !== "all") params.set("category", categoryFilter);
+    if (bloodGroupFilter !== "all") params.set("bloodGroup", bloodGroupFilter);
+    if (rteFilter !== "all") params.set("rte", rteFilter);
+
+    apiFetch(`/api/student-roster?${params.toString()}`, { signal: controller.signal })
+      .then(async (res) => {
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || `Request failed (${res.status})`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setRows(data.items ?? []);
+        setTotalItems(data.totalItems ?? 0);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (err.name === "AbortError") return;
+        setLoading(false);
+        toast.error(err.message || "Failed to load students");
+      });
+
+    return () => controller.abort();
+  }, [
+    currentTenantId, search, classFilter, genderFilter, statusFilter,
+    categoryFilter, bloodGroupFilter, rteFilter, sort, sortDir,
+    currentPage, itemsPerPage, reloadTick,
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
 
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const classIdParam = searchParams.get("classId");
-  const pageParam = searchParams.get("page");
-  const limitParam = searchParams.get("limit");
-  const searchParam = searchParams.get("search");
   const studentUrlParam = searchParams.get("student") || searchParams.get("studentId");
 
   // Sync initial URL search params into state (run once on mount)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    const sp = new URLSearchParams(window.location.search);
+    const classIdParam = sp.get("classId");
+    const searchParam = sp.get("search");
+    const sortParam = sp.get("sort");
+    const dirParam = sp.get("dir");
+    const limitParam = sp.get("limit");
+    const pageParam = sp.get("page");
+
     if (classIdParam) {
       dispatch({ type: 'SET_CLASS_FILTER', payload: classIdParam });
     }
@@ -199,6 +282,12 @@ function AdminStudentsContent() {
     // carries both should land where it said.
     if (searchParam) {
       dispatch({ type: 'SET_SEARCH', payload: searchParam });
+    }
+    if (sortParam && SORT_OPTIONS.some((o) => o.value === sortParam)) {
+      dispatch({ type: 'SET_SORT', payload: sortParam });
+    }
+    if (dirParam === "asc" || dirParam === "desc") {
+      dispatch({ type: 'SET_SORT_DIR', payload: dirParam });
     }
     const parsedLimit = limitParam ? Number(limitParam) : NaN;
     if (Number.isInteger(parsedLimit) && parsedLimit > 0) {
@@ -210,24 +299,41 @@ function AdminStudentsContent() {
     }
   }, []); // Only on mount — URL seeds the initial state
 
-  // Update browser URL query params whenever pagination or filters change
-  const updateUrlParams = useCallback((page: number, limit: number, searchVal?: string, classVal?: string) => {
+  // Keep the browser URL in sync with the active filters, sort and pagination
+  const syncUrl = useCallback((next: Partial<State>) => {
+    const merged = { ...state, ...next };
     const params = new URLSearchParams(searchParams.toString());
-    if (page > 1) params.set("page", String(page)); else params.delete("page");
-    if (limit !== 15) params.set("limit", String(limit)); else params.delete("limit");
-    if (searchVal) params.set("search", searchVal); else params.delete("search");
-    if (classVal && classVal !== "all") params.set("classId", classVal); else if (classVal === "all") params.delete("classId");
+    const setOrDelete = (key: string, value: string, keep: boolean) => {
+      if (keep) params.set(key, value); else params.delete(key);
+    };
+    setOrDelete("page", String(merged.currentPage), merged.currentPage > 1);
+    setOrDelete("limit", String(merged.itemsPerPage), merged.itemsPerPage !== 25);
+    setOrDelete("search", merged.search, Boolean(merged.search));
+    setOrDelete("classId", merged.classFilter, merged.classFilter !== "all");
+    setOrDelete("gender", merged.genderFilter, merged.genderFilter !== "all");
+    setOrDelete("status", merged.statusFilter, merged.statusFilter !== "active");
+    setOrDelete("category", merged.categoryFilter, merged.categoryFilter !== "all");
+    setOrDelete("bloodGroup", merged.bloodGroupFilter, merged.bloodGroupFilter !== "all");
+    setOrDelete("rte", merged.rteFilter, merged.rteFilter !== "all");
+    setOrDelete("sort", merged.sort, merged.sort !== "name");
+    setOrDelete("dir", merged.sortDir, merged.sortDir !== "asc");
 
     const newQuery = params.toString();
-    const newPath = newQuery ? `${pathname}?${newQuery}` : pathname;
-    router.replace(newPath, { scroll: false });
-  }, [pathname, router, searchParams]);
-
-  // --- Handlers ---
+    router.replace(newQuery ? `${pathname}?${newQuery}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams, state]);
 
   const handleOpenEdit = (student: StudentInfo) => dispatch({ type: 'OPEN_EDIT', payload: student });
 
   const [viewingStudentSnapshot, setViewingStudentSnapshot] = useState<StudentInfo | null>(null);
+
+  const handleCloseView = useCallback(() => {
+    setViewingStudentSnapshot(null);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("student");
+    params.delete("studentId");
+    const newQuery = params.toString();
+    router.replace(newQuery ? `${pathname}?${newQuery}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   // Synchronize URL ?student= query parameter into viewingStudent on initial load, refresh, or URL change
   useEffect(() => {
@@ -238,30 +344,32 @@ function AdminStudentsContent() {
       return;
     }
 
-    // 1. Check if student is already in current students list
-    const found = students.find(
-      (s) => s.id === studentUrlParam || s.rollNumber === studentUrlParam || (s as any).username === studentUrlParam
+    // 1. Check if student is already on the current roster page
+    const found = rows.find(
+      (s) => s.id === studentUrlParam || s.rollNumber === studentUrlParam || s.username === studentUrlParam
     );
     if (found) {
       if (viewingStudentSnapshot?.id !== found.id) {
-        setViewingStudentSnapshot(found);
+        setViewingStudentSnapshot(found as unknown as StudentInfo);
       }
       return;
     }
 
-    // 2. If not in current page list, fetch this specific student by search
+    // 2. If not on the current page, fetch this specific student by search
     let isMounted = true;
     (async () => {
       try {
-        const res = await apiFetch(`/api/students?tenantId=${currentTenantId}&search=${encodeURIComponent(studentUrlParam)}`);
+        const res = await apiFetch(
+          `/api/student-roster?limit=1&search=${encodeURIComponent(studentUrlParam)}`,
+        );
         if (res.ok) {
           const data = await res.json();
-          const items = Array.isArray(data) ? data : data.students || data.items || [];
+          const items: RosterRow[] = data.items || [];
           const match = items.find(
-            (s: any) => s.id === studentUrlParam || s.rollNumber === studentUrlParam || s.username === studentUrlParam
+            (s) => s.id === studentUrlParam || s.rollNumber === studentUrlParam || s.username === studentUrlParam
           );
           if (match && isMounted) {
-            setViewingStudentSnapshot(match);
+            setViewingStudentSnapshot(match as unknown as StudentInfo);
           } else if (!match && isMounted) {
             toast.error("Student not found");
             handleCloseView();
@@ -279,29 +387,21 @@ function AdminStudentsContent() {
     return () => {
       isMounted = false;
     };
-  }, [studentUrlParam, students, currentTenantId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentUrlParam, rows, currentTenantId]);
 
-  // Derive viewing student dynamically from the latest students list
+  // Derive viewing student dynamically from the latest roster rows
   const viewingStudent = useMemo(() => {
     if (!viewingStudentSnapshot) return null;
-    return students.find((s) => s.id === viewingStudentSnapshot.id) || viewingStudentSnapshot;
-  }, [students, viewingStudentSnapshot]);
+    return (rows.find((s) => s.id === viewingStudentSnapshot.id) as unknown as StudentInfo) || viewingStudentSnapshot;
+  }, [rows, viewingStudentSnapshot]);
 
   const handleOpenView = (student: StudentInfo) => {
     setViewingStudentSnapshot(student);
     const params = new URLSearchParams(searchParams.toString());
-    params.set("student", student.rollNumber || (student as any).username || student.id);
+    params.set("student", student.rollNumber || student.username || student.id);
     const newQuery = params.toString();
     router.push(newQuery ? `${pathname}?${newQuery}` : pathname, { scroll: false });
-  };
-
-  const handleCloseView = () => {
-    setViewingStudentSnapshot(null);
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("student");
-    params.delete("studentId");
-    const newQuery = params.toString();
-    router.replace(newQuery ? `${pathname}?${newQuery}` : pathname, { scroll: false });
   };
 
   const handleSubmit = async () => {
@@ -321,21 +421,6 @@ function AdminStudentsContent() {
         return;
       }
     }
-
-    // OPTIMISTIC UPDATE: Update the UI instantly
-    const updatedStudent = { ...editingStudent, ...formData };
-    queryClient.setQueriesData(
-      { queryKey: queryKeys.students },
-      (old: any) => {
-        if (!old || !old.students) return old;
-        return {
-          ...old,
-          students: old.students.map((s: any) =>
-            s.id === editingStudent.id ? updatedStudent : s,
-          ),
-        };
-      },
-    );
 
     toast.promise(
       (async () => {
@@ -382,8 +467,8 @@ function AdminStudentsContent() {
           }
 
           dispatch({ type: 'CLOSE_DIALOG' });
-          // Refresh from server to ensure total accuracy
-          queryClient.invalidateQueries({ queryKey: queryKeys.students });
+          // Refresh the roster from the server to ensure total accuracy
+          reload();
           queryClient.invalidateQueries({
             queryKey: ["admin-dashboard", currentTenantId],
           });
@@ -415,8 +500,7 @@ function AdminStudentsContent() {
           throw new Error(err.error || "Failed to delete student");
         }
 
-        // Refresh from server
-        queryClient.invalidateQueries({ queryKey: queryKeys.students });
+        reload();
         queryClient.invalidateQueries({
           queryKey: ["admin-dashboard", currentTenantId],
         });
@@ -432,6 +516,12 @@ function AdminStudentsContent() {
       },
     );
   };
+
+  const [visibleCols, setVisibleCols] = useState<Set<string>>(() => DEFAULT_VISIBLE);
+  const activeColumns = useMemo(
+    () => ROSTER_COLUMNS.filter((c) => visibleCols.has(c.key)),
+    [visibleCols],
+  );
 
   if (loading || (studentUrlParam && !viewingStudent)) return <StudentSkeleton />;
 
@@ -466,78 +556,181 @@ function AdminStudentsContent() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col xl:flex-row gap-4 items-start xl:items-center justify-between">
-        <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto flex-1">
-          <SearchInput
-              id="search_students"
-              value={search}
-              onChange={(val) => dispatch({ type: 'SET_SEARCH', payload: val })}
-              placeholder="Search by name..."
-              delay={400}
-              className="flex-1 max-w-sm"
-              inputClassName="h-9 sm:h-10"
-            />
-          <ClassSelect
-            value={classFilter}
-            onValueChange={(v) => {
-              dispatch({ type: 'SET_CLASS_FILTER', payload: v });
-              updateUrlParams(1, itemsPerPage, search, v);
-            }}
-            showAllOption
-            className="w-full sm:w-44 h-9 sm:h-10"
-            placeholder="Filter by class"
-          />
-          <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-3">
-            <Select
-              value={genderFilter}
-              onValueChange={(v) => {
-                dispatch({ type: 'SET_GENDER_FILTER', payload: v });
-                updateUrlParams(1, itemsPerPage, search, classFilter);
-              }}
-            >
-              <SelectTrigger className="w-full sm:w-36 h-9 sm:h-10">
-                <SelectValue placeholder="All Genders" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Genders</SelectItem>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={statusFilter}
-              onValueChange={(v) => {
-                dispatch({ type: 'SET_STATUS_FILTER', payload: v });
-                updateUrlParams(1, itemsPerPage, search, classFilter);
-              }}
-            >
-              <SelectTrigger className="w-full sm:w-36 h-9 sm:h-10">
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">All students</h1>
+        <p className="text-sm text-muted-foreground">{totalItems} enrolled</p>
+      </div>
 
-        {(canCreate || canEdit || canDelete) && (
-          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-            <ImportExportButtons
-              canCreate={canCreate}
-              tenantId={currentTenantId || ""}
-              onImportSuccess={() =>
-                queryClient.invalidateQueries({ queryKey: queryKeys.students })
-              }
-            />
-          </div>
-        )}
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <SearchInput
+          id="search_students"
+          value={search}
+          onChange={(val) => {
+            dispatch({ type: 'SET_SEARCH', payload: val });
+            syncUrl({ search: val });
+          }}
+          placeholder="Search by name..."
+          delay={400}
+          className="w-full sm:w-64"
+          inputClassName="h-9 sm:h-10"
+        />
+
+        <Select
+          value={genderFilter}
+          onValueChange={(v) => {
+            dispatch({ type: 'SET_GENDER_FILTER', payload: v });
+            syncUrl({ genderFilter: v });
+          }}
+        >
+          <SelectTrigger className="w-[calc(50%-4px)] sm:w-36 h-9 sm:h-10">
+            <SelectValue placeholder="All Genders" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Genders</SelectItem>
+            <SelectItem value="male">Male</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={statusFilter}
+          onValueChange={(v) => {
+            dispatch({ type: 'SET_STATUS_FILTER', payload: v });
+            syncUrl({ statusFilter: v });
+          }}
+        >
+          <SelectTrigger className="w-[calc(50%-4px)] sm:w-36 h-9 sm:h-10">
+            <SelectValue placeholder="All Statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={categoryFilter}
+          onValueChange={(v) => {
+            dispatch({ type: 'SET_CATEGORY_FILTER', payload: v });
+            syncUrl({ categoryFilter: v });
+          }}
+        >
+          <SelectTrigger className="w-[calc(50%-4px)] sm:w-36 h-9 sm:h-10">
+            <SelectValue placeholder="All Categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {CATEGORIES.map((c) => (
+              <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 rounded-xl border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-[13px] font-medium shadow-2xs"
+            >
+              More filters
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-[280px] rounded-xl space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Class</label>
+              <ClassSelect
+                value={classFilter}
+                onValueChange={(v) => {
+                  dispatch({ type: 'SET_CLASS_FILTER', payload: v });
+                  syncUrl({ classFilter: v });
+                }}
+                showAllOption
+                className="w-full h-9"
+                placeholder="All classes"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Blood group</label>
+              <Select
+                value={bloodGroupFilter}
+                onValueChange={(v) => {
+                  dispatch({ type: 'SET_BLOOD_GROUP_FILTER', payload: v });
+                  syncUrl({ bloodGroupFilter: v });
+                }}
+              >
+                <SelectTrigger className="w-full h-9">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  {BLOOD_GROUPS.map((b) => (
+                    <SelectItem key={b} value={b}>{b}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">RTE</label>
+              <Select
+                value={rteFilter}
+                onValueChange={(v) => {
+                  dispatch({ type: 'SET_RTE_FILTER', payload: v });
+                  syncUrl({ rteFilter: v });
+                }}
+              >
+                <SelectTrigger className="w-full h-9">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="yes">RTE only</SelectItem>
+                  <SelectItem value="no">Non-RTE only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        <div className="flex items-center gap-1 sm:ml-auto">
+          <Select
+            value={sort}
+            onValueChange={(v) => {
+              dispatch({ type: 'SET_SORT', payload: v });
+              syncUrl({ sort: v });
+            }}
+          >
+            <SelectTrigger className="w-36 sm:w-40 h-10">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-10 rounded-xl"
+            onClick={() => {
+              const dir = sortDir === "asc" ? "desc" : "asc";
+              dispatch({ type: 'SET_SORT_DIR', payload: dir });
+              syncUrl({ sortDir: dir });
+            }}
+            title={sortDir === "asc" ? "Sorted A→Z — click for Z→A" : "Sorted Z→A — click for A→Z"}
+          >
+            <ArrowUpDown className="size-4 text-slate-500" />
+          </Button>
+          <ColumnsPopover visible={visibleCols} onChange={setVisibleCols} />
+        </div>
       </div>
 
       {/* Read-only banner */}
-      {!canCreate && !canEdit && !canDelete && (
+      {!canEdit && !canDelete && (
         <div className="flex items-center gap-2 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 px-3 py-2">
           <Eye className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
           <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">
@@ -549,34 +742,29 @@ function AdminStudentsContent() {
       {/* Table Content */}
       <Card className="border-none shadow-sm overflow-hidden">
         <CardContent className="p-0">
-          {loading ? (
-            <StudentSkeleton />
-          ) : (
-            <>
-              <StudentTable
-                students={students}
-                canEdit={canEdit}
-                canDelete={canDelete}
-                onEdit={handleOpenEdit}
-                onDelete={handleDelete}
-                onView={handleOpenView}
-              />
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={totalItems}
-                itemsPerPage={itemsPerPage}
-                onPageChange={(p) => {
-                  dispatch({ type: 'SET_CURRENT_PAGE', payload: p });
-                  updateUrlParams(p, itemsPerPage, search, classFilter);
-                }}
-                onLimitChange={(limit) => {
-                  dispatch({ type: 'SET_ITEMS_PER_PAGE', payload: limit });
-                  updateUrlParams(1, limit, search, classFilter);
-                }}
-              />
-            </>
-          )}
+          <RosterTable
+            rows={rows}
+            columns={activeColumns}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            onEdit={handleOpenEdit}
+            onDelete={handleDelete}
+            onView={handleOpenView}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={(p) => {
+              dispatch({ type: 'SET_CURRENT_PAGE', payload: p });
+              syncUrl({ currentPage: p });
+            }}
+            onLimitChange={(limit) => {
+              dispatch({ type: 'SET_ITEMS_PER_PAGE', payload: limit });
+              syncUrl({ itemsPerPage: limit });
+            }}
+          />
         </CardContent>
       </Card>
 
