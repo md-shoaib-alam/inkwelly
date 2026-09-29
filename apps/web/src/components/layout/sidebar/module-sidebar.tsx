@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { useAppStore } from "@/store/use-app-store";
 import { cn } from "@/lib/utils";
 import {
@@ -9,9 +9,14 @@ import {
 } from "./module-nav-config";
 import { ModuleRail } from "./ModuleRail";
 import { ModulePanel } from "./ModulePanel";
-import { decidePanelMode } from "./panel-mode";
+import { decidePanelMode, type PanelMode } from "./panel-mode";
 
 const COLLAPSED_STORAGE_KEY = "inkwelly_module_sidebar_collapsed";
+
+// A passive effect let the panel move in one commit and the card's corners in the next,
+// which paints as a mismatched pair; the layout variant flushes before paint. The
+// environment check exists only to dodge React's server-side layout-effect warning.
+const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 // A rail's tail is its own key: the module root *is* its landing screen, so
 // `/academics` opens the Academics command center and no redirect is needed to
@@ -36,7 +41,10 @@ interface ModuleSidebarProps {
   navigateTo: (screen: string) => void;
   /** Admin dashboard: the grid is the navigation, so drop the rail on desktop only. */
   desktopHidden?: boolean;
-  onCollapsedChange?: (collapsed: boolean) => void;
+  /** The layout rounds the content card from this, so it has to be the panel's
+   *  effective presence rather than the collapse toggle — which says nothing about a
+   *  launcher that never had a panel to collapse. */
+  onPanelModeChange?: (mode: PanelMode) => void;
 }
 
 export function ModuleSidebar({
@@ -44,7 +52,7 @@ export function ModuleSidebar({
   resolvedScreen,
   navigateTo,
   desktopHidden = false,
-  onCollapsedChange,
+  onPanelModeChange,
 }: ModuleSidebarProps) {
   const { currentUser, currentTenantLogo, currentTenantName, sidebarOpen, setSidebarOpen } =
     useAppStore();
@@ -62,9 +70,18 @@ export function ModuleSidebar({
     }
   });
 
-  useEffect(() => {
-    onCollapsedChange?.(collapsed);
-  }, [collapsed, onCollapsedChange]);
+  // Computed here rather than at the render site so the layout is told the same
+  // answer the panel obeys, in the same commit.
+  const railKey = activeModuleKey ?? items[0]?.key ?? "";
+  const panelMode = decidePanelMode({
+    isMobile,
+    collapsed,
+    activeModuleKey: railKey,
+  });
+
+  useIsoLayoutEffect(() => {
+    onPanelModeChange?.(panelMode);
+  }, [panelMode, onPanelModeChange]);
 
   // Follow URL-driven screen changes
   const [prevScreen, setPrevScreen] = useState(resolvedScreen);
@@ -142,16 +159,8 @@ export function ModuleSidebar({
 
   if (!currentUser) return null;
 
-  const activeModule = items.find((i) => i.key === activeModuleKey) ?? items[0];
+  const activeModule = items.find((i) => i.key === railKey) ?? items[0];
   if (!activeModule) return null;
-
-  // The launcher's landing is the module grid itself, so it gets no panel at any
-  // width — not a collapsed one, which would still paint for a frame.
-  const panelMode = decidePanelMode({
-    isMobile,
-    collapsed,
-    activeModuleKey: activeModule.key,
-  });
 
   return (
     <aside
@@ -177,19 +186,20 @@ export function ModuleSidebar({
         onSelect={handleSelectModule}
       />
 
-      {/* Panel with smooth slide animation on desktop, side-by-side on mobile */}
-      {panelMode === "none" ? null : (
-        <div
-          className={cn(
-            "h-full overflow-hidden transition-[width,opacity] duration-300 ease-in-out shrink-0",
-            panelMode === "shown"
-              ? isMobile
-                ? "w-full"
-                : "w-[210px] opacity-100"
-              : "w-0 opacity-0 pointer-events-none"
-          )}
-        >
-          <div className="w-[210px] h-full lg:h-[calc(100%-16px)] lg:my-2 flex flex-col">
+      {/* The wrapper stays mounted for every mode so the space the panel occupied
+          animates closed; only its contents are withheld from the launcher. */}
+      <div
+        className={cn(
+          "h-full overflow-hidden transition-[width,opacity] duration-300 ease-in-out shrink-0",
+          panelMode === "shown"
+            ? isMobile
+              ? "w-full"
+              : "w-[210px] opacity-100"
+            : "w-0 opacity-0 pointer-events-none"
+        )}
+      >
+        <div className="w-[210px] h-full lg:h-[calc(100%-16px)] lg:my-2 flex flex-col">
+          {panelMode === "none" ? null : (
             <ModulePanel
               module={activeModule}
               resolvedScreen={resolvedScreen}
@@ -197,9 +207,9 @@ export function ModuleSidebar({
               backToRail={isMobile}
               onNavigate={handlePanelNavigate}
             />
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </aside>
   );
 }

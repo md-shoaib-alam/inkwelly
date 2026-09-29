@@ -5,6 +5,7 @@ import { decidePanelMode, LAUNCHER_RAIL_KEY } from "@/components/layout/sidebar/
 
 const APP_ROOT = resolve(import.meta.dir, "..", "..", "..");
 const SIDEBAR = join(APP_ROOT, "src", "components", "layout", "sidebar", "module-sidebar.tsx");
+const LAYOUT = join(APP_ROOT, "src", "components", "layout", "app-layout.tsx");
 
 // Tapping the Dashboard rail entry used to leave the sub-panel on screen for about
 // half a second: ~190 ms before React committed the hide, then a 300 ms width
@@ -44,7 +45,10 @@ describe("the launcher never renders a sub-panel", () => {
 describe("the sidebar obeys the mode by not mounting the panel", () => {
   test("the panel subtree is guarded by the mode, not only by a width class", () => {
     const src = readFileSync(SIDEBAR, "utf8");
-    expect(src).toContain("{panelMode === \"none\" ? null : (");
+    // Exactly one guard, and it wraps the panel itself — the width wrapper stays
+    // mounted so the space it occupied animates closed instead of snapping.
+    expect(src.split('{panelMode === "none" ? null : (').length - 1).toBe(1);
+    expect(src).toMatch(/\{panelMode === "none" \? null : \(\s*<ModulePanel/);
     expect(src).not.toContain('activeModule.key !== "modules"');
   });
 
@@ -52,5 +56,41 @@ describe("the sidebar obeys the mode by not mounting the panel", () => {
     const src = readFileSync(SIDEBAR, "utf8");
     expect(src).toContain("transition-[width,opacity]");
     expect(src).toContain('panelMode === "shown"');
+  });
+});
+
+// The card's corners and the panel's presence were decided from different signals:
+// the panel obeyed the rail key (immediate) while the layout obeyed the URL and the
+// raw collapse toggle (both late, and neither true for the launcher). The card stayed
+// square on its left edge for the length of the router transition.
+describe("the layout hears the same decision the panel obeys", () => {
+  test("the sidebar reports the effective mode, not the raw toggle", () => {
+    const src = readFileSync(SIDEBAR, "utf8");
+    expect(src).toContain("onPanelModeChange?.(panelMode)");
+    expect(src).not.toContain("onCollapsedChange?.(collapsed)");
+  });
+
+  // A passive effect runs after the paint, so the card would show the previous mode's
+  // corners for one frame against a panel that had already moved.
+  test("the report is flushed before paint", () => {
+    const src = readFileSync(SIDEBAR, "utf8");
+    expect(src).toMatch(/useIsoLayoutEffect\(\(\) => \{\s*onPanelModeChange/);
+    expect(src).not.toMatch(/useEffect\(\(\) => \{\s*onPanelModeChange/);
+  });
+
+  test("the content card rounds itself from the mode and eases the change", () => {
+    const src = readFileSync(LAYOUT, "utf8");
+    expect(src).toContain("lg:transition-[border-radius]");
+    expect(src).not.toContain("setSidebarPanelCollapsed");
+  });
+
+  // The corner rule must not read the URL: while the address still said `modules` the
+  // panel was already open against it, which painted a round left edge over the panel.
+  test("the corners follow the panel while the gap follows the rail", () => {
+    const src = readFileSync(LAYOUT, "utf8");
+    expect(src).toMatch(/panelMode !== "shown" \? "lg:rounded-\[24px\]"/);
+    expect(src).toMatch(/hideRailOnDesktop \? "lg:mx-2" : "lg:mr-2"/);
+    const cornersTiedToUrl = src.split("\n").filter((l) => l.includes("hideRailOnDesktop") && l.includes("rounded"));
+    expect(cornersTiedToUrl).toEqual([]);
   });
 });

@@ -9,6 +9,7 @@ import { hasPermission, isRootAdmin } from "@/lib/permissions";
 import { ChangePasswordModal } from "@/components/modals/change-password-modal";
 import { Sidebar } from "./sidebar";
 import { ModuleSidebar } from "./sidebar/module-sidebar";
+import type { PanelMode } from "./sidebar/panel-mode";
 import { getAdminRail, isAdminModuleScreen } from "./sidebar/module-nav-config";
 import { adminModuleLandings } from "./sidebar/module-roots";
 import { parseRoute, qualifiedKey } from "@/lib/routing/module-routes";
@@ -309,7 +310,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { push } = useRouter();
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [sidebarPanelCollapsed, setSidebarPanelCollapsed] = useState(false);
+  const [panelMode, setPanelMode] = useState<PanelMode>("shown");
 
   // Sync tenant context from slug
   const { data: resolvedTenant } = useTenantResolution(slug as string);
@@ -429,7 +430,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             resolvedScreen={resolvedScreen}
             navigateTo={navigateTo}
             desktopHidden={hideRailOnDesktop}
-            onCollapsedChange={setSidebarPanelCollapsed}
+            onPanelModeChange={setPanelMode}
           />
         ) : (
           <Sidebar
@@ -443,13 +444,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Main Content */}
         <div className={cn(
-          "flex-1 flex flex-col min-w-0 overflow-hidden bg-background",
-          useModuleSidebar && hideRailOnDesktop && "lg:my-2 lg:mx-2 lg:h-[calc(100%-16px)] lg:rounded-[24px]",
-          useModuleSidebar && !hideRailOnDesktop && (
-            sidebarPanelCollapsed
-              ? "lg:my-2 lg:mr-2 lg:h-[calc(100%-16px)] lg:rounded-[24px]"
-              : "lg:my-2 lg:mr-2 lg:h-[calc(100%-16px)] lg:rounded-r-[24px]"
-          )
+          "flex-1 flex flex-col min-w-0 overflow-hidden bg-background lg:transition-[border-radius] lg:duration-300",
+          useModuleSidebar && "lg:my-2 lg:h-[calc(100%-16px)]",
+          // The gap tracks the rail, which the URL does decide. The corners track the
+          // panel, which the URL decides a router transition too late: while it still
+          // said `modules` the panel was already open against a square left edge.
+          useModuleSidebar && (hideRailOnDesktop ? "lg:mx-2" : "lg:mr-2"),
+          useModuleSidebar && (panelMode !== "shown" ? "lg:rounded-[24px]" : "lg:rounded-r-[24px]")
         )}>
           {/* Top Header */}
           <Header
@@ -457,7 +458,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             resolvedScreen={resolvedScreen}
             layoutPref={layoutPref}
             onPasswordChange={() => setIsChangePasswordOpen(true)}
-            sidebarPanelCollapsed={useModuleSidebar && !hideRailOnDesktop && sidebarPanelCollapsed}
+            sidebarPanelCollapsed={useModuleSidebar && !hideRailOnDesktop && panelMode === "hidden"}
             onExpandSidebarPanel={() => window.dispatchEvent(new CustomEvent("inkwelly_module_sidebar_toggle"))}
           />
 
