@@ -54,6 +54,7 @@ import {
   Lock,
   KeyRound,
   Wrench,
+  SquarePen,
 } from "lucide-react";
 import type { AppUser, UserRole } from "@/store/use-app-store";
 import { hasPermission } from "@/lib/permissions";
@@ -679,6 +680,16 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
     {
       label: "Data",
       items: [{ key: "published-results", label: "Published Results", icon: <Trophy className={iconCls} /> }],
+    },
+    // Tests and Homework reach teacher/student/parent roles, but the tenant dispatcher has
+    // no admin case for either key, so an admin gets a "Soon" row rather than a link that
+    // bounces back to the dashboard. They used to be top-level dashboard cards.
+    {
+      label: "Classwork",
+      items: [
+        { key: "assessments", label: "Tests", icon: <SquarePen className={iconCls} />, disabled: true },
+        { key: "homework", label: "Homework", icon: <BookOpen className={iconCls} />, disabled: true },
+      ],
     },
   ],
   leaves: [

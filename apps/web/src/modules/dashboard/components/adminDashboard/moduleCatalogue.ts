@@ -106,18 +106,32 @@ export interface ModuleCard {
    * name out without touching the rail or the grid card.
    */
   panelTitle?: string;
+  /**
+   * The rail module whose panel already renders `screen` as one of its rows.
+   *
+   * The grid is a list of top-level modules, so a card with a parent is a
+   * categorization annotation rather than a nav entry: it leaves the grid and stays
+   * reachable from its parent's panel. `"shared"` marks a row that lives in several
+   * panels at once (Reports) and has no single owner to name.
+   *
+   * module-catalogue.test.ts enforces both halves of the contract — a parented card
+   * must not be a grid card, and a parented card's screen must still be a row in the
+   * parent's panel, so hiding one can never orphan a screen.
+   */
+  parent?: string;
 }
 
-// Order is the grid order: the dashboard renders this array as-is, and buildAdminRail()
-// reads its rail order from it too. Cards that live here but aren't in the reference
-// grid sit next to their closest topic instead of trailing at the bottom.
+// Order is the grid order: the dashboard renders this array as-is (less the parented
+// cards), and buildAdminRail() reads its rail order from it too. Cards that live here
+// but aren't in the reference grid sit next to their closest topic instead of trailing
+// at the bottom.
 export const moduleCatalogue: ModuleCard[] = [
   { id: "academics", title: "Academics", subtitle: "Subjects & syllabus", icon: GraduationCap, tint: "emerald", screen: "academics-dashboard", permModule: "subjects", inRail: true },
-  { id: "timetable", title: "Timetable", subtitle: "Periods & schedule", icon: Clock, tint: "cyan", screen: "timetable", permModule: "timetable" },
+  { id: "timetable", title: "Timetable", subtitle: "Periods & schedule", icon: Clock, tint: "cyan", screen: "timetable", permModule: "timetable", parent: "academics" },
   { id: "students", title: "Students", subtitle: "Admissions & records", icon: Users, tint: "emerald", screen: "students", permModule: "students", inRail: true },
-  { id: "promotions", title: "Promotions", subtitle: "Class promotions", icon: School, tint: "purple", screen: "promotions", permModule: "promotions" },
-  { id: "archive", title: "Graduated Students", subtitle: "Alumni records", icon: Archive, tint: "slate", screen: "graduated", permModule: "students" },
-  { id: "certificates", title: "Certificates", subtitle: "Bonafide & transfer", icon: Award, tint: "emerald", screen: "certificates", permModule: "certificates" },
+  { id: "promotions", title: "Promotions", subtitle: "Class promotions", icon: School, tint: "purple", screen: "promotions", permModule: "promotions", parent: "students" },
+  { id: "archive", title: "Graduated Students", subtitle: "Alumni records", icon: Archive, tint: "slate", screen: "graduated", permModule: "students", parent: "students" },
+  { id: "certificates", title: "Certificates", subtitle: "Bonafide & transfer", icon: Award, tint: "emerald", screen: "certificates", permModule: "certificates", parent: "students" },
 
   { id: "employees", title: "Employees", subtitle: "Staff directory", icon: Briefcase, tint: "violet", screen: "staff", permModule: "staff", inRail: true },
   { id: "leaves", title: "Leaves", subtitle: "Apply & approve", icon: CalendarDays, tint: "teal", screen: "leaves", permModule: "leaves", inRail: true },
@@ -131,8 +145,12 @@ export const moduleCatalogue: ModuleCard[] = [
   { id: "school-store", title: "School Store", subtitle: "Uniforms & supplies", icon: Store, tint: "amber", screen: null },
 
   { id: "examinations", title: "Examinations", subtitle: "Exams & results", icon: ClipboardList, tint: "rose", screen: "exams", permModule: "exams", inRail: true },
-  { id: "tests", title: "Tests", subtitle: "Quick class tests", icon: SquarePen, tint: "rose", screen: "assessments", permModule: "exams" },
-  { id: "homework", title: "Homework/Assignment", subtitle: "Assign & track", icon: BookOpen, tint: "violet", screen: "homework" },
+  // Neither of these has an admin case in the tenant dispatcher: the bare keys only route
+  // for teacher/student/parent, so an admin who clicked either card was bounced back to the
+  // dashboard. They are `screen: null` + a disabled panel row, which is what "announced but
+  // not built for admins" looks like everywhere else in this file.
+  { id: "tests", title: "Tests", subtitle: "Quick class tests", icon: SquarePen, tint: "rose", screen: null, permModule: "exams", parent: "examinations" },
+  { id: "homework", title: "Homework/Assignment", subtitle: "Assign & track", icon: BookOpen, tint: "violet", screen: null, parent: "examinations" },
   { id: "study-material", title: "Study Material", subtitle: "Notes & resources", icon: Layers, tint: "indigo", screen: null },
   { id: "school-diary", title: "School Diary", subtitle: "Notes to parents", icon: NotebookPen, tint: "amber", screen: null },
   { id: "houses", title: "Houses", subtitle: "Houses & points", icon: Flag, tint: "amber", screen: null },
@@ -142,7 +160,7 @@ export const moduleCatalogue: ModuleCard[] = [
   { id: "lesson-plan", title: "Lesson Plan", subtitle: "Curriculum & pacing", icon: CalendarDays, tint: "emerald", screen: null },
   { id: "letterhead", title: "Letterhead", subtitle: "Official letters & certificates", icon: FileText, tint: "green", screen: null },
   { id: "id-cards", title: "ID Cards", subtitle: "Design & issue", icon: IdCard, tint: "blue", screen: null },
-  { id: "events", title: "Events", subtitle: "Calendar & notices", icon: Calendar, tint: "blue", screen: "calendar", permModule: "calendar" },
+  { id: "events", title: "Events", subtitle: "Calendar & notices", icon: Calendar, tint: "blue", screen: "calendar", permModule: "calendar", parent: "academics" },
   { id: "library", title: "Library", subtitle: "Books & circulation", icon: Library, tint: "amber", screen: null },
   { id: "media-center", title: "Media Center", subtitle: "Files & documents", icon: Clapperboard, tint: "orange", screen: null },
 
@@ -150,6 +168,9 @@ export const moduleCatalogue: ModuleCard[] = [
   // A screen-less card stays off the rail: a rail module must open on a screen that routes.
   { id: "communications", title: "Communications", subtitle: "WhatsApp, SMS, email", icon: MessagesSquare, tint: "rose", screen: null },
   { id: "briefings", title: "Briefings", subtitle: "Reports on WhatsApp, Email", icon: Newspaper, tint: "rose", screen: null },
+  // Notices and Grievances keep their grid cards because no rail module's panel claims
+  // `notices`/`tickets` as a row, so hiding them here would leave an admin no way to reach
+  // a screen that does route. They get a parent when Communications becomes a rail module.
   { id: "notices", title: "Notices", subtitle: "Announcements", icon: Bell, tint: "indigo", screen: "notices", permModule: "notices" },
   { id: "grievances", title: "Grievances", subtitle: "Complaints & resolution", icon: Shield, tint: "rose", screen: "tickets", permModule: "tickets" },
   { id: "quizzes", title: "Quizzes", subtitle: "Quizzes & banks", icon: ListChecks, tint: "violet", screen: null },
@@ -161,13 +182,21 @@ export const moduleCatalogue: ModuleCard[] = [
 
   { id: "users", title: "Users", subtitle: "Users & access", icon: UserCog, tint: "violet", screen: null },
   { id: "iam", title: "IAM", subtitle: "Roles & permissions", panelTitle: "Identity & Access Management", icon: Shield, tint: "violet", screen: "iam-dashboard", inRail: true },
-  { id: "reports", title: "Reports", subtitle: "Exports & analytics", icon: BarChart3, tint: "violet", screen: "reports", permModule: "reports" },
+  { id: "reports", title: "Reports", subtitle: "Exports & analytics", icon: BarChart3, tint: "violet", screen: "reports", permModule: "reports", parent: "shared" },
   { id: "audit-logs", title: "Audit Logs", subtitle: "Activity trail", icon: ScrollText, tint: "indigo", screen: null },
   { id: "ai-connect", title: "AI Connect", subtitle: "ChatGPT & Claude", panelTitle: "AI Connect (MCP)", icon: Sparkles, tint: "amber", screen: "ai-connect", inRail: true },
   { id: "sports", title: "Sports", subtitle: "Events & scores", icon: Medal, tint: "slate", screen: null },
   { id: "tasks", title: "Tasks", subtitle: "Checklists & follow-ups", icon: ListTodo, tint: "slate", screen: null },
   { id: "assets", title: "Assets", subtitle: "Inventory & tracking", icon: Boxes, tint: "slate", screen: null },
-  { id: "school-settings", title: "School Settings", subtitle: "Profile & preferences", icon: Settings, tint: "slate", screen: "school-settings", permModule: "settings" },
+  { id: "school-settings", title: "School Settings", subtitle: "Profile & preferences", icon: Settings, tint: "slate", screen: "school-settings", permModule: "settings", parent: "academics" },
 ];
 
 export const liveModuleCount = moduleCatalogue.filter((c) => c.screen !== null).length;
+
+/**
+ * What the dashboard grid renders: top-level modules only. A card that names a
+ * `parent` is already a row inside that module's panel, so showing it here too would
+ * advertise the same screen as a second module — which is how Timetable, Promotions
+ * and Certificates ended up beside Academics and Students.
+ */
+export const gridModuleCards = moduleCatalogue.filter((c) => c.parent === undefined);

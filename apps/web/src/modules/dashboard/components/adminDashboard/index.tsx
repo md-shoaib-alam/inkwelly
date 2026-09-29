@@ -9,7 +9,7 @@ import { useTenantResolution } from "@/lib/graphql/hooks/platform.hooks";
 import { hasPermission } from "@/lib/permissions";
 import { FavoritesStrip } from "./FavoritesStrip";
 import { ModuleGrid } from "./ModuleGrid";
-import { moduleCatalogue, type ModuleCard } from "./moduleCatalogue";
+import { gridModuleCards, type ModuleCard } from "./moduleCatalogue";
 import { useModuleFavorites } from "./useModuleFavorites";
 
 function getDaysRemaining(endDate?: string | null) {
@@ -52,7 +52,7 @@ export function AdminDashboard() {
   const { pinned, togglePin, clearAll } = useModuleFavorites();
 
   const visibleCards = useMemo(
-    () => moduleCatalogue.filter((card) => isCardVisible(card, currentUser)),
+    () => gridModuleCards.filter((card) => isCardVisible(card, currentUser)),
     [currentUser],
   );
 

@@ -1,7 +1,11 @@
 import { test, expect, describe } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { moduleCatalogue } from "../dashboard/components/adminDashboard/moduleCatalogue";
+import { adminPanelSections } from "@/components/layout/sidebar/module-nav-config";
+import {
+  gridModuleCards,
+  moduleCatalogue,
+} from "../dashboard/components/adminDashboard/moduleCatalogue";
 
 const APP_ROOT = resolve(import.meta.dir, "..", "..", "..");
 
@@ -64,13 +68,69 @@ describe("admin module catalogue", () => {
 
   test("a card is drawn as coming soon exactly when it has no screen", () => {
     // The grid derives the dashed, colourless, inert card from `screen === null`, so this
-    // split is the whole of the dashboard's coming-soon styling. 25 of 48 measured 2026-09-29,
-    // after AI Connect was given a status-only landing screen so its rail entry routes.
+    // split is the whole of the dashboard's coming-soon styling. 27 of 48 measured 2026-09-29,
+    // after Tests and Homework were reclassified: they have no admin case in the tenant
+    // dispatcher (both bare keys route only for teacher/student/parent), so an admin who
+    // clicked either card was redirected back to the dashboard. That is "announced but not
+    // built", which is what `screen: null` means everywhere else in this file.
     const unbuilt = moduleCatalogue.filter((c) => c.screen === null);
-    expect(unbuilt.length).toBe(25);
-    expect(moduleCatalogue.length - unbuilt.length).toBe(23);
+    expect(unbuilt.length).toBe(27);
+    expect(moduleCatalogue.length - unbuilt.length).toBe(21);
     // A dashed card must never be reachable from the rail or the favourites strip.
     const dashedButRoutable = unbuilt.filter((c) => c.inRail).map((c) => c.id);
     expect(dashedButRoutable).toEqual([]);
+  });
+});
+
+/** The admin panels that list `screen` as a row, whether the row is live or "Soon". */
+function panelsListing(screen: string): string[] {
+  return Object.entries(adminPanelSections)
+    .filter(([, sections]) => sections.some((s) => s.items.some((i) => i.key === screen)))
+    .map(([moduleKey]) => moduleKey);
+}
+
+describe("the dashboard grid categorises modules", () => {
+  test("no grid card advertises a screen another module's panel already owns", () => {
+    // The bug this pins: Timetable, Events, School Settings, Promotions, Graduated
+    // Students, Certificates, Tests, Homework and Reports were top-level dashboard cards
+    // whose screens were already rows inside the Academics / Students / Examinations
+    // panels, so one screen was sold as two modules.
+    //
+    // Rail modules are exempt by construction: their own screen is naturally a row of
+    // their own panel, and two of them additionally share a row with a sibling
+    // (employees/staff also in employee-attendance, transport/transport-fee also in
+    // student-fees). Those are deliberate cross-links, not duplicates of a module.
+    const leaked = gridModuleCards
+      .filter((card) => card.screen !== null && !card.inRail)
+      .flatMap((card) => {
+        const owners = panelsListing(card.screen as string).filter((m) => m !== card.id);
+        return owners.length
+          ? [`${card.id} (${card.screen}) is a row in ${owners.join(", ")}`]
+          : [];
+      });
+    expect(leaked).toEqual([]);
+  });
+
+  test("hiding a parented card never orphans its screen", () => {
+    // A card leaves the grid only because its parent's panel already lists the screen.
+    // Delete that row and the screen becomes unreachable, so the parent has to name a
+    // panel that really contains it. `shared` is Reports' case: no single owner, but the
+    // row must still exist in at least one panel.
+    const orphaned = moduleCatalogue
+      .filter((card) => card.parent !== undefined && card.screen !== null)
+      .filter((card) => {
+        const owners = panelsListing(card.screen as string);
+        return card.parent === "shared"
+          ? owners.length === 0
+          : !owners.includes(card.parent as string);
+      })
+      .map((card) => `${card.id} (${card.screen}) named parent ${card.parent}`);
+    expect(orphaned).toEqual([]);
+  });
+
+  test("the grid renders the 39 top-level cards, 14 of them live", () => {
+    // 48 catalogue cards less the 9 that name a parent; 25 of the 39 are "Soon".
+    expect(gridModuleCards.length).toBe(39);
+    expect(gridModuleCards.filter((c) => c.screen !== null).length).toBe(14);
   });
 });
