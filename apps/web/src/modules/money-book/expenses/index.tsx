@@ -3,7 +3,7 @@
 import { useState, useReducer, useRef } from "react";
 import { Wallet, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useExpenses } from "@/modules/finance/hooks/use-expenses";
+import { useExpenses } from "@/modules/money-book/expenses/hooks/use-expenses";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
 import { formatLocalDate } from "@/lib/utils";

@@ -53,7 +53,7 @@ const AdminExams = dynamic(() => import('@/modules/assessment/components/AdminEx
 const AdminPrintMarksheet = dynamic(() => import('@/modules/assessment/components/AdminPrintMarksheet').then(m => m.AdminPrintMarksheet), { loading: LoadingScreen });
 const AdminAdmitCards = dynamic(() => import('@/modules/certificates/components/AdminAdmitCards').then(m => m.AdminAdmitCards), { loading: LoadingScreen });
 const AcademicYearsScreen = dynamic(() => import('@/modules/academics/components/AdminAcademicYears').then(m => m.AcademicYearsScreen), { loading: LoadingScreen });
-const ExpensesScreen = dynamic(() => import('@/modules/finance/components/AdminExpenses').then(m => m.ExpensesScreen), { loading: LoadingScreen });
+const ExpensesScreen = dynamic(() => import('@/modules/money-book/expenses').then(m => m.ExpensesScreen), { loading: LoadingScreen });
 const AdminSubscription = dynamic(() => import('@/modules/tenancy/components/AdminSubscription').then(m => m.SchoolSubscriptionScreen), { loading: LoadingScreen });
 const ManagePlanScreen = dynamic(() => import('@/modules/tenancy/components/AdminManagePlan').then(m => m.ManagePlanScreen), { loading: LoadingScreen });
 

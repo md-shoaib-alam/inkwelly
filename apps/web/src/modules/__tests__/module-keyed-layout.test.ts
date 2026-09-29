@@ -59,3 +59,9 @@ describe("student-fees and transport", () => {
     expect(rowHasScreen("student-fees", "classes")).toBe(false);
   });
 });
+
+describe("money-book", () => {
+  test("the expenses row lives under modules/money-book/", () => {
+    expect(rowHasScreen("money-book", "expenses")).toBe(true);
+  });
+});
