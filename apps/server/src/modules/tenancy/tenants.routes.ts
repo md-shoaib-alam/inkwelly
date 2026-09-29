@@ -12,6 +12,7 @@ import { razorpay } from "../../lib/razorpay";
 import { SCHOOL_PLAN_CATALOG, type SchoolPlanTier } from "../../lib/plans";
 import { createAuditLog } from "../../lib/audit-helper";
 import { formatDate } from "../../lib/date-utils";
+import { defaultYearNames } from "../../db/backfill_academic_years";
 import { lookup } from "dns/promises";
 import net from "net";
 
@@ -497,25 +498,40 @@ export const tenantsRoutes = new Elysia({ prefix: "/tenants" })
         }
       }
 
-      const [tenant] = await db.insert(schema.tenants).values({
-        name: b.name,
-        slug: b.slug,
-        logo: logoUrl,
-        email: b.email || null,
-        phone: b.phone || null,
-        address: b.address || null,
-        website: b.website || null,
-        plan: b.plan || "basic",
-        maxStudents: b.maxStudents ? parseInt(b.maxStudents) : undefined,
-        maxTeachers: b.maxTeachers ? parseInt(b.maxTeachers) : undefined,
-        maxParents: b.maxParents ? parseInt(b.maxParents) : undefined,
-        maxClasses: b.maxClasses ? parseInt(b.maxClasses) : undefined,
-        settings: JSON.stringify({ enableGradeSelection: false }),
-        status: b.status || "active",
-        startDate: b.startDate || formatDate(),
-        endDate: b.endDate || null,
-        updatedAt: new Date(),
-      }).returning();
+      const tenant = await db.transaction(async (tx) => {
+        const [row] = await tx.insert(schema.tenants).values({
+          name: b.name,
+          slug: b.slug,
+          logo: logoUrl,
+          email: b.email || null,
+          phone: b.phone || null,
+          address: b.address || null,
+          website: b.website || null,
+          plan: b.plan || "basic",
+          maxStudents: b.maxStudents ? parseInt(b.maxStudents) : undefined,
+          maxTeachers: b.maxTeachers ? parseInt(b.maxTeachers) : undefined,
+          maxParents: b.maxParents ? parseInt(b.maxParents) : undefined,
+          maxClasses: b.maxClasses ? parseInt(b.maxClasses) : undefined,
+          settings: JSON.stringify({ enableGradeSelection: false }),
+          status: b.status || "active",
+          startDate: b.startDate || formatDate(),
+          endDate: b.endDate || null,
+          updatedAt: new Date(),
+        }).returning();
+        if (!row) throw new Error("Failed to create tenant");
+        // A school with no academic year cannot open any screen: the URL
+        // requires the session segment, so the year is created with the tenant.
+        const year = defaultYearNames();
+        await tx.insert(schema.academicYears).values({
+          tenantId: row.id,
+          name: year.name,
+          startDate: year.startDate,
+          endDate: year.endDate,
+          status: "active",
+          isCurrent: true,
+        });
+        return row;
+      });
 
       if (tenant) {
         // Automatically create template fee categories for the new school

@@ -4,6 +4,7 @@ import { eq, and, desc, inArray, count, sql, sum, ilike, gte, lte, or, isNull, i
 import { paginate, checkAuth, requireModule, requireSchoolAdmin, requirePlatformModule, scopedTenantId, tenantFromArg } from '../../graphql/resolvers/helpers'
 import { dataCache } from '../../lib/cache'
 import { createAuditLog } from '../../lib/audit-helper'
+import { defaultYearNames } from '../../db/backfill_academic_years'
 
 export const commonQueries = {
   users: async (_: unknown, args: { role?: string; tenantId?: string; search?: string; page?: number; limit?: number }, context: any) => {
@@ -389,13 +390,28 @@ export const commonMutations = {
       const existing = await db.query.tenants.findFirst({ where: eq(schema.tenants.slug, slug.trim()) })
       if (existing) throw new Error('Slug already exists')
 
-      const [tenant] = await db.insert(schema.tenants).values({ 
-        ...data, 
-        name: name.trim(), 
-        slug: slug.trim(), 
-        startDate: new Date().toISOString().substring(0, 10),
-        updatedAt: new Date()
-      }).returning();
+      const tenant = await db.transaction(async (tx) => {
+        const [row] = await tx.insert(schema.tenants).values({
+          ...data,
+          name: name.trim(),
+          slug: slug.trim(),
+          startDate: new Date().toISOString().substring(0, 10),
+          updatedAt: new Date()
+        }).returning();
+        if (!row) throw new Error('Failed to create tenant');
+        // A school with no academic year cannot open any screen: the URL
+        // requires the session segment, so the year is created with the tenant.
+        const year = defaultYearNames();
+        await tx.insert(schema.academicYears).values({
+          tenantId: row.id,
+          name: year.name,
+          startDate: year.startDate,
+          endDate: year.endDate,
+          status: 'active',
+          isCurrent: true,
+        });
+        return row;
+      });
 
       await createAuditLog({ 
         action: 'CREATE_TENANT', 
