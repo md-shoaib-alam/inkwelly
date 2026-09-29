@@ -75,7 +75,8 @@ export function FieldPicker({ selected, onChange }: FieldPickerProps) {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[300px] p-0 rounded-xl">
-        <ScrollArea className="max-h-[420px] px-2 py-2">
+        {/* Radix needs a definite height: a max-h here left the viewport unscrollable. */}
+        <ScrollArea className="h-[420px] px-2 py-2">
           {FIELD_GROUPS.map((group) => {
             const fields = BULK_FIELDS.filter((f) => f.group === group);
             const editable = fields.filter((f) => !f.disabled);
