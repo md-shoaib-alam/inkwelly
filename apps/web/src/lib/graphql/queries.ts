@@ -158,6 +158,45 @@ export const CLASSES = `
   }
 `
 
+/**
+ * Everything the two Classes screens render, and nothing else. Kept separate from
+ * CLASSES on purpose: the dropdowns that use that one read three fields, and
+ * fattening it would make every ClassSelect on the app pay for the new columns.
+ */
+export const CLASSES_FILTERED = `
+  query ClassesFiltered(
+    $tenantId: String, $grade: String, $section: String, $medium: String,
+    $vocational: Boolean, $status: String, $search: String,
+    $sortBy: String, $sortDir: String, $page: Int, $limit: Int
+  ) {
+    classes(
+      tenantId: $tenantId, grade: $grade, section: $section, medium: $medium,
+      vocational: $vocational, status: $status, search: $search,
+      sortBy: $sortBy, sortDir: $sortDir, page: $page, limit: $limit
+    ) {
+      classes {
+        id name slug section grade medium isVocational isActive
+        capacity studentCount classTeacher classTeacherId
+        teachers { id name avatar isPrimary }
+      }
+      total page totalPages
+    }
+  }
+`
+
+/** Unfiltered tenant totals — the stat cards must not follow the filter panel. */
+export const CLASS_STATS = `
+  query ClassStats($tenantId: String) {
+    classStats(tenantId: $tenantId) { total active enrolled }
+  }
+`
+
+export const CLASS_FILTER_OPTIONS = `
+  query ClassFilterOptions($tenantId: String) {
+    classFilterOptions(tenantId: $tenantId) { grades sections mediums }
+  }
+`
+
 export const TEACHERS = `
   query Teachers($tenantId: String, $search: String, $page: Int, $limit: Int) {
     teachers(tenantId: $tenantId, search: $search, page: $page, limit: $limit) {

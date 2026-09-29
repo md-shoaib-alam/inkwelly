@@ -1,68 +1,66 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, Users } from "lucide-react";
+import { GraduationCap, School, Settings, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
+import { Pagination } from "@/components/shared/pagination";
+import { ClassesStatsRow } from "@/components/shared/classes/ClassesStatsRow";
+import { ClassesFilterPanel } from "@/components/shared/classes/ClassesFilterPanel";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  GradeBadge,
+  MediumBadge,
+  SectionChip,
+  StatusBadge,
+  TeacherStack,
+} from "@/components/shared/classes/ClassBadges";
 import { useAppStore } from "@/store/use-app-store";
-import { useClassesInfinite } from "@/lib/graphql/hooks/academic.hooks";
+import { useClassFilterOptions, useClassStats, useClassesFiltered } from "@/lib/graphql/hooks";
+import { defaultClassFilters, filtersAreDefault, formatGradeLabel, type ClassFilters } from "@/lib/class-options";
 import type { ClassInfo } from "@/lib/types";
 import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { cn } from "@/lib/utils";
 
-const PAGE = 100;
+const PAGE_SIZE = 25;
 
 /**
  * Students -> Classes: how full is each class. The Academics screen of the same name
  * edits these rows; this one only reads them, which is why it is its own component
- * rather than a mode flag on that one.
+ * rather than a mode flag on that one. Both ask the server to filter, sort and page,
+ * so neither pulls the whole school down to the browser.
  */
 export function ClassRoster() {
   const { push } = useRouter();
   const tenantHref = useTenantHref();
   const { currentTenantId } = useAppStore();
-  const [search, setSearch] = useState("");
-  const [grade, setGrade] = useState("all");
-  const [section, setSection] = useState("all");
 
-  const { data, isLoading } = useClassesInfinite(currentTenantId || undefined, { limit: PAGE });
+  const [filters, setFilters] = useState<ClassFilters>(defaultClassFilters);
+  const [filtersVisible, setFiltersVisible] = useState(false);
+  const [page, setPage] = useState(1);
 
-  const classes = useMemo(
-    () => (data?.pages.flatMap((p) => p.classes) ?? []) as ClassInfo[],
-    [data],
+  const applyFilters = (patch: Partial<ClassFilters>) => {
+    setPage(1);
+    setFilters((f) => ({ ...f, ...patch }));
+  };
+
+  const { data, isLoading, isPlaceholderData } = useClassesFiltered(
+    currentTenantId || undefined,
+    filters,
+    page,
+    PAGE_SIZE,
   );
+  const { data: stats } = useClassStats(currentTenantId || undefined);
+  const { data: optionData } = useClassFilterOptions(currentTenantId || undefined);
 
-  const grades = useMemo(() => [...new Set(classes.map((c) => c.grade))].sort(), [classes]);
-  const sections = useMemo(() => [...new Set(classes.map((c) => c.section))].sort(), [classes]);
-
-  const visible = useMemo(
-    () =>
-      classes.filter(
-        (c) =>
-          (grade === "all" || c.grade === grade) &&
-          (section === "all" || c.section === section) &&
-          (!search || `${c.name} ${c.grade} ${c.section}`.toLowerCase().includes(search.toLowerCase())),
-      ),
-    [classes, grade, section, search],
-  );
-
-  // Every page is fetched before the totals are computed, because an aggregate over a
-  // truncated list would print a wrong number with a straight face.
-  const enrolled = classes.reduce((sum, c) => sum + (c.studentCount ?? 0), 0);
-  const average = classes.length ? Math.round(enrolled / classes.length) : 0;
+  const classes = (data?.classes ?? []) as ClassInfo[];
+  const total = data?.total ?? 0;
+  const totalPages = data?.totalPages ?? 0;
 
   // `enabled: !!tenantId` keeps `isLoading` false while the tenant is still resolving,
-  // so the first paint would otherwise read "0 classes · 0 students".
+  // so the first paint would otherwise read an empty table as "no classes".
   if (isLoading || (!currentTenantId && classes.length === 0)) return <ClassRosterSkeleton />;
 
   return (
@@ -71,7 +69,8 @@ export function ClassRoster() {
         <div>
           <h1 className="text-[16px] leading-6 font-semibold text-slate-900 dark:text-zinc-50">Classes</h1>
           <p className="text-[13px] text-slate-500 dark:text-zinc-400">
-            {classes.length} classes · {enrolled} students · avg {average} per class
+            {total} {total === 1 ? "class" : "classes"} match these filters
+            {!filtersAreDefault(filters) && " · clear the filters to see all of them"}
           </p>
         </div>
         <Button variant="outline" onClick={() => push(tenantHref("academics/classes"))}>
@@ -79,84 +78,147 @@ export function ClassRoster() {
         </Button>
       </div>
 
+      <ClassesStatsRow stats={stats} loading={isLoading && !stats} />
+
       <div className="flex flex-wrap items-center gap-2">
-        <div className="min-w-[220px] flex-1">
-          <SearchInput value={search} onChange={setSearch} placeholder="Search classes..." />
+        <div className="min-w-[220px] flex-1 max-w-md">
+          <SearchInput
+            value={filters.search ?? ""}
+            onChange={(v) => applyFilters({ search: v })}
+            placeholder="Search classes..."
+          />
         </div>
-        <Select value={grade} onValueChange={setGrade}>
-          <SelectTrigger className="w-[150px]"><SelectValue placeholder="All grades" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All grades</SelectItem>
-            {grades.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={section} onValueChange={setSection}>
-          <SelectTrigger className="w-[150px]"><SelectValue placeholder="All sections" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All sections</SelectItem>
-            {sections.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <Button
+          variant={filtersVisible ? "default" : "outline"}
+          onClick={() => setFiltersVisible((v) => !v)}
+        >
+          Filters
+        </Button>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <table className="w-full text-[13px]">
-            <thead>
-              <tr className="border-b text-left text-[11px] uppercase tracking-wide text-slate-500 dark:text-zinc-400">
-                <th className="px-4 py-3 font-medium">Class</th>
-                <th className="px-4 py-3 font-medium">Grade</th>
-                <th className="px-4 py-3 font-medium">Section</th>
-                <th className="px-4 py-3 font-medium">Teacher</th>
-                <th className="px-4 py-3 font-medium">Enrolled</th>
-                <th className="px-4 py-3 font-medium">Capacity fill</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((c) => {
-                const fill = c.capacity > 0 ? Math.round(((c.studentCount ?? 0) / c.capacity) * 100) : 0;
-                return (
-                  <tr key={c.id} className="border-b last:border-0">
-                    <td className="px-4 py-3 font-medium text-slate-900 dark:text-zinc-100">
-                      {c.name} - {c.section}
-                    </td>
-                    <td className="px-4 py-3">{c.grade}</td>
-                    <td className="px-4 py-3">{c.section}</td>
-                    <td className="px-4 py-3">{c.classTeacher || "Unassigned"}</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1.5">
-                        <Users className="size-3.5 text-slate-400" />{c.studentCount}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100 dark:bg-zinc-800">
-                          <div
-                            className={cn(
-                              "h-full rounded-full",
-                              fill >= 100 ? "bg-rose-500" : fill >= 80 ? "bg-amber-500" : "bg-emerald-500",
-                            )}
-                            style={{ width: `${Math.min(fill, 100)}%` }}
-                          />
-                        </div>
-                        <span className="text-[12px] tabular-nums text-slate-500 dark:text-zinc-400">{fill}%</span>
-                      </div>
-                    </td>
+      {filtersVisible && (
+        <ClassesFilterPanel
+          filters={filters}
+          onChange={applyFilters}
+          options={{
+            grades: optionData?.grades ?? [],
+            sections: optionData?.sections ?? [],
+            mediums: optionData?.mediums ?? [],
+          }}
+        />
+      )}
+
+      {isPlaceholderData && classes.length === 0 ? (
+        <ClassRosterSkeleton />
+      ) : (
+        <Card className="shadow-sm border-0 overflow-hidden">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 uppercase text-[10px] font-bold tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4">Class</th>
+                    <th className="px-6 py-4">Grade</th>
+                    <th className="px-6 py-4">Section</th>
+                    <th className="px-6 py-4">Class teacher</th>
+                    <th className="px-6 py-4">Medium</th>
+                    <th className="px-6 py-4">Enrolled</th>
+                    <th className="px-6 py-4">Capacity</th>
+                    <th className="px-6 py-4">Capacity fill</th>
+                    <th className="px-6 py-4">Status</th>
                   </tr>
-                );
-              })}
-              {visible.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-slate-500 dark:text-zinc-400">
-                    No classes match these filters.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
+                </thead>
+                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {classes.map((cls) => (
+                    <RosterRow
+                      key={cls.id}
+                      cls={cls}
+                      onOpenStudents={() => push(tenantHref(`students?classId=${cls.id}`))}
+                    />
+                  ))}
+                  {classes.length === 0 && (
+                    <tr>
+                      <td colSpan={9} className="px-6 py-16 text-center">
+                        <School className="size-10 mx-auto mb-3 text-zinc-300 dark:text-zinc-600" />
+                        <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                          No classes match these filters
+                        </p>
+                        <p className="text-[13px] text-zinc-500 dark:text-zinc-400">
+                          Clear the filters, or add a class from Academics &gt; Classes
+                        </p>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={total}
+          itemsPerPage={PAGE_SIZE}
+          onPageChange={setPage}
+        />
+      )}
     </div>
+  );
+}
+
+function RosterRow({ cls, onOpenStudents }: { cls: ClassInfo; onOpenStudents: () => void }) {
+  const enrolled = cls.studentCount ?? 0;
+  const fill = cls.capacity > 0 ? Math.round((enrolled / cls.capacity) * 100) : 0;
+  return (
+    <tr className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+            <GraduationCap className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <button
+              type="button"
+              onClick={onOpenStudents}
+              className="block truncate text-left font-semibold text-zinc-900 hover:text-emerald-600 dark:text-zinc-100"
+            >
+              {cls.name} - {cls.section}
+            </button>
+            {cls.slug && (
+              <p className="truncate text-[11px] text-zinc-400 dark:text-zinc-500">{cls.slug}</p>
+            )}
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4"><GradeBadge grade={formatGradeLabel(cls.grade)} /></td>
+      <td className="px-6 py-4"><SectionChip section={cls.section} /></td>
+      <td className="px-6 py-4"><TeacherStack cls={cls} /></td>
+      <td className="px-6 py-4"><MediumBadge medium={cls.medium} /></td>
+      <td className="px-6 py-4">
+        <span className="inline-flex items-center gap-1.5 tabular-nums text-zinc-700 dark:text-zinc-300">
+          <Users className="size-3.5 text-zinc-400" />{enrolled}
+        </span>
+      </td>
+      <td className="px-6 py-4 tabular-nums text-zinc-700 dark:text-zinc-300">{cls.capacity}</td>
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-2">
+          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100 dark:bg-zinc-800">
+            <div
+              className={cn(
+                "h-full rounded-full",
+                fill >= 100 ? "bg-rose-500" : fill >= 80 ? "bg-amber-500" : "bg-emerald-500",
+              )}
+              style={{ width: `${Math.min(fill, 100)}%` }}
+            />
+          </div>
+          <span className="text-[12px] tabular-nums text-slate-500 dark:text-zinc-400">{fill}%</span>
+        </div>
+      </td>
+      <td className="px-6 py-4"><StatusBadge isActive={cls.isActive} /></td>
+    </tr>
   );
 }
 
@@ -164,6 +226,11 @@ function ClassRosterSkeleton() {
   return (
     <div className="space-y-4">
       <Skeleton className="h-8 w-56" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[...Array(3)].map((_, i) => (
+          <Skeleton key={i} className="h-24 w-full rounded-xl" />
+        ))}
+      </div>
       <Skeleton className="h-10 w-full" />
       <Skeleton className="h-72 w-full" />
     </div>

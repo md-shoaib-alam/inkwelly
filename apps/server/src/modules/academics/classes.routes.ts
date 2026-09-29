@@ -1,14 +1,34 @@
 import { Elysia } from 'elysia';
 import { db } from '../../lib/db';
 import * as schema from '../../db/schema';
-import { eq, and, or, sql, desc, count, exists, inArray } from 'drizzle-orm';
+import { eq, and, or, sql, count, inArray } from 'drizzle-orm';
 import { requireAuth } from '../../lib/auth';
 import { requirePermission } from '../../lib/permissions';
 import { dataCache } from '../../lib/cache';
 import { posthog, captureError } from '../../lib/monitoring/posthog';
 import { ClassService } from './class.service';
+import {
+  ClassListQuerySchema, CreateClassSchema, UpdateClassSchema, AssignTeachersSchema,
+  blankToUndefined, buildClassSlug, resolveSlugCollision, formatZodError,
+} from '../../lib/validation/class';
 
 class ClassDeleteBlocked extends Error {}
+
+const ADMIN_ONLY = (user: any) => !!user && (user.role === 'admin' || user.role === 'super_admin');
+
+/** Slugs are unique per tenant, so the existing ones decide the next available suffix. */
+async function takenSlugs(tenantId: string, exceptId?: string) {
+  const rows = await db.query.classes.findMany({
+    where: (cls, { eq: eqFn, and: andFn, ne }) =>
+      andFn(eq(cls.tenantId, tenantId), exceptId ? ne(cls.id, exceptId) : undefined),
+    columns: { slug: true },
+  });
+  return new Set(rows.map((r) => r.slug).filter(Boolean) as string[]);
+}
+
+async function invalidateClasses(tenantId: string) {
+  await dataCache.deleteMatch([`classes:${tenantId}:*`, `*classes*${tenantId}*`, `dashboard:${tenantId}:*`]);
+}
 
 export const classesRoutes = new Elysia({ prefix: '/classes' })
   .use(requireAuth)
@@ -22,12 +42,17 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
         );
       }
 
+      const parsed = ClassListQuerySchema.safeParse(blankToUndefined(query as Record<string, unknown>));
+      if (!parsed.success) {
+        set.status = 400;
+        return { error: formatZodError(parsed.error) };
+      }
+
       const result = await ClassService.list({
         tenantId: tenantId!,
         teacherUserId: user.role === 'teacher' && query.all !== 'true' ? user.id : undefined,
         all: query.all === 'true',
-        page: query.page ? Number(query.page) : undefined,
-        limit: query.limit ? Number(query.limit) : undefined,
+        ...parsed.data,
       });
 
       if (query.all === 'true' || (!query.page && !query.limit)) {
@@ -40,36 +65,66 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
       return { error: 'Failed to load class' };
     }
   })
+  .get('/stats', async ({ tenantId, set }) => {
+    try {
+      if (!tenantId) { set.status = 403; return { error: 'Tenant ID is required' }; }
+      return await ClassService.stats(tenantId);
+    } catch (error) {
+      captureError(error, { method: 'GET', path: '/classes/stats', tenantId });
+      set.status = 500;
+      return { error: 'Failed to load class stats' };
+    }
+  })
   .post('/', async ({ body, tenantId, user, set }) => {
     try {
       if (!tenantId) { set.status = 403; return { error: 'Tenant ID is required' }; }
-      if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+      if (!ADMIN_ONLY(user)) {
         set.status = 403;
         return { error: 'Access denied: administrator privileges required' };
       }
-      const data = body as any;
-      const { name, section } = data;
-      if (!name || !section) { set.status = 400; return { error: 'Name and section are required' }; }
-      
+      const parsed = CreateClassSchema.safeParse(body);
+      if (!parsed.success) {
+        set.status = 400;
+        return { error: formatZodError(parsed.error) };
+      }
+      const data = parsed.data;
+
       const existing = await db.query.classes.findFirst({
         where: and(
           eq(schema.classes.tenantId, tenantId!),
-          eq(schema.classes.name, name),
-          eq(schema.classes.section, section)
+          eq(schema.classes.name, data.name),
+          eq(schema.classes.section, data.section)
         )
       });
-      
+
       if (existing) {
         set.status = 400;
-        return { error: `Class "${name} - ${section}" already exists for this school` };
+        return { error: `Class "${data.name} - ${data.section}" already exists for this school` };
       }
 
-      const [cls] = await db.insert(schema.classes).values({ 
-        name, 
-        section, 
-        grade: data.grade, 
-        capacity: data.capacity || 40, 
-        tenantId: tenantId! 
+      const taken = await takenSlugs(tenantId);
+      const requested = data.slug?.trim();
+      let slug: string;
+      if (requested) {
+        if (taken.has(requested)) {
+          set.status = 400;
+          return { error: `Slug "${requested}" is already used by another class` };
+        }
+        slug = requested;
+      } else {
+        slug = resolveSlugCollision(buildClassSlug(data.name, data.section), taken);
+      }
+
+      const [cls] = await db.insert(schema.classes).values({
+        name: data.name,
+        section: data.section,
+        grade: data.grade,
+        slug,
+        medium: data.medium,
+        isVocational: data.isVocational,
+        isActive: data.isActive,
+        capacity: data.capacity,
+        tenantId: tenantId!
       }).returning();
 
       if (!cls) {
@@ -84,11 +139,9 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
           isClassTeacher: true,
         });
       }
-      
-      await dataCache.deleteMatch(`classes:${tenantId}:*`);
-      await dataCache.deleteMatch(`*classes*${tenantId}*`);
-      await dataCache.deleteMatch(`dashboard:${tenantId}:*`);
-      
+
+      await invalidateClasses(tenantId);
+
       posthog.capture({
         distinctId: tenantId || 'system',
         event: 'class_created',
@@ -100,7 +153,7 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
           grade: cls.grade
         }
       });
-      
+
       return { id: cls.id, name: cls.name };
     } catch (error) {
       captureError(error, { method: 'POST', path: '/classes', tenantId });
@@ -111,20 +164,27 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
   .put('/', async ({ body, tenantId, user, set }) => {
     try {
       if (!tenantId) { set.status = 403; return { error: 'Tenant ID is required' }; }
-      if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+      if (!ADMIN_ONLY(user)) {
         set.status = 403;
         return { error: 'Access denied: administrator privileges required' };
       }
-      const data = body as any;
-      const { id, name, section, grade, capacity, classTeacherId } = data;
-      if (!id) { set.status = 400; return { error: 'ID required' }; }
+      const parsed = UpdateClassSchema.safeParse(body);
+      if (!parsed.success) {
+        set.status = 400;
+        return { error: formatZodError(parsed.error) };
+      }
+      const data = parsed.data;
+      const { id } = data;
 
-      const cls = await db.query.classes.findFirst({ 
-        where: and(eq(schema.classes.id, id), eq(schema.classes.tenantId, tenantId!)) 
+      const cls = await db.query.classes.findFirst({
+        where: and(eq(schema.classes.id, id), eq(schema.classes.tenantId, tenantId!))
       });
       if (!cls) { set.status = 404; return { error: 'Class not found or access denied' }; }
 
-      const existing = await db.query.classes.findFirst({
+      const name = data.name ?? cls.name;
+      const section = data.section ?? cls.section;
+
+      const duplicate = await db.query.classes.findFirst({
         where: and(
           eq(schema.classes.tenantId, tenantId!),
           eq(schema.classes.name, name),
@@ -132,37 +192,131 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
           sql`${schema.classes.id} != ${id}`
         )
       });
-      
-      if (existing) {
+
+      if (duplicate) {
         set.status = 400;
         return { error: `Class "${name} - ${section}" already exists for this school` };
       }
 
-      await db.update(schema.classes).set({ name, section, grade, capacity }).where(eq(schema.classes.id, id));
+      // Exactly the keys the caller sent — a mobile edit that knows nothing about
+      // `medium` must not reset it to the column default.
+      const patch: Record<string, unknown> = {};
+      if (data.name !== undefined) patch.name = data.name;
+      if (data.section !== undefined) patch.section = data.section;
+      if (data.grade !== undefined) patch.grade = data.grade;
+      if (data.medium !== undefined) patch.medium = data.medium;
+      if (data.capacity !== undefined) patch.capacity = data.capacity;
+      if (data.isVocational !== undefined) patch.isVocational = data.isVocational;
+      if (data.isActive !== undefined) patch.isActive = data.isActive;
 
-      await db.delete(schema.classTeachers).where(
-        and(
-          eq(schema.classTeachers.classId, id),
-          eq(schema.classTeachers.isClassTeacher, true)
-        )
-      );
-
-      if (classTeacherId) {
-        await db.insert(schema.classTeachers).values({
-          classId: id,
-          teacherId: classTeacherId,
-          isClassTeacher: true,
-        });
+      if (data.slug) {
+        if (data.slug !== cls.slug) {
+          const taken = await takenSlugs(tenantId, id);
+          if (taken.has(data.slug)) {
+            set.status = 400;
+            return { error: `Slug "${data.slug}" is already used by another class` };
+          }
+        }
+        patch.slug = data.slug;
+      } else if (data.name !== undefined || data.section !== undefined) {
+        // The name changed but no slug came with it; keep the two in step rather
+        // than leaving "class-1st-a" pointing at what is now "Class 5th".
+        const taken = await takenSlugs(tenantId, id);
+        patch.slug = resolveSlugCollision(buildClassSlug(name, section), taken);
       }
 
-      await dataCache.deleteMatch(`classes:${tenantId}:*`);
-      await dataCache.deleteMatch(`*classes*${tenantId}*`);
-      await dataCache.deleteMatch(`dashboard:${tenantId}:*`);
+      if (Object.keys(patch).length > 0) {
+        await db.update(schema.classes).set(patch).where(eq(schema.classes.id, id));
+      }
+
+      if (data.classTeacherId !== undefined) {
+        await db.delete(schema.classTeachers).where(
+          and(
+            eq(schema.classTeachers.classId, id),
+            eq(schema.classTeachers.isClassTeacher, true)
+          )
+        );
+
+        if (data.classTeacherId) {
+          await db.insert(schema.classTeachers).values({
+            classId: id,
+            teacherId: data.classTeacherId,
+            isClassTeacher: true,
+          });
+        }
+      }
+
+      await invalidateClasses(tenantId);
       return { success: true };
     } catch (error) {
       captureError(error, { method: 'PUT', path: '/classes', tenantId });
       set.status = 500;
       return { error: 'Failed to update class' };
+    }
+  })
+  /**
+   * Replaces a class's whole teacher set in one transaction, which is what the
+   * "Manage class teachers" dialog commits when it closes. Doing it per-row would
+   * let a half-applied edit leave a class with two primaries.
+   */
+  .put('/teachers', async ({ body, tenantId, user, set }) => {
+    try {
+      if (!tenantId) { set.status = 403; return { error: 'Tenant ID is required' }; }
+      if (!ADMIN_ONLY(user)) {
+        set.status = 403;
+        return { error: 'Access denied: administrator privileges required' };
+      }
+      const parsed = AssignTeachersSchema.safeParse(body);
+      if (!parsed.success) {
+        set.status = 400;
+        return { error: formatZodError(parsed.error) };
+      }
+      const { classId, teachers } = parsed.data;
+
+      const cls = await db.query.classes.findFirst({
+        where: and(eq(schema.classes.id, classId), eq(schema.classes.tenantId, tenantId))
+      });
+      if (!cls) { set.status = 404; return { error: 'Class not found or access denied' }; }
+
+      if (teachers.length > 0) {
+        // Teacher rows carry no tenantId of their own — membership is on the User
+        // behind them, so an id from another school must fail this join.
+        const known = await db
+          .select({ id: schema.teachers.id })
+          .from(schema.teachers)
+          .innerJoin(schema.users, eq(schema.teachers.userId, schema.users.id))
+          .where(and(
+            inArray(schema.teachers.id, teachers.map((t) => t.id)),
+            eq(schema.users.tenantId, tenantId),
+          ));
+        const knownIds = new Set(known.map((t) => t.id));
+        const strays = teachers.filter((t) => !knownIds.has(t.id)).map((t) => t.id);
+        if (strays.length > 0) {
+          set.status = 400;
+          return { error: `These teachers do not belong to your school: ${strays.join(', ')}` };
+        }
+      }
+
+      // First flagged teacher wins the primary role; with no flag at all the
+      // first teacher takes it, so a class never ends up teacher-less on paper.
+      const primaryIndex = teachers.findIndex((t) => t.isPrimary);
+      const resolved = teachers.map((t, i) => ({ ...t, isPrimary: i === (primaryIndex === -1 ? 0 : primaryIndex) }));
+
+      await db.transaction(async (tx) => {
+        await tx.delete(schema.classTeachers).where(eq(schema.classTeachers.classId, classId));
+        if (resolved.length > 0) {
+          await tx.insert(schema.classTeachers).values(
+            resolved.map((t) => ({ classId, teacherId: t.id, isClassTeacher: t.isPrimary })),
+          );
+        }
+      });
+
+      await invalidateClasses(tenantId);
+      return { success: true, count: resolved.length };
+    } catch (error) {
+      captureError(error, { method: 'PUT', path: '/classes/teachers', tenantId });
+      set.status = 500;
+      return { error: 'Failed to update class teachers' };
     }
   })
   .delete('/', async ({ query, tenantId, user, set }) => {

@@ -15,7 +15,8 @@
     "db:studio": "bun --bun drizzle-kit studio",
     "db:seed": "bun run src/db/seed.ts",
     "db:seed:full": "bun run src/db/full_seed_data.ts",
-    "db:backfill:years": "bun run src/db/backfill_academic_years.ts"
+    "db:backfill:years": "bun run src/db/backfill_academic_years.ts",
+    "db:backfill:class-slugs": "bun run src/db/backfill_class_slugs.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

@@ -3,14 +3,16 @@ import { toast } from "sonner";
 import { graphqlQuery, graphqlMutate } from '../core'
 import { queryKeys } from '../keys'
 import { 
-  SUBJECTS, CLASSES, TEACHERS, STUDENTS, PARENTS, NOTICES, FEES, ATTENDANCE, STAFF, CUSTOM_ROLES,
+  SUBJECTS, CLASSES, CLASSES_FILTERED, CLASS_STATS, CLASS_FILTER_OPTIONS, TEACHERS, STUDENTS, PARENTS, NOTICES, FEES, ATTENDANCE, STAFF, CUSTOM_ROLES,
   CREATE_SUBJECT, UPDATE_SUBJECT, DELETE_SUBJECT,
   CREATE_CUSTOM_ROLE, UPDATE_CUSTOM_ROLE, DELETE_CUSTOM_ROLE, ASSIGN_ROLE_TO_USER
 } from '../queries'
 import { 
-  SubjectsResponse, ClassesResponse, TeachersResponse, StudentsResponse, ParentsResponse, 
+  SubjectsResponse, ClassesResponse, FilteredClassesResponse, ClassStatsResponse, ClassFilterOptionsResponse,
+  TeachersResponse, StudentsResponse, ParentsResponse,
   NoticesResponse, FeesResponse, AttendanceResponse, StaffResponse
 } from '../types/index'
+import { classQueryArgs, type ClassFilters } from '@/lib/class-options'
 
 export function useSubjects(tenantId?: string, page?: number, limit?: number) {
   return useQuery<SubjectsResponse>({
@@ -77,6 +79,55 @@ export function useClasses(tenantId?: string, page?: number, limit?: number) {
     queryKey: [...queryKeys.classes, tenantId, page, limit],
     queryFn: () => graphqlQuery<{ classes: ClassesResponse }>(CLASSES, { tenantId, page, limit }).then(d => d.classes),
     gcTime: 5 * 60 * 1000,
+    enabled: !!tenantId,
+  })
+}
+
+/**
+ * The Classes screens: filter, sort and page in the database, so the request
+ * carries the rows actually displayed rather than the tenant's whole class list.
+ */
+export function useClassesFiltered(
+  tenantId: string | undefined,
+  filters: ClassFilters,
+  page: number,
+  limit: number,
+) {
+  const args = classQueryArgs(filters);
+  return useQuery<FilteredClassesResponse>({
+    queryKey: [...queryKeys.classes, 'filtered', tenantId, args, page, limit],
+    queryFn: () =>
+      graphqlQuery<{ classes: FilteredClassesResponse }>(CLASSES_FILTERED, {
+        tenantId, ...args, page, limit,
+      }).then(d => d.classes),
+    gcTime: 5 * 60 * 1000,
+    // The panel changes one variable at a time; keeping the previous page on
+    // screen avoids a blank flash between every keystroke and dropdown choice.
+    placeholderData: keepPreviousData,
+    enabled: !!tenantId,
+  })
+}
+
+export function useClassStats(tenantId?: string) {
+  return useQuery<ClassStatsResponse>({
+    queryKey: [...queryKeys.classes, 'stats', tenantId],
+    queryFn: () =>
+      graphqlQuery<{ classStats: ClassStatsResponse }>(CLASS_STATS, { tenantId }).then(d => d.classStats),
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    enabled: !!tenantId,
+  })
+}
+
+export function useClassFilterOptions(tenantId?: string) {
+  return useQuery<ClassFilterOptionsResponse>({
+    queryKey: [...queryKeys.classes, 'filter-options', tenantId],
+    queryFn: () =>
+      graphqlQuery<{ classFilterOptions: ClassFilterOptionsResponse }>(CLASS_FILTER_OPTIONS, { tenantId })
+        .then(d => d.classFilterOptions),
+    // The values in use change only when a class is created or renamed.
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     enabled: !!tenantId,
   })
 }

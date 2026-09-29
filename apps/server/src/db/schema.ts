@@ -138,16 +138,23 @@ export const classes = pgTable('Class', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   tenantId: text('tenantId').notNull(),
   name: text('name').notNull(),
+  slug: text('slug'),
   section: text('section').default('A').notNull(),
   grade: text('grade').notNull(),
+  medium: text('medium').default('English').notNull(),
+  isVocational: boolean('isVocational').default(false).notNull(),
+  isActive: boolean('isActive').default(true).notNull(),
   capacity: integer('capacity').default(40).notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 }, (table) => ({
   tenantIdIdx: index('Class_tenantId_idx').on(table.tenantId),
   gradeIdx: index('Class_grade_idx').on(table.grade),
+  mediumIdx: index('Class_medium_idx').on(table.medium),
+  activeIdx: index('Class_isActive_idx').on(table.isActive),
   tenantGradeIdx: index('Class_tenantId_grade_idx').on(table.tenantId, table.grade),
   tenantNameSectionUnique: uniqueIndex('Class_tenantId_name_section_unique').on(table.tenantId, table.name, table.section),
+  tenantSlugUnique: uniqueIndex('Class_tenantId_slug_unique').on(table.tenantId, table.slug),
 }));
 
 export const classTeachers = pgTable('ClassTeacher', {

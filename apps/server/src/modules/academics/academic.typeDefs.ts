@@ -59,14 +59,39 @@ export const academicTypeDefs = `#graphql
     subscription: Subscription
   }
 
+  type ClassTeacherRef {
+    id: String!
+    name: String!
+    avatar: String
+    isPrimary: Boolean!
+  }
+
   type TenantClass {
     id: String!
     name: String!
+    slug: String
     section: String!
     grade: String!
+    medium: String!
+    isVocational: Boolean!
+    isActive: Boolean!
     capacity: Int!
     studentCount: Int!
     classTeacher: String
+    classTeacherId: String
+    teachers: [ClassTeacherRef!]
+  }
+
+  type ClassStats {
+    total: Int!
+    active: Int!
+    enrolled: Int!
+  }
+
+  type ClassFilterOptions {
+    grades: [String!]!
+    sections: [String!]!
+    mediums: [String!]!
   }
 
   type TenantFee {

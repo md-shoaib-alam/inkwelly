@@ -163,6 +163,30 @@ export interface ClassesResponse {
   totalPages: number
 }
 
+/**
+ * The filtered list carries the full row shape, so it is typed. `ClassesResponse`
+ * stays `any[]` because `useClasses`/`useClassesInfinite` feed dropdowns that only
+ * read a name and an id.
+ */
+export interface FilteredClassesResponse {
+  classes: import('@/lib/types').ClassInfo[]
+  total: number
+  page: number
+  totalPages: number
+}
+
+export interface ClassStatsResponse {
+  total: number
+  active: number
+  enrolled: number
+}
+
+export interface ClassFilterOptionsResponse {
+  grades: string[]
+  sections: string[]
+  mediums: string[]
+}
+
 export interface TeachersResponse {
   teachers: any[]
   total: number

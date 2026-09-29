@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { UserCheck, Users, Pencil, Trash2 } from "lucide-react";
 import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
+import { MediumBadge, StatusBadge } from "@/components/shared/classes/ClassBadges";
 import type { ClassInfo } from "@/lib/types";
 
 interface ClassesGridViewProps {
@@ -74,9 +75,13 @@ export function ClassesGridView({
                         <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                           {cls.name}
                         </h3>
-                        <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-widest px-2 py-0">
-                          Section {cls.section}
-                        </Badge>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-widest px-2 py-0">
+                            Section {cls.section}
+                          </Badge>
+                          <MediumBadge medium={cls.medium} />
+                          {!cls.isActive && <StatusBadge isActive={false} />}
+                        </div>
                       </div>
                     </div>
 

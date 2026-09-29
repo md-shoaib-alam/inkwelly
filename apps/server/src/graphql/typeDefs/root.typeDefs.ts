@@ -36,8 +36,26 @@ export const rootTypeDefs = `#graphql
     """List subjects for a school"""
     subjects(tenantId: String, page: Int, limit: Int): SubjectsResponse!
 
-    """List classes for selection"""
-    classes(tenantId: String, page: Int, limit: Int): ClassesResponse!
+    """List classes, filtered and sorted in the database"""
+    classes(
+      tenantId: String
+      grade: String
+      section: String
+      medium: String
+      vocational: Boolean
+      status: String
+      search: String
+      sortBy: String
+      sortDir: String
+      page: Int
+      limit: Int
+    ): ClassesResponse!
+
+    """Tenant-wide class totals, independent of any filter on the list"""
+    classStats(tenantId: String): ClassStats!
+
+    """The grade/section/medium values this school actually has"""
+    classFilterOptions(tenantId: String): ClassFilterOptions!
 
     """List teachers for selection"""
     teachers(tenantId: String, search: String, page: Int, limit: Int): TeachersResponse!

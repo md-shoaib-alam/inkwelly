@@ -41,15 +41,39 @@ export interface TeacherInfo {
   status?: string;
 }
 
+export interface ClassTeacherRef {
+  id: string;
+  name: string;
+  isPrimary: boolean;
+  avatar?: string | null;
+}
+
 export interface ClassInfo {
   id: string;
   name: string;
+  slug?: string | null;
   section: string;
   grade: string;
+  medium: string;
+  isVocational: boolean;
+  isActive: boolean;
   capacity: number;
   studentCount: number;
   classTeacher?: string;
-  classTeacherId?: string;
+  classTeacherId?: string | null;
+  teachers?: ClassTeacherRef[];
+}
+
+export interface ClassStats {
+  total: number;
+  active: number;
+  enrolled: number;
+}
+
+export interface ClassFilterOptions {
+  grades: string[];
+  sections: string[];
+  mediums: string[];
 }
 
 export interface SubjectInfo {

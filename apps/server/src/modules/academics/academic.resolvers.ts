@@ -10,6 +10,7 @@ import { StudentService } from '../students'
 import { TeacherService } from '../employees'
 import { ClassService } from './class.service'
 import { SubjectService } from './subject.service'
+import { ClassListQuerySchema, blankToUndefined, formatZodError } from '../../lib/validation/class'
 import { yearUsageCounts } from './academic.year-usage'
 import { AcademicsDashboardService } from './academics-dashboard.service'
 
@@ -29,18 +30,36 @@ export const academicQueries = {
     return { subjects: result.items, total: result.total, page: result.page, totalPages: result.totalPages };
   },
 
-  classes: async (_: unknown, args: { tenantId?: string; page?: number; limit?: number }, context: any) => {
+  classes: async (_: unknown, args: Record<string, unknown>, context: any) => {
     const { user } = await requireModule(context, 'classes', 'view');
-    const tenantId = await tenantFromArg(user, args.tenantId);
+    const tenantId = await tenantFromArg(user, args.tenantId as string | undefined);
     if (!tenantId) throw new Error('Tenant context required');
+
+    const parsed = ClassListQuerySchema.safeParse(blankToUndefined(args));
+    if (!parsed.success) {
+      throw new GraphQLError(formatZodError(parsed.error), { extensions: { code: 'BAD_USER_INPUT' } });
+    }
 
     const result = await ClassService.listPaginated({
       tenantId,
-      page: args.page,
-      limit: args.limit,
+      ...parsed.data,
       teacherUserId: user.role === 'teacher' ? user.id : undefined,
     });
     return { classes: result.items, total: result.total, page: result.page, totalPages: result.totalPages };
+  },
+
+  classStats: async (_: unknown, args: { tenantId?: string }, context: any) => {
+    const { user } = await requireModule(context, 'classes', 'view');
+    const tenantId = await tenantFromArg(user, args.tenantId);
+    if (!tenantId) throw new Error('Tenant context required');
+    return ClassService.stats(tenantId);
+  },
+
+  classFilterOptions: async (_: unknown, args: { tenantId?: string }, context: any) => {
+    const { user } = await requireModule(context, 'classes', 'view');
+    const tenantId = await tenantFromArg(user, args.tenantId);
+    if (!tenantId) throw new Error('Tenant context required');
+    return ClassService.filterOptions(tenantId);
   },
 
   teachers: async (_: unknown, args: { tenantId?: string; search?: string; page?: number; limit?: number }, context: any) => {

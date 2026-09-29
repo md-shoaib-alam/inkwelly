@@ -1,172 +1,296 @@
 /**
  * ClassService — Shared Service Layer
- * Used by: REST /routes/classes.ts  AND  GraphQL academic.resolvers.ts
+ * Used by: REST /classes  AND  GraphQL academic.resolvers.ts
  */
 import { db } from '../../lib/db';
 import * as schema from '../../db/schema';
-import { eq, and, desc, count, inArray, exists } from 'drizzle-orm';
+import { and, asc, desc, eq, count, inArray, exists, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { dataCache } from '../../lib/cache';
+import type { ClassListQuery } from '../../lib/validation/class';
 
-export interface ClassListParams {
+export interface ClassListParams extends Partial<ClassListQuery> {
   tenantId: string;
-  page?: number;
-  limit?: number;
   /** If provided, only return classes this teacher teaches */
   teacherUserId?: string;
   /** If true, include all classes regardless of teacherUserId */
   all?: boolean;
 }
 
-const sortByName = (a: any, b: any) => {
-  const n = (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' });
-  if (n !== 0) return n;
-  return (a.section || '').localeCompare(b.section || '', undefined, { sensitivity: 'base' });
+export interface ClassRow {
+  id: string;
+  name: string;
+  slug: string | null;
+  section: string;
+  grade: string;
+  medium: string;
+  isVocational: boolean;
+  isActive: boolean;
+  capacity: number;
+  studentCount: number;
+  classTeacher: string | null;
+  classTeacherId: string | null;
+  teachers: { id: string; name: string; avatar?: string | null; isPrimary: boolean }[];
+}
+
+/**
+ * Whitelisted so `sortBy` can never reach ORDER BY as raw input.
+ */
+export const CLASS_SORT_EXPRESSIONS: Record<string, SQL> = {
+  name: sql`${schema.classes.name}`,
+  grade: sql`${schema.classes.grade}`,
+  section: sql`${schema.classes.section}`,
+  capacity: sql`${schema.classes.capacity}`,
 };
 
+const ENROLLED_SUBQUERY = sql`(
+  select count(*) from "Student" s where s."classId" = "Class"."id"
+)`;
+
+/** `enrolled` is the one sortable value that isn't a column, so it sorts on the count. */
+export const CLASS_SORT_KEYS = [...Object.keys(CLASS_SORT_EXPRESSIONS), 'enrolled'];
+
+/**
+ * Every filter is applied in SQL, so the sort and the LIMIT decide how much work
+ * a request does. Previously the whole tenant was read, joined and sorted in
+ * JavaScript before being sliced, which made the page cost proportional to the
+ * school's total class count instead of the ~20 rows it displays.
+ */
+export function buildClassFilters(
+  tenantId: string,
+  filters: Partial<ClassListParams>,
+  teacherId: string | null,
+): SQL[] {
+  const clauses: SQL[] = [eq(schema.classes.tenantId, tenantId)];
+
+  if (filters.grade) clauses.push(eq(schema.classes.grade, filters.grade));
+  if (filters.section) clauses.push(eq(schema.classes.section, filters.section));
+  if (filters.medium) clauses.push(eq(schema.classes.medium, filters.medium));
+  if (typeof filters.vocational === 'boolean') clauses.push(eq(schema.classes.isVocational, filters.vocational));
+  if (filters.status) clauses.push(eq(schema.classes.isActive, filters.status === 'active'));
+
+  if (filters.search) {
+    const needle = `%${filters.search}%`;
+    clauses.push(or(
+      ilike(schema.classes.name, needle),
+      ilike(schema.classes.grade, needle),
+      ilike(schema.classes.section, needle),
+    )!);
+  }
+
+  if (teacherId) {
+    clauses.push(exists(
+      sql`select 1 from "Subject" sub where sub."classId" = "Class"."id" and sub."teacherId" = ${teacherId}`,
+    ));
+  }
+
+  return clauses;
+}
+
+/**
+ * The cache key has to carry every filter, or two different views of the same
+ * tenant collide on one entry and the second caller gets the first one's rows.
+ */
+export function classCacheKey(params: ClassListParams, teacherScope: string): string {
+  const f = params;
+  const parts = [
+    f.grade ?? '', f.section ?? '', f.medium ?? '',
+    f.vocational === undefined ? '' : String(f.vocational),
+    f.status ?? '', f.search ?? '',
+    f.sortBy ?? 'name', f.sortDir ?? 'asc',
+    teacherScope, String(f.page ?? 1), String(f.limit ?? 50),
+  ].map(encodeURIComponent).join('|');
+  return `classes:paginated:v2:${params.tenantId}:${parts}`;
+}
+
+const normalizePaging = (params: ClassListParams) => {
+  const page = Math.max(1, Number.isFinite(Number(params.page)) ? Math.floor(Number(params.page)) : 1);
+  const limit = Math.min(100, Math.max(1, Number.isFinite(Number(params.limit)) ? Math.floor(Number(params.limit)) : 50));
+  return { page, limit };
+};
+
+async function resolveTeacherId(teacherUserId?: string, all?: boolean): Promise<string | null | 'none'> {
+  if (!teacherUserId || all) return null;
+  const teacher = await db.query.teachers.findFirst({
+    where: eq(schema.teachers.userId, teacherUserId),
+    columns: { id: true },
+  });
+  return teacher ? teacher.id : 'none';
+}
+
+/** One round trip for the page's teachers, instead of joining every class. */
+async function teachersForClasses(classIds: string[]) {
+  if (classIds.length === 0) return new Map<string, { id: string; name: string; isPrimary: boolean }[]>();
+
+  const rows = await db
+    .select({
+      classId: schema.classTeachers.classId,
+      teacherId: schema.classTeachers.teacherId,
+      name: schema.users.name,
+      avatar: schema.users.avatar,
+      isPrimary: schema.classTeachers.isClassTeacher,
+    })
+    .from(schema.classTeachers)
+    .innerJoin(schema.teachers, eq(schema.classTeachers.teacherId, schema.teachers.id))
+    .innerJoin(schema.users, eq(schema.teachers.userId, schema.users.id))
+    .where(inArray(schema.classTeachers.classId, classIds));
+
+  const byClass = new Map<string, { id: string; name: string; avatar?: string | null; isPrimary: boolean }[]>();
+  for (const row of rows) {
+    const list = byClass.get(row.classId) ?? [];
+    list.push({ id: row.teacherId, name: row.name, avatar: row.avatar, isPrimary: row.isPrimary });
+    byClass.set(row.classId, list);
+  }
+  for (const list of byClass.values()) {
+    list.sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary) || a.name.localeCompare(b.name));
+  }
+  return byClass;
+}
+
 export const ClassService = {
-  async list(params: ClassListParams) {
-    const { tenantId } = params;
-    const page = Math.max(1, Number.isFinite(Number(params.page)) ? Math.floor(Number(params.page)) : 1);
-    const limit = Math.min(100, Math.max(1, Number.isFinite(Number(params.limit)) ? Math.floor(Number(params.limit)) : 50));
+  /**
+   * The single SQL path behind both reads. `columns:` keeps createdAt/updatedAt
+   * out of the payload, and the enrolled count is a correlated subquery so it is
+   * computed for the rows actually returned rather than loaded as id arrays.
+   */
+  async queryClasses(params: ClassListParams) {
+    const { page, limit } = normalizePaging(params);
 
-    // ← fixed: include params.all so a teacher scoped request and an
-    //   all=true request on the same teacherUserId get distinct cache entries.
-    const cacheKey = `classes:v1:${tenantId}:${params.teacherUserId || 'all'}:${params.all ? '1' : '0'}:${page}:${limit}`;
+    const teacherScope = await resolveTeacherId(params.teacherUserId, params.all);
+    if (teacherScope === 'none') return { items: [] as ClassRow[], total: 0, page, totalPages: 0 };
 
-    return dataCache.getOrSet(
-      cacheKey,
-      async () => {
-        // Resolve teacherId if needed
-        let teacherId: string | null = null;
-        if (params.teacherUserId && !params.all) {
-          const teacher = await db.query.teachers.findFirst({
-            where: eq(schema.teachers.userId, params.teacherUserId),
-            columns: { id: true },
-          });
-          if (!teacher) return { items: [], total: 0, page, totalPages: 0 };
-          teacherId = teacher.id;
-        }
+    const cacheKey = classCacheKey({ ...params, page, limit }, teacherScope ?? 'all');
 
-        const where = (cls: any, { eq: eqFn, and: andFn }: any) => {
-          const base = eqFn(cls.tenantId, tenantId!);
-          if (!teacherId) return base;
-          return andFn(
-            base,
-            exists(
-              db.select().from(schema.subjects).where(
-                and(eq(schema.subjects.classId, cls.id), eq(schema.subjects.teacherId, teacherId!))
-              )
-            )
-          );
+    return dataCache.getOrSet(cacheKey, async () => {
+      const where = and(...buildClassFilters(params.tenantId, params, teacherScope));
+      const requestedSort = params.sortBy && CLASS_SORT_KEYS.includes(params.sortBy) ? params.sortBy : 'name';
+      const direction = params.sortDir === 'desc' ? desc : asc;
+      const orderExpression = requestedSort === 'enrolled'
+        ? direction(ENROLLED_SUBQUERY)
+        : direction(CLASS_SORT_EXPRESSIONS[requestedSort] ?? CLASS_SORT_EXPRESSIONS.name!);
+
+      const [rows, totalRow] = await Promise.all([
+        db
+          .select({
+            id: schema.classes.id,
+            name: schema.classes.name,
+            slug: schema.classes.slug,
+            section: schema.classes.section,
+            grade: schema.classes.grade,
+            medium: schema.classes.medium,
+            isVocational: schema.classes.isVocational,
+            isActive: schema.classes.isActive,
+            capacity: schema.classes.capacity,
+            studentCount: ENROLLED_SUBQUERY.as('studentCount'),
+          })
+          .from(schema.classes)
+          .where(where)
+          .orderBy(orderExpression, asc(schema.classes.name), asc(schema.classes.section))
+          .limit(limit)
+          .offset((page - 1) * limit),
+        db
+          .select({ total: count() })
+          .from(schema.classes)
+          .where(where),
+      ]);
+
+      const teacherMap = await teachersForClasses(rows.map((r) => r.id));
+
+      const items: ClassRow[] = rows.map((r) => {
+        const teachers = teacherMap.get(r.id) ?? [];
+        const primary = teachers.find((t) => t.isPrimary) ?? teachers[0] ?? null;
+        return {
+          ...r,
+          studentCount: Number(r.studentCount ?? 0),
+          teachers,
+          classTeacher: primary?.name ?? null,
+          classTeacherId: primary?.id ?? null,
         };
+      });
 
-        const classesList = await db.query.classes.findMany({
-          where,
-          with: {
-            students: { columns: { id: true } },
-            teachers: {
-              where: eq(schema.classTeachers.isClassTeacher, true),
-              limit: 1,
-              with: { teacher: { with: { user: { columns: { name: true } } } } },
-            },
-          },
-        });
-
-        const allItems = classesList.map((c: any) => {
-          const classTeacher = c.teachers?.[0];
-          return {
-            id: c.id,
-            name: c.name,
-            section: c.section,
-            grade: c.grade,
-            capacity: c.capacity,
-            studentCount: c.students.length,
-            classTeacher: classTeacher?.teacher?.user?.name || 'Unassigned',
-            classTeacherId: classTeacher?.teacher?.id || null,
-          };
-        }).sort(sortByName);
-
-        // ← fixed: actually paginate the sorted results
-        const total = allItems.length;
-        const skip = (page - 1) * limit;
-        const items = allItems.slice(skip, skip + limit);
-
-        return { items, total, page, totalPages: Math.ceil(total / limit) };
-      },
-      300_000, // 5 min
-    );
+      const total = Number(totalRow?.[0]?.total ?? 0);
+      return { items, total, page, totalPages: Math.ceil(total / limit) };
+    }, 300_000);
   },
 
-  /** GQL paginated list with teacher assignment details */
+  /** REST GET /classes — unchanged response contract for mobile and the web forms. */
+  async list(params: ClassListParams) {
+    const result = await this.queryClasses(params);
+    return {
+      items: result.items.map((c) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        section: c.section,
+        grade: c.grade,
+        medium: c.medium,
+        isVocational: c.isVocational,
+        isActive: c.isActive,
+        capacity: c.capacity,
+        studentCount: c.studentCount,
+        classTeacher: c.classTeacher || 'Unassigned',
+        classTeacherId: c.classTeacherId,
+      })),
+      total: result.total,
+      page: result.page,
+      totalPages: result.totalPages,
+    };
+  },
+
+  /** GraphQL `classes` — the page plus the teachers each row carries for the dialog. */
   async listPaginated(params: ClassListParams) {
-    const { tenantId } = params;
-    const normalizedPage = Math.max(1, Number.isFinite(Number(params.page)) ? Math.floor(Number(params.page)) : 1);
-    const normalizedLimit = Math.min(100, Math.max(1, Number.isFinite(Number(params.limit)) ? Math.floor(Number(params.limit)) : 50));
+    return this.queryClasses(params);
+  },
 
-    // Resolve teacherId if needed
-    let teacherId: string | null = null;
-    if (params.teacherUserId && !params.all) {
-      const teacher = await db.query.teachers.findFirst({
-        where: eq(schema.teachers.userId, params.teacherUserId),
-        columns: { id: true },
-      });
-      if (!teacher) return { items: [], total: 0, page: normalizedPage, totalPages: 0 };
-      teacherId = teacher.id;
-    }
+  /**
+   * Unfiltered tenant totals for the stat cards. Deliberately not derived from
+   * the filtered page: an aggregate over a truncated list prints a wrong number
+   * with a straight face.
+   */
+  async stats(tenantId: string) {
+    return dataCache.getOrSet(`classes:stats:v1:${tenantId}`, async () => {
+      const [row] = await db
+        .select({
+          total: count(),
+          active: sql<number>`count(*) filter (where ${schema.classes.isActive} = true)`,
+          enrolled: sql<number>`coalesce(sum((
+            select count(*) from "Student" s where s."classId" = "Class"."id"
+          )), 0)`,
+        })
+        .from(schema.classes)
+        .where(eq(schema.classes.tenantId, tenantId));
 
-    const cacheKey = `classes:paginated:v1:${tenantId}:${teacherId || 'all'}:${normalizedPage}:${normalizedLimit}`;
+      return {
+        total: Number(row?.total ?? 0),
+        active: Number(row?.active ?? 0),
+        enrolled: Number(row?.enrolled ?? 0),
+      };
+    }, 300_000);
+  },
 
-    return dataCache.getOrSet(
-      cacheKey,
-      async () => {
-        const where = teacherId
-          ? and(
-              eq(schema.classes.tenantId, tenantId),
-              exists(
-                db.select().from(schema.subjects).where(
-                  and(eq(schema.subjects.classId, schema.classes.id), eq(schema.subjects.teacherId, teacherId!))
-                )
-              )
-            )
-          : eq(schema.classes.tenantId, tenantId);
+  /**
+   * Which grade/section/medium values this tenant actually has. The filter panel
+   * builds its options from this rather than a static list, so a select can never
+   * offer a value that returns nothing — and never hides one the school uses.
+   */
+  async filterOptions(tenantId: string) {
+    return dataCache.getOrSet(`classes:options:v1:${tenantId}`, async () => {
+      const distinct = async (column: SQL) => {
+        const rows = await db
+          .select({ value: column })
+          .from(schema.classes)
+          .where(eq(schema.classes.tenantId, tenantId))
+          .groupBy(column)
+          .orderBy(asc(column));
+        return rows.map((r) => r.value).filter(Boolean) as string[];
+      };
 
-        // Fetch all matching classes to sort them globally in memory
-        const classesList = await db.query.classes.findMany({
-          where,
-          with: {
-            teachers: { with: { teacher: { with: { user: { columns: { name: true } } } } } },
-          },
-        });
-
-        const classIds = classesList.map((c: any) => c.id);
-        const studentCounts = classIds.length > 0
-          ? await db.select({ classId: schema.students.classId, count: count() })
-              .from(schema.students)
-              .where(inArray(schema.students.classId, classIds))
-              .groupBy(schema.students.classId)
-          : [];
-
-        const countMap = new Map(studentCounts.map(s => [s.classId, s.count]));
-
-        const allItems = classesList.map((c: any) => ({
-          ...c,
-          studentCount: countMap.get(c.id) || 0,
-          teachers: c.teachers.map((t: any) => ({ id: t.teacher.id, name: t.teacher.user.name })),
-        })).sort(sortByName);
-
-        const total = allItems.length;
-        const skip = (normalizedPage - 1) * normalizedLimit;
-        const items = allItems.slice(skip, skip + normalizedLimit);
-
-        return {
-          items,
-          total,
-          page: normalizedPage,
-          totalPages: Math.ceil(total / normalizedLimit),
-        };
-      },
-      300_000,
-    );
+      const [grades, sections, mediums] = await Promise.all([
+        distinct(sql`${schema.classes.grade}`),
+        distinct(sql`${schema.classes.section}`),
+        distinct(sql`${schema.classes.medium}`),
+      ]);
+      return { grades, sections, mediums };
+    }, 300_000);
   },
 
   /** Lightweight list for dropdowns (mode=min) */
@@ -185,21 +309,18 @@ export const ClassService = {
           teacherId = teacher.id;
         }
 
-        const where = (cls: any, { eq: eqFn, and: andFn }: any) => {
-          const base = eqFn(cls.tenantId, tenantId!);
-          if (!teacherId) return base;
-          return andFn(base, exists(
-            db.select().from(schema.subjects).where(
-              and(eq(schema.subjects.classId, cls.id), eq(schema.subjects.teacherId, teacherId!))
-            )
-          ));
-        };
-
         const classes = await db.query.classes.findMany({
-          where,
+          where: (cls, { eq: eqFn, and: andFn }) => {
+            const base = eqFn(cls.tenantId, tenantId!);
+            if (!teacherId) return base;
+            return andFn(base, exists(
+              sql`select 1 from "Subject" sub where sub."classId" = ${cls.id} and sub."teacherId" = ${teacherId}`,
+            ));
+          },
           columns: { id: true, name: true, section: true, grade: true },
+          orderBy: [asc(schema.classes.name), asc(schema.classes.section)],
         });
-        return [...classes].sort(sortByName);
+        return classes;
       },
       300_000,
     );

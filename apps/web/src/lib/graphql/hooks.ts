@@ -25,7 +25,7 @@ export {
 
 // Academic Hooks
 export { 
-  useClassesMin, useClasses, useTeachers, 
+  useClassesMin, useClasses, useClassesFiltered, useClassStats, useClassFilterOptions, useTeachers, 
   useStudents, useParents, useNotices, useStaff, 
   useCustomRoles, useFees, useAttendance,
   useCreateCustomRole, useUpdateCustomRole, useDeleteCustomRole, useAssignRoleToUser

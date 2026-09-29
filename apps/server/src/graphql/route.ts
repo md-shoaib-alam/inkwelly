@@ -12,8 +12,13 @@ import { verifyJWT } from '../lib/jwt';
  *
  * `YEAR_IN_USE` is not an auth denial: the rename guard is worth nothing unless
  * the admin can read which session holds the rows, so its message passes too.
+ *
+ * `BAD_USER_INPUT` is the same argument one step earlier. A rejected filter can
+ * only ever describe the caller's own input, and "Unexpected error" for a typo in
+ * a query gives the admin nothing to fix and gives an attacker a free oracle for
+ * whether the field they named exists at all.
  */
-const CLIENT_READABLE_CODES = new Set(['FORBIDDEN', 'UNAUTHENTICATED', 'YEAR_IN_USE']);
+const CLIENT_READABLE_CODES = new Set(['FORBIDDEN', 'UNAUTHENTICATED', 'YEAR_IN_USE', 'BAD_USER_INPUT']);
 
 function maskError(error: any) {
   const original = error?.originalError;

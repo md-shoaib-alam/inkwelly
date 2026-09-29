@@ -11,23 +11,26 @@ const source = () => readFileSync(SRC, "utf8");
 const columns = () =>
   [...source().matchAll(/<th[^>]*>([^<]*)<\/th>/g)].map((m) => m[1].trim());
 
-// The reference app shows Medium, Vocational and Status per class. None of those is a
-// field on `Class` (lib/types.ts:44), so a value rendered in that column would be
-// invented. This guard is what stops a later restyle pass from "helpfully" filling it in.
+// Medium, vocational and status were invented columns until the `Class` row grew those
+// fields (db/schema.ts, migration 0011). This guard now protects the other direction:
+// a later restyle pass must not add a column the payload still cannot return.
 test("the roster renders no column the schema cannot return", () => {
   for (const label of columns()) {
-    expect(label.toLowerCase()).not.toMatch(/medium|vocational|status|completion/);
+    expect(label.toLowerCase()).not.toMatch(/completion|attendance|percentage|stream|shift/);
   }
 });
 
-test("the roster's column set is the six the schema backs", () => {
+test("the roster's column set is the nine the class payload backs", () => {
   expect(columns()).toEqual([
     "Class",
     "Grade",
     "Section",
-    "Teacher",
+    "Class teacher",
+    "Medium",
     "Enrolled",
+    "Capacity",
     "Capacity fill",
+    "Status",
   ]);
 });
 
@@ -35,11 +38,22 @@ test("the roster labels its bar as capacity, not completion", () => {
   expect(source()).toContain("Capacity fill");
 });
 
-// The REST `/api/classes` list counts students by loading them and under-reports; the
-// GraphQL `classes` aggregate counts correctly. A screen that totals enrolment has to
-// read the second one, and it has to page to the end before summing.
-test("the roster reads the counting GraphQL hook, paged to the end", () => {
+// The whole point of the rework: the server filters, sorts and pages, so the browser
+// never downloads the school to trim a list down. `useClassesInfinite` is the old shape
+// — it walked every page to make the totals add up.
+test("the roster asks the server to filter and page", () => {
   const s = source();
-  expect(s).toContain("useClassesInfinite");
+  expect(s).toContain("useClassesFiltered");
+  expect(s).toContain("useClassFilterOptions");
+  expect(s).not.toContain("useClassesInfinite");
   expect(s).not.toContain("apiFetch");
+});
+
+// Totals that are summed over the visible page print a confident wrong number the
+// moment a school outgrows one page, so they come from `classStats` instead.
+test("the roster's totals are tenant-wide, not a sum of the current page", () => {
+  const s = source();
+  expect(s).toContain("useClassStats");
+  expect(s).toContain("ClassesStatsRow");
+  expect(s).not.toContain(".reduce(");
 });

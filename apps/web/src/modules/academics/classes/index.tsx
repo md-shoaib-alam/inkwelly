@@ -1,115 +1,45 @@
 "use client";
 
+import { useState } from "react";
 import { apiFetch } from "@/lib/api";
-import { useMemo, useReducer } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRouter, useParams } from "next/navigation";
+import { School, SlidersHorizontal } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { School } from "lucide-react";
-import { useRouter, useParams } from "next/navigation";
+import { SearchInput } from "@/components/ui/search-input";
+import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/shared/pagination";
+import { ClassesStatsRow } from "@/components/shared/classes/ClassesStatsRow";
+import { ClassesFilterPanel } from "@/components/shared/classes/ClassesFilterPanel";
 import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
-import { toast } from "sonner";
-import type { ClassInfo } from "@/lib/types";
 import { useModulePermissions } from "@/modules/access-control/hooks/use-permissions";
-import { useClasses, useTeachers } from "@/lib/graphql/hooks";
-import { useAppStore } from "@/store/use-app-store";
+import { useClassFilterOptions, useClassStats, useClassesFiltered, useTeachers } from "@/lib/graphql/hooks";
 import { useViewMode } from "@/hooks/use-view-mode";
+import { useAppStore } from "@/store/use-app-store";
+import { defaultClassFilters, type ClassFilters } from "@/lib/class-options";
+import type { ClassInfo, ClassTeacherRef } from "@/lib/types";
 
-// Sub-components
 import { ReadOnlyBanner } from "./adminClasses/ReadOnlyBanner";
 import { ClassesHeader } from "./adminClasses/ClassesHeader";
 import { ClassesTableView } from "./adminClasses/ClassesTableView";
 import { ClassesGridView } from "./adminClasses/ClassesGridView";
-import { ClassDialogs } from "./adminClasses/ClassDialogs";
+import { ClassFormDialog, type ClassFormPayload } from "./adminClasses/ClassFormDialog";
+import { ClassTeachersDialog } from "./adminClasses/ClassTeachersDialog";
+import { ClassDeleteDialog } from "./adminClasses/ClassDeleteDialog";
 
-interface DialogState {
-  addOpen: boolean;
-  addFormData: {
-    name: string;
-    section: string;
-    grade: string;
-    capacity: string;
-    classTeacherId: string;
-  };
-  adding: boolean;
-  editOpen: boolean;
-  editData: {
-    id: string;
-    name: string;
-    section: string;
-    grade: string;
-    capacity: string;
-    classTeacherId: string;
-  };
-  editing: boolean;
-  deleteOpen: boolean;
-  deleteTarget: ClassInfo | null;
-  deleting: boolean;
-}
+const PAGE_SIZE = 25;
 
-type DialogAction =
-  | { type: "TOGGLE_ADD"; payload: boolean }
-  | { type: "SET_ADD_FORM"; payload: Partial<DialogState["addFormData"]> }
-  | { type: "SET_ADDING"; payload: boolean }
-  | { type: "RESET_ADD" }
-  | { type: "OPEN_EDIT"; payload: ClassInfo }
-  | { type: "TOGGLE_EDIT"; payload: boolean }
-  | { type: "SET_EDIT_FORM"; payload: Partial<DialogState["editData"]> }
-  | { type: "SET_EDITING"; payload: boolean }
-  | { type: "OPEN_DELETE"; payload: ClassInfo }
-  | { type: "TOGGLE_DELETE"; payload: boolean }
-  | { type: "SET_DELETING"; payload: boolean };
-
-const initialDialogState: DialogState = {
-  addOpen: false,
-  addFormData: { name: "", section: "", grade: "", capacity: "40", classTeacherId: "" },
-  adding: false,
-  editOpen: false,
-  editData: { id: "", name: "", section: "", grade: "", capacity: "40", classTeacherId: "" },
-  editing: false,
-  deleteOpen: false,
-  deleteTarget: null,
-  deleting: false,
-};
-
-function dialogReducer(state: DialogState, action: DialogAction): DialogState {
-  switch (action.type) {
-    case "TOGGLE_ADD":
-      return { ...state, addOpen: action.payload };
-    case "SET_ADD_FORM":
-      return { ...state, addFormData: { ...state.addFormData, ...action.payload } };
-    case "SET_ADDING":
-      return { ...state, adding: action.payload };
-    case "RESET_ADD":
-      return { ...state, addFormData: { name: "", section: "", grade: "", capacity: "40", classTeacherId: "" } };
-    case "OPEN_EDIT":
-      return {
-        ...state,
-        editOpen: true,
-        editData: {
-          id: action.payload.id,
-          name: action.payload.name,
-          section: action.payload.section,
-          grade: action.payload.grade,
-          capacity: String(action.payload.capacity),
-          classTeacherId: action.payload.classTeacherId || "",
-        },
-      };
-    case "TOGGLE_EDIT":
-      return { ...state, editOpen: action.payload };
-    case "SET_EDIT_FORM":
-      return { ...state, editData: { ...state.editData, ...action.payload } };
-    case "SET_EDITING":
-      return { ...state, editing: action.payload };
-    case "OPEN_DELETE":
-      return { ...state, deleteOpen: true, deleteTarget: action.payload };
-    case "TOGGLE_DELETE":
-      return { ...state, deleteOpen: action.payload };
-    case "SET_DELETING":
-      return { ...state, deleting: action.payload };
-    default:
-      return state;
+/** Reads the API's error envelope, throwing so `toast.promise` renders the reason. */
+async function classRequest(path: string, init?: RequestInit) {
+  const res = await apiFetch(path, init);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Request failed");
   }
+  return res.json();
 }
 
 export function AdminClasses() {
@@ -118,202 +48,196 @@ export function AdminClasses() {
   const queryClient = useQueryClient();
   const { push } = useRouter();
   const tenantHref = useTenantHref();
-  const params = useParams();
-  const slug = params.slug as string;
 
-  // ⚡ TanStack Query with GraphQL Group-wise hooks
-  const { data: classesData, isLoading: classesLoading } = useClasses(currentTenantId || undefined);
+  const [filters, setFilters] = useState<ClassFilters>(defaultClassFilters);
+  const [filtersVisible, setFiltersVisible] = useState(false);
+  const [page, setPage] = useState(1);
 
-  // Fetch school/tenant settings dynamically to determine grade creation mode
-  const { data: settingsData } = useQuery({
-    queryKey: ["tenant-settings", currentTenantId],
-    queryFn: async () => {
-      if (!currentTenantId) return null;
-      const res = await apiFetch("/api/tenant-settings");
-      if (!res.ok) return null;
-      return res.json();
-    },
-    enabled: !!currentTenantId,
-  });
+  // A filter that shrinks the result set can strand the viewer on a page that no
+  // longer exists, so every change of criteria goes back to the first page. Both
+  // the search box and the panel go through here, which keeps the reset in the
+  // event handler rather than an effect that fires after the render.
+  const applyFilters = (patch: Partial<ClassFilters>) => {
+    setPage(1);
+    setFilters((f) => ({ ...f, ...patch }));
+  };
 
-  const enableGradeSelection = settingsData?.enableGradeSelection ?? false;
-
-  // Fetch all teachers in the tenant to populate the assign class teacher dropdown
-  const { data: teachersData } = useTeachers(currentTenantId || undefined);
+  const { data, isLoading, isPlaceholderData } = useClassesFiltered(
+    currentTenantId || undefined,
+    filters,
+    page,
+    PAGE_SIZE,
+  );
+  const { data: stats } = useClassStats(currentTenantId || undefined);
+  const { data: optionData } = useClassFilterOptions(currentTenantId || undefined);
+  const { data: teachersData, isLoading: teachersLoading } = useTeachers(currentTenantId || undefined);
   const teachers = teachersData?.teachers || [];
 
-  const classes = useMemo(() => {
-    const list = classesData?.classes || [];
-    return [...list].sort((a, b) => 
-      a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
-    );
-  }, [classesData]);
+  const classes = (data?.classes ?? []) as ClassInfo[];
+  const total = data?.total ?? 0;
+  const totalPages = data?.totalPages ?? 0;
 
-  const [viewMode, setViewMode] = useViewMode("classes", "grid");
+  const [viewMode, setViewMode] = useViewMode("classes", "table");
 
-  // Only show full skeleton if we have NO data at all
-  const loading = classesLoading && classes.length === 0;
+  const [formOpen, setFormOpen] = useState(false);
+  const [formTarget, setFormTarget] = useState<ClassInfo | null>(null);
+  // Bumped on each open so the dialog remounts with a clean draft — see ClassFormDialog.
+  const [formSession, setFormSession] = useState(0);
+  const openFormDialog = (cls: ClassInfo | null) => {
+    setFormTarget(cls);
+    setFormSession((n) => n + 1);
+    setFormOpen(true);
+  };
+  const [saving, setSaving] = useState(false);
 
-  const refetchClasses = () =>
-    queryClient.invalidateQueries({ queryKey: ["classes", currentTenantId] });
+  const [teachersTarget, setTeachersTarget] = useState<ClassInfo | null>(null);
+  const [teachersSession, setTeachersSession] = useState(0);
+  const openTeachersDialog = (cls: ClassInfo) => {
+    setTeachersTarget(cls);
+    setTeachersSession((n) => n + 1);
+  };
+  const [savingTeachers, setSavingTeachers] = useState(false);
 
-  // Dialog State Reducer
-  const [state, dispatch] = useReducer(dialogReducer, initialDialogState);
-  const {
-    addOpen,
-    addFormData,
-    adding,
-    editOpen,
-    editData,
-    editing,
-    deleteOpen,
-    deleteTarget,
-    deleting,
-  } = state;
+  const [deleteTarget, setDeleteTarget] = useState<ClassInfo | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const handleAddClass = async () => {
+  // Every class read hangs off the ["classes"] prefix — list, filtered page,
+  // stats and filter options — so one invalidation covers all four.
+  const refetchClasses = () => queryClient.invalidateQueries({ queryKey: ["classes"] });
+
+  const handleSubmitForm = async (payload: ClassFormPayload) => {
+    const isEdit = !!payload.id;
     const promise = (async () => {
-      const res = await apiFetch("/api/classes", {
-        method: "POST",
+      await classRequest("/api/classes", {
+        method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...addFormData,
-          capacity: parseInt(addFormData.capacity),
-        }),
+        body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Failed to add class");
-      }
-      return res.json();
     })();
 
     toast.promise(promise, {
-      loading: "Creating new class...",
-      success: "Class created successfully!",
-      error: (err: any) => err.message,
+      loading: isEdit ? "Updating class details..." : "Creating new class...",
+      success: isEdit ? "Class updated successfully!" : "Class created successfully!",
+      error: (err: Error) => err.message,
     });
 
-    dispatch({ type: "SET_ADDING", payload: true });
+    setSaving(true);
     try {
       await promise;
-      dispatch({ type: "TOGGLE_ADD", payload: false });
-      dispatch({ type: "RESET_ADD" });
+      setFormOpen(false);
+      setFormTarget(null);
       await refetchClasses();
-    } catch (err) {
-      // Error handled by toast.promise
+    } catch {
+      // toast.promise already surfaced the reason.
     } finally {
-      dispatch({ type: "SET_ADDING", payload: false });
+      setSaving(false);
     }
   };
 
-  const handleEditClass = async () => {
-    const updatedClassData = {
-      ...editData,
-      capacity: parseInt(editData.capacity),
-    };
-
-    // OPTIMISTIC UPDATE: Update the UI instantly
-    queryClient.setQueryData(["classes", currentTenantId], (old: any) => {
-      if (!old || !old.classes) return old;
-      return {
-        ...old,
-        classes: old.classes.map((cls: any) => 
-          cls.id === editData.id ? { ...cls, ...updatedClassData } : cls
-        )
-      };
-    });
-
+  const handleSaveTeachers = async (classId: string, assigned: ClassTeacherRef[]) => {
     const promise = (async () => {
-      const res = await apiFetch("/api/classes", {
+      await classRequest("/api/classes/teachers", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedClassData),
+        body: JSON.stringify({
+          classId,
+          teachers: assigned.map((t) => ({ id: t.id, isPrimary: t.isPrimary })),
+        }),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Failed to update class");
-      }
-      return res.json();
     })();
 
     toast.promise(promise, {
-      loading: "Updating class details...",
-      success: "Class updated successfully!",
-      error: (err: any) => err.message,
+      loading: "Saving teachers...",
+      success: "Class teachers updated",
+      error: (err: Error) => err.message,
     });
 
-    dispatch({ type: "SET_EDITING", payload: true });
+    setSavingTeachers(true);
     try {
       await promise;
-      dispatch({ type: "TOGGLE_EDIT", payload: false });
+      setTeachersTarget(null);
       await refetchClasses();
-    } catch (err) {
-      // On error, the invalidation in refetchClasses will fix the UI
+    } catch {
+      // The dialog stays open so the edit can be retried.
     } finally {
-      dispatch({ type: "SET_EDITING", payload: false });
+      setSavingTeachers(false);
     }
   };
 
-  const handleDeleteClass = async () => {
+  const handleDelete = async () => {
     if (!deleteTarget) return;
-
     const promise = (async () => {
-      const res = await apiFetch(`/api/classes?id=${deleteTarget.id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Failed to delete class");
-      }
-      
-      dispatch({ type: "TOGGLE_DELETE", payload: false });
+      await classRequest(`/api/classes?id=${deleteTarget.id}`, { method: "DELETE" });
+      setDeleteTarget(null);
       await refetchClasses();
-      
-      // Force RED pill morphing
-      throw new Error("Class record removed");
     })();
 
     toast.promise(promise, {
       loading: "Deleting class...",
-      success: () => "",
-      error: (err: any) => err.message,
+      success: "Class deleted",
+      error: (err: Error) => err.message,
     });
 
-    dispatch({ type: "SET_DELETING", payload: true });
+    setDeleting(true);
     try {
       await promise;
-    } catch (err) {
-      // Error handled by toast.promise
+    } catch {
+      // Blocked deletes (students still enrolled) surface through the toast.
     } finally {
-      dispatch({ type: "SET_DELETING", payload: false });
+      setDeleting(false);
     }
   };
 
-  const getProgressColor = (percentage: number) => {
-    if (percentage >= 90) return "[&>div]:bg-red-500";
-    if (percentage >= 75) return "[&>div]:bg-amber-500";
-    if (percentage >= 50) return "[&>div]:bg-emerald-500";
-    return "[&>div]:bg-emerald-400";
-  };
-
-  const handleViewStudents = (cls: ClassInfo) => push(tenantHref(`students?classId=${cls.id}`));
-  const openEditDialog = (cls: ClassInfo) => dispatch({ type: "OPEN_EDIT", payload: cls });
-  const openDeleteDialog = (cls: ClassInfo) => dispatch({ type: "OPEN_DELETE", payload: cls });
+  const loading = isLoading && classes.length === 0;
+  const showSkeleton = loading || (isPlaceholderData && classes.length === 0);
 
   return (
     <div className="space-y-6">
       <ReadOnlyBanner isVisible={!canCreate && !canEdit && !canDelete} />
 
-      <ClassesHeader 
-        totalClasses={classes.length}
+      <ClassesHeader
         viewMode={viewMode}
         setViewMode={setViewMode}
         canCreate={canCreate}
-        onAddClick={() => dispatch({ type: "TOGGLE_ADD", payload: true })}
+        onAddClick={() => openFormDialog(null)}
       />
 
-      {loading ? (
+      <ClassesStatsRow stats={stats} loading={isLoading && !stats} />
+
+      <div className="flex items-center gap-2.5 mb-4">
+        <SearchInput
+          value={filters.search ?? ""}
+          onChange={(v) => applyFilters({ search: v })}
+          placeholder="Search classes..."
+          className="w-full max-w-[340px]"
+          inputClassName="rounded-xl bg-white dark:bg-zinc-900 border-slate-200/80 dark:border-zinc-800 h-10 text-sm placeholder:text-slate-400 pl-9 shadow-2xs"
+        />
+        <Button
+          variant="outline"
+          onClick={() => setFiltersVisible((v) => !v)}
+          className={cn(
+            "h-10 px-3.5 rounded-xl border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 text-xs font-semibold gap-1.5 shadow-2xs cursor-pointer",
+            filtersVisible && "bg-slate-100 dark:bg-zinc-800 border-slate-300 dark:border-zinc-700"
+          )}
+        >
+          <SlidersHorizontal className="size-3.5 text-slate-500 dark:text-zinc-400" />
+          <span>Filters</span>
+        </Button>
+      </div>
+
+      {filtersVisible && (
+        <ClassesFilterPanel
+          filters={filters}
+          onChange={applyFilters}
+          options={{
+            grades: optionData?.grades ?? [],
+            sections: optionData?.sections ?? [],
+            mediums: optionData?.mediums ?? [],
+          }}
+        />
+      )}
+
+      {showSkeleton ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {[...Array(8)].map((_, i) => (
             <Card key={i} className="border-0 shadow-sm">
@@ -332,55 +256,79 @@ export function AdminClasses() {
         <Card className="border-dashed border-2 bg-transparent">
           <CardContent className="py-20 text-center text-muted-foreground">
             <School className="size-12 mx-auto mb-4 opacity-20" />
-            <p className="text-lg font-medium">No classes found</p>
-            <p className="text-sm text-muted-foreground">Create your first class to get started</p>
+            <p className="text-lg font-medium">No classes match these filters</p>
+            <p className="text-sm text-muted-foreground">
+              Clear the filters, or create a class to get started
+            </p>
           </CardContent>
         </Card>
       ) : viewMode === "table" ? (
-        <ClassesTableView 
+        <ClassesTableView
           classes={classes}
           canEdit={canEdit}
           canDelete={canDelete}
-          onViewStudents={handleViewStudents}
-          onEdit={openEditDialog}
-          onDelete={openDeleteDialog}
-          getProgressColor={getProgressColor}
+          canManageTeachers={canEdit}
+          onViewStudents={(cls) => push(tenantHref(`students?classId=${cls.id}`))}
+          onManageTeachers={openTeachersDialog}
+          onEdit={openFormDialog}
+          onDelete={setDeleteTarget}
         />
       ) : (
-        <ClassesGridView 
+        <ClassesGridView
           classes={classes}
           canEdit={canEdit}
           canDelete={canDelete}
-          onViewStudents={handleViewStudents}
-          onEdit={openEditDialog}
-          onDelete={openDeleteDialog}
+          onViewStudents={(cls) => push(tenantHref(`students?classId=${cls.id}`))}
+          onEdit={openFormDialog}
+          onDelete={setDeleteTarget}
           getProgressColor={getProgressColor}
         />
       )}
 
-      <ClassDialogs 
-        addOpen={addOpen}
-        setAddOpen={(open) => dispatch({ type: "TOGGLE_ADD", payload: open })}
-        addFormData={addFormData}
-        setAddFormData={(v) => dispatch({ type: "SET_ADD_FORM", payload: v })}
-        adding={adding}
-        onAdd={handleAddClass}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={total}
+          itemsPerPage={PAGE_SIZE}
+          onPageChange={setPage}
+        />
+      )}
 
-        editOpen={editOpen}
-        setEditOpen={(open) => dispatch({ type: "TOGGLE_EDIT", payload: open })}
-        editData={editData}
-        setEditData={(v) => dispatch({ type: "SET_EDIT_FORM", payload: v })}
-        editing={editing}
-        onEdit={handleEditClass}
+      <ClassFormDialog
+        key={formSession}
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        initial={formTarget}
+        busy={saving}
+        onSubmit={handleSubmitForm}
+      />
 
-        deleteOpen={deleteOpen}
-        setDeleteOpen={(open) => dispatch({ type: "TOGGLE_DELETE", payload: open })}
-        deleteTarget={deleteTarget}
-        deleting={deleting}
-        onDelete={handleDeleteClass}
-        enableGradeSelection={enableGradeSelection}
+      <ClassTeachersDialog
+        key={teachersSession}
+        open={!!teachersTarget}
+        onOpenChange={(open) => { if (!open) setTeachersTarget(null); }}
+        cls={teachersTarget}
         teachers={teachers}
+        teachersLoading={teachersLoading}
+        busy={savingTeachers}
+        onSave={handleSaveTeachers}
+      />
+
+      <ClassDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        target={deleteTarget}
+        deleting={deleting}
+        onDelete={handleDelete}
       />
     </div>
   );
+}
+
+function getProgressColor(percentage: number) {
+  if (percentage >= 90) return "[&>div]:bg-red-500";
+  if (percentage >= 75) return "[&>div]:bg-amber-500";
+  if (percentage >= 50) return "[&>div]:bg-emerald-500";
+  return "[&>div]:bg-emerald-400";
 }
