@@ -1,6 +1,7 @@
 import { test, expect, describe } from "bun:test";
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { adminPanelSections } from "@/components/layout/sidebar/module-nav-config";
 
 const MOD_ROOT = resolve(import.meta.dir, "..");
 
@@ -9,6 +10,18 @@ function rowHasScreen(module: string, row: string): boolean {
   const dir = join(MOD_ROOT, module, row);
   return [".tsx", ".ts"].some((e) => existsSync(join(dir, `index${e}`)));
 }
+
+/**
+ * Every row the admin panels list today, counted off the config rather than remembered by
+ * hand: a row is addressable exactly when it is not `disabled`. Adding a live row to a panel
+ * moves these numbers without any edit here, which is the point.
+ */
+const LIVE_ROWS_PANES: [string, string][] = Object.entries(adminPanelSections).flatMap(
+  ([module, sections]) =>
+    sections.flatMap((s) => s.items).filter((i) => !i.disabled).map((i) => [module, i.key] as [string, string]),
+);
+const FOLDERED = LIVE_ROWS_PANES.filter(([m, r]) => rowHasScreen(m, r)).map(([m, r]) => `${m}/${r}`).sort();
+const UNFOLDERED = LIVE_ROWS_PANES.filter(([m, r]) => !rowHasScreen(m, r)).map(([m, r]) => `${m}/${r}`).sort();
 
 describe("iam", () => {
   test("every iam row lives under modules/iam/", () => {
@@ -24,7 +37,7 @@ describe("iam", () => {
 
 describe("students", () => {
   test("every students row lives under modules/students/", () => {
-    for (const row of ["students", "promotions", "bulk-promote", "graduated", "certificates", "classes"]) {
+    for (const row of ["students", "promotions", "bulk-promote", "graduated", "certificates", "classes", "students-dashboard", "class-change"]) {
       expect(rowHasScreen("students", row)).toBe(true);
     }
   });
@@ -99,10 +112,9 @@ describe("events", () => {
   });
 });
 
-// The 35 live rows that have a folder, read off adminPanelSections and cross-checked
-// against the dispatcher's case keys. A row whose bare key is shared with a sibling module is
-// NOT here -- see the deferral list two tests down. A new row that can be addressed today must
-// appear here AND as a folder.
+// The screens that have a folder, cross-checked against the dispatcher's case keys. A row whose
+// bare key is shared with a sibling module is NOT here -- see the roster in the count test below.
+// A new row that can be addressed today must appear here AND as a folder.
 const LIVE_ROWS: [string, string][] = [
   ["iam", "iam-dashboard"], ["iam", "roles"], ["iam", "role-assignments"],
   ["iam", "permissions-catalog"],
@@ -112,6 +124,7 @@ const LIVE_ROWS: [string, string][] = [
   ["ai-connect", "ai-connect"],
   ["students", "students"], ["students", "promotions"], ["students", "bulk-promote"],
   ["students", "graduated"], ["students", "certificates"], ["students", "classes"],
+  ["students", "students-dashboard"], ["students", "class-change"],
   ["employees", "teachers"], ["employees", "staff"], ["employees", "parents"],
   ["student-attendance", "attendance"],
   ["employee-attendance", "teacher-attendance"], ["employee-attendance", "staff-attendance"],
@@ -124,41 +137,50 @@ const LIVE_ROWS: [string, string][] = [
 ];
 
 describe("the module-keyed convention", () => {
-  test("35 of the 54 live rows have their own folder", () => {
-    expect(LIVE_ROWS.length).toBe(35);
+  test("35 of the 56 live rows have their own folder", () => {
+    expect(LIVE_ROWS_PANES.length).toBe(56);
+    expect(FOLDERED.length).toBe(35);
     for (const [module, row] of LIVE_ROWS) expect(rowHasScreen(module, row)).toBe(true);
+    // LIVE_ROWS is the foldered set plus the two folders named after a retired key:
+    // students/students (the bare root's alias, next to the panel row's own `list`) and
+    // academics/academic-years (the legacy alias, next to the row's own `session`).
+    const listed = LIVE_ROWS.map(([m, r]) => `${m}/${r}`).sort();
+    expect(listed.filter((k) => !FOLDERED.includes(k))).toEqual([
+      "academics/academic-years", "students/students",
+    ]);
+    expect(FOLDERED.filter((k) => !listed.includes(k))).toEqual([]);
   });
 
-  test("the other 19 of the 54 live rows are 9 collapses, 9 deferrals and 1 move", () => {
-    // Collapsed onto a sibling folder in the same module, because their cases are stacked
-    // fall-throughs with identical props:
-    //   student-fees/fees <- fee-categories, fee-concessions, check-payments, make-payment,
-    //                        check-receipt, fee-status, transport-fee            (7 rows)
-    //   iam/iam-dashboard  <- security-pin, seed-defaults                          (2 rows)
-    expect(rowHasScreen("student-fees", "fees")).toBe(true);
-    expect(rowHasScreen("iam", "iam-dashboard")).toBe(true);
+  test("the other 21 of the 56 live rows share a folder or await routing Task 3", () => {
+    const EXPECTED_UNFOLDERED = [
+      // Collapsed onto a sibling folder in the same module, because their cases are stacked
+      // fall-throughs with identical props (9): fee-categories, fee-concessions,
+      // check-payments, make-payment, check-receipt, fee-status and transport-fee all render
+      // student-fees/fees; security-pin and seed-defaults both render iam/iam-dashboard.
+      "iam/security-pin", "iam/seed-defaults",
+      "student-fees/check-payments", "student-fees/check-receipt", "student-fees/fee-categories",
+      "student-fees/fee-concessions", "student-fees/fee-status", "student-fees/make-payment",
+      "student-fees/transport-fee",
+      // Reached through an override rather than a name match, so the folder keeps its own name:
+      // students/list is the class roster and academics/session the academic-years screen.
+      "academics/session", "students/list",
+      // Deferred to routing Task 3. Each is a live row whose bare dispatcher key is shared with a
+      // sibling module's row (reports x6 modules, classes x2, student-leaves x2, staff-leaves x2,
+      // staff x2), and componentKey() returns the bare key, so no per-module case can reach a
+      // folder for it yet. Creating one now is a file nothing imports. `students/classes` left
+      // this list with the class roster: it is the one row with an entry in COMPONENT_OVERRIDES,
+      // so its case key is its own rather than the shared `classes`.
+      "employee-attendance/reports", "employee-attendance/staff", "employee-attendance/staff-leaves",
+      "employees/reports", "money-book/reports", "student-attendance/reports",
+      "student-attendance/student-leaves", "student-fees/classes", "students/reports",
+      // The row that moved panels but not folders: calendar left Academics when Events became a
+      // rail module, while its screen stayed at modules/academics/calendar/.
+      "events/calendar",
+    ];
+    expect(UNFOLDERED).toEqual([...EXPECTED_UNFOLDERED].sort());
 
-    // Deferred to routing Task 3. Each is a live row whose bare dispatcher key is shared with a
-    // sibling module's row (reports x6 modules, classes x2, student-leaves x2, staff-leaves x2,
-    // staff x2), and componentKey() returns the bare key, so no per-module case can reach a
-    // folder for it yet. Creating one now is a file nothing imports. `students/classes` left
-    // this list with the class roster: it is the one row with an entry in COMPONENT_OVERRIDES,
-    // so its case key is its own rather than the shared `classes`.
-    for (const [module, row] of [
-      ["student-fees", "classes"], ["students", "reports"],
-      ["employees", "reports"], ["student-attendance", "reports"],
-      ["student-attendance", "student-leaves"], ["employee-attendance", "reports"],
-      ["employee-attendance", "staff-leaves"], ["employee-attendance", "staff"],
-      ["money-book", "reports"],
-    ]) {
-      expect(rowHasScreen(module, row)).toBe(false);
-    }
-
-    // 35 folders (32 built by this plan + AI Connect, the Academics command center and the
-    // Students class roster) + 9 collapsed + 9 deferred + 1 row that moved panels but not
-    // folders (events/calendar, asserted above) = 54 live rows, counted off
-    // adminPanelSections on 2026-09-29.
-    expect(35 + 9 + 9 + 1).toBe(54);
+    // 35 folders + 9 collapses + 2 override-named + 9 deferrals + 1 moved panel = 56 live rows.
+    expect(35 + 9 + 2 + 9 + 1).toBe(UNFOLDERED.length + FOLDERED.length);
   });
 
   test("no admin screen is still filed by domain", () => {

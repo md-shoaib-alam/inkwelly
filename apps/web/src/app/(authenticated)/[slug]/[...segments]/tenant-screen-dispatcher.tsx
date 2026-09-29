@@ -76,6 +76,7 @@ const AdminAdmitCards = dynamic(() => import('@/modules/examinations/admit-cards
 const AcademicYearsScreen = dynamic(() => import('@/modules/academics/academic-years').then(m => m.AcademicYearsScreen), { loading: LoadingScreen });
 const AdminAcademicsDashboard = dynamic(() => import('@/modules/academics/academics-dashboard').then(m => m.AdminAcademicsDashboard), { loading: LoadingScreen });
 const AdminStudentsDashboard = dynamic(() => import('@/modules/students/students-dashboard').then(m => m.AdminStudentsDashboard), { loading: LoadingScreen });
+const AdminClassChange = dynamic(() => import('@/modules/students/class-change').then(m => m.AdminClassChange), { loading: LoadingScreen });
 const ExpensesScreen = dynamic(() => import('@/modules/money-book/expenses').then(m => m.ExpensesScreen), { loading: LoadingScreen });
 const AdminSubscription = dynamic(() => import('@/modules/tenancy/components/AdminSubscription').then(m => m.SchoolSubscriptionScreen), { loading: LoadingScreen });
 const ManagePlanScreen = dynamic(() => import('@/modules/tenancy/components/AdminManagePlan').then(m => m.ManagePlanScreen), { loading: LoadingScreen });
@@ -131,6 +132,10 @@ const STAFF_EXTRA_PERMISSIONS: Record<string, string> = {
   parents: 'parents',
   staff: 'staff',
   leaves: 'leaves',
+  // The panel row is an admin one, but the screen reads the same roster that
+  // `/students/list` does, so leaving it unmapped would hand a student list to a
+  // staff account the students module was never granted.
+  'class-change': 'students',
 };
 
 /**
@@ -356,6 +361,7 @@ export default function TenantScreenDispatcherClient() {
       case 'list':
       case 'students': return <AdminStudents />;
       case 'students-dashboard': return <AdminStudentsDashboard />;
+      case 'class-change': return <AdminClassChange />;
       case 'teachers': return <AdminTeachers />;
       case 'parents': return <AdminParents />;
       case 'classes': return <AdminClasses />;

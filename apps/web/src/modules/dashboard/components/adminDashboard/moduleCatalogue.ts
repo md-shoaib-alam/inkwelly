@@ -33,6 +33,7 @@ import {
   ListTodo,
   Medal,
   MessagesSquare,
+  MoveRight,
   Newspaper,
   NotebookPen,
   School,
@@ -144,6 +145,7 @@ export const moduleCatalogue: ModuleCard[] = [
   { id: "students", title: "Students", subtitle: "Admissions & records", icon: Users, tint: "emerald", screen: "list", permModule: "students", inRail: true, qualifiedRoot: true },
   { id: "students-dashboard", title: "Dashboard", subtitle: "Enrolment & records at a glance", icon: LayoutDashboard, tint: "emerald", screen: "students-dashboard", permModule: "students", parent: "students" },
   { id: "promotions", title: "Promotions", subtitle: "Class promotions", icon: School, tint: "purple", screen: "promotions", permModule: "promotions", parent: "students" },
+  { id: "class-change", title: "Class Change", subtitle: "Move students between classes", icon: MoveRight, tint: "emerald", screen: "class-change", permModule: "students", parent: "students" },
   { id: "archive", title: "Graduated Students", subtitle: "Alumni records", icon: Archive, tint: "slate", screen: "graduated", permModule: "students", parent: "students" },
   { id: "certificates", title: "Certificates", subtitle: "Bonafide & transfer", icon: Award, tint: "emerald", screen: "certificates", permModule: "certificates", parent: "students" },
 

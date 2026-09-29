@@ -11,6 +11,7 @@ import Elysia, { t } from 'elysia';
 import { formatDate } from '../../lib/date-utils';
 import { StudentService } from './student.service';
 import { academicYearIsKnown } from './student.create.guards';
+import { StudentUpdateAuditError, studentUpdateAuditDetails } from './student-update.audit';
 
 const PHONE_PATTERN = '^\\+?[0-9\\-()\\s]{7,20}$';
 const DATE_PATTERN = '^\\d{4}-\\d{2}-\\d{2}$';
@@ -58,7 +59,12 @@ const studentUpdateBodySchema = t.Object({
   newPickupPointFee: t.Optional(t.Union([
     t.Number(),
     t.String()
-  ]))
+  ])),
+  // Shape and length rules for these three live in student-update.audit.ts so a
+  // bad value reports the code the screen can show, not Elysia's generic error.
+  effectiveDate: t.Optional(t.String()),
+  reason: t.Optional(t.String()),
+  remarks: t.Optional(t.String())
 });
 
 class StudentRouteError extends Error {
@@ -98,6 +104,9 @@ const isDuplicateKeyError = (error: unknown): boolean => {
 
 const mapStudentRouteError = (error: unknown) => {
   if (error instanceof StudentRouteError) return error;
+  if (error instanceof StudentUpdateAuditError) {
+    return new StudentRouteError(400, error.code, error.message);
+  }
   if (isDuplicateKeyError(error)) {
     return new StudentRouteError(409, 'DUPLICATE_RESOURCE', 'A record with the same unique value already exists');
   }
@@ -440,6 +449,10 @@ const handleUpdateStudent = async (body: any, tenantId: string, user: any, reque
     throw new StudentRouteError(400, 'INVALID_TRANSPORT_ROUTE', 'Route ID is required when transport is enabled');
   }
 
+  // Read before the write so a bad effective date fails the request instead of
+  // leaving a class move on record that the audit trail cannot show.
+  const changeDetails = studentUpdateAuditDetails(data);
+
   const student = await db.query.students.findFirst({
     where: eq(schema.students.id, data.id),
     with: { user: true }
@@ -529,7 +542,11 @@ const handleUpdateStudent = async (body: any, tenantId: string, user: any, reque
         classId: data.classId,
         transportEnabled: data.transportEnabled,
         routeId: data.routeId,
-        pickupPoint: data.pickupPoint
+        pickupPoint: data.pickupPoint,
+        // Inside newData, not beside it: audit-helper reads only `id`, `oldData`
+        // and `newData` out of these details before the queue serialises the job,
+        // so anything else here is dropped before it can reach the audit row.
+        ...changeDetails
       }
     }
   });

@@ -30,14 +30,15 @@ function resolvesToAFile(specifier: string): boolean {
 // been reserving since it was written. 66 -> 67 on 2026-09-29 for `list`, the Students panel
 // row's own key stacked on the root's `students`. 80/67 -> 81/68 on 2026-09-29 for
 // `students-dashboard`, the Students panel's command center — its own specifier and its own
-// key. Changing one of these numbers
+// key. 81/68 -> 82/69 on 2026-09-29 for `class-change`, the Students operations screen,
+// which is a new specifier and a new key rather than a reuse of the roster's. Changing one of these numbers
 // must be a deliberate act in a task step, never a side effect of a rewrite.
 const REGISTRIES = [
   {
     name: "tenant-screen-dispatcher",
     path: "src/app/(authenticated)/[slug]/[...segments]/tenant-screen-dispatcher.tsx",
-    specifiers: 81,
-    keys: 68,
+    specifiers: 82,
+    keys: 69,
   },
   {
     name: "generic-slug-dispatcher",

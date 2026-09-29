@@ -77,7 +77,7 @@ describe("admin module catalogue", () => {
     // half without joining the grid.
     const unbuilt = moduleCatalogue.filter((c) => c.screen === null);
     expect(unbuilt.length).toBe(27);
-    expect(moduleCatalogue.length - unbuilt.length).toBe(22);
+    expect(moduleCatalogue.length - unbuilt.length).toBe(23);
     // A dashed card must never be reachable from the rail or the favourites strip.
     const dashedButRoutable = unbuilt.filter((c) => c.inRail).map((c) => c.id);
     expect(dashedButRoutable).toEqual([]);

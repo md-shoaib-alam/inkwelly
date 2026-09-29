@@ -209,7 +209,7 @@ export const TEACHERS = `
 export const STUDENTS = `
   query Students($tenantId: String, $classId: String, $search: String, $status: String, $gender: String, $page: Int, $limit: Int) {
     students(tenantId: $tenantId, classId: $classId, search: $search, status: $status, gender: $gender, page: $page, limit: $limit) {
-      students { id name email phone rollNumber className gender dateOfBirth status classId parentId parentName admissionDate }
+      students { id name email username phone rollNumber className gender dateOfBirth status classId parentId parentName admissionDate }
       total page totalPages
     }
   }

@@ -15,6 +15,7 @@ import { parseRoute } from "@/lib/routing/module-routes";
 // `parent` field, so the two cannot drift apart.
 const EXPECTED = [
   ["certificates", "students"],
+  ["class-change", "students"],
   ["graduated", "students"],
   ["promotions", "students"],
   ["school-settings", "academics"],
