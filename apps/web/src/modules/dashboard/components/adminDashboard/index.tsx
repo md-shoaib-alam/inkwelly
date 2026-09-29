@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { differenceInDays } from "date-fns";
 import { TriangleAlert } from "lucide-react";
 import { useAppStore, type AppUser } from "@/store/use-app-store";
@@ -28,6 +29,7 @@ function isCardVisible(card: ModuleCard, currentUser: AppUser | null) {
 
 export function AdminDashboard() {
   const { push } = useRouter();
+  const tenantHref = useTenantHref();
   const {
     currentUser,
     currentTenantId,
@@ -37,9 +39,7 @@ export function AdminDashboard() {
 
   const navigateTo = (screen: string) => {
     setCurrentScreen(screen);
-    const tid =
-      currentTenantSlug || currentTenantId || currentUser?.tenantSlug || currentUser?.tenantId;
-    push(tid ? `/${tid}/${screen}` : `/${screen}`);
+    push(tenantHref(screen));
   };
 
   // Subscription state is read here rather than in the screens it warns about, because the

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/use-app-store";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { hasPermission } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
@@ -11,6 +12,7 @@ import { allQuickActions } from "./quick-actions-config";
 
 export function StaffDashboard() {
   const { push } = useRouter();
+  const tenantHref = useTenantHref();
   const { currentUser, currentTenantSlug, currentTenantId, setCurrentScreen } = useAppStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [clickCounts, setClickCounts] = useState<Record<string, number>>(() => {
@@ -38,12 +40,7 @@ export function StaffDashboard() {
     }
 
     setCurrentScreen(screen);
-    const tid = currentTenantSlug || currentTenantId || currentUser?.tenantSlug || currentUser?.tenantId;
-    if (tid) {
-      push(`/${tid}/${screen}`);
-    } else {
-      push(`/${screen}`);
-    }
+    push(tenantHref(screen));
   };
 
   const quickActions = allQuickActions.filter((action) => {

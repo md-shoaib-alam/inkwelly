@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import {
   Fingerprint,
   KeyRound,
@@ -43,15 +44,14 @@ const SYSTEM_DEFAULT_ROLES: DisplayRole[] = [
 
 export function AdminIamDashboard() {
   const { push } = useRouter();
+  const tenantHref = useTenantHref();
   const { currentTenantId, currentTenantSlug, currentUser, setCurrentScreen } = useAppStore();
 
   const { data: roles = [], isLoading } = useCustomRoles(currentTenantId || "");
 
   const navigateTo = (screen: string) => {
     setCurrentScreen(screen);
-    const tid =
-      currentTenantSlug || currentTenantId || currentUser?.tenantSlug || currentUser?.tenantId;
-    push(tid ? `/${tid}/${screen}` : `/${screen}`);
+    push(tenantHref(screen));
   };
 
   const calculatedAssignments = useMemo(

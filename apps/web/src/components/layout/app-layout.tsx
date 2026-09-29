@@ -12,6 +12,7 @@ import { ModuleSidebar } from "./sidebar/module-sidebar";
 import { getAdminRail, isAdminModuleScreen } from "./sidebar/module-nav-config";
 import { parseRoute, qualifiedKey } from "@/lib/routing/module-routes";
 import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { Header } from "./header";
 import { navItems } from "./nav-config";
 import { useIsFetching } from "@tanstack/react-query";
@@ -241,20 +242,18 @@ function useCookieAuthGuard(currentUser: any) {
 
 function useAppNavigation(opts: {
   isSuperAdmin: boolean;
-  currentTenantSlug: string | null;
-  currentTenantId: string | null;
   push: any;
   setCurrentScreen: any;
   setSidebarOpen: any;
 }) {
   const {
     isSuperAdmin,
-    currentTenantSlug,
-    currentTenantId,
     push,
     setCurrentScreen,
     setSidebarOpen,
   } = opts;
+
+  const tenantHref = useTenantHref();
 
   const navigateTo = useCallback((screen: string) => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
@@ -262,19 +261,14 @@ function useAppNavigation(opts: {
     }
     
     setCurrentScreen(screen);
-    const tenantIdentifier = currentTenantSlug || currentTenantId;
 
     if (isSuperAdmin && isPlatformRoute(screen)) {
       push(`/${screen}`);
       return;
     }
 
-    if (!tenantIdentifier) {
-      push(`/${screen}`);
-    } else {
-      push(`/${tenantIdentifier}/${screen}`);
-    }
-  }, [currentTenantId, currentTenantSlug, isSuperAdmin, push, setCurrentScreen, setSidebarOpen]);
+    push(tenantHref(screen));
+  }, [isSuperAdmin, push, setCurrentScreen, setSidebarOpen, tenantHref]);
 
   useEffect(() => {
     const handleNavigationEvent = (e: any) => {
@@ -372,8 +366,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const navigateTo = useAppNavigation({
     isSuperAdmin,
-    currentTenantSlug,
-    currentTenantId,
     push,
     setCurrentScreen,
     setSidebarOpen,

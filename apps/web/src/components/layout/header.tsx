@@ -11,6 +11,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { type NavItem, roleColors, roleLabels } from "./nav-config";
 import { useRouter } from "next/navigation";
 import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { yearSlugOf } from "@/lib/routing/academic-year-url";
 import { splitKey } from "@/lib/routing/module-routes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -84,6 +85,7 @@ export function Header({
   const effectiveIsMinimal = layoutPref === "minimal" || prefFromStorage === "minimal";
   const shouldShowDashboard = resolvedScreen !== "dashboard" && effectiveIsMinimal;
   const { status: yearStatus, years, year, yearSlug, setActiveYear } = useActiveAcademicYear();
+  const tenantHref = useTenantHref();
 
   const dates = useMemo(() => {
     const now = new Date();
@@ -123,12 +125,7 @@ export function Header({
 
   const navigateTo = (screen: string) => {
     setCurrentScreen(screen);
-    const tid = currentUser.tenantSlug || currentUser.tenantId;
-    if (tid) {
-      push(`/${tid}/${screen}`);
-    } else {
-      push(`/${screen}`);
-    }
+    push(tenantHref(screen));
   };
 
   return (

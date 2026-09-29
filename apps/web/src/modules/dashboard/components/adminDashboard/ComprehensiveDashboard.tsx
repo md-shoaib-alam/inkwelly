@@ -8,6 +8,7 @@ import { ClassDistribution } from "../adminDashboardComponents/ClassDistribution
 import { FeeCollection } from "../adminDashboardComponents/FeeCollection";
 import { RecentNotices } from "../adminDashboardComponents/RecentNotices";
 import { FeePieDistribution } from "../adminDashboardComponents/FeePieDistribution";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 
 interface ComprehensiveDashboardProps {
   isLoading: boolean;
@@ -36,13 +37,14 @@ export function ComprehensiveDashboard({
   currentTenantLogo,
   currentUser,
 }: ComprehensiveDashboardProps) {
+  const tenantHref = useTenantHref();
   return (
     <div className="space-y-6">
       <SubscriptionAlert 
         isExpired={isExpired}
         isExpiringSoon={isExpiringSoon}
         daysRemaining={daysRemaining}
-        onRenew={() => window.location.href = `/${currentTenantSlug || tenantId}/school-subscription`}
+        onRenew={() => { window.location.href = tenantHref("school-subscription"); }}
       />
 
       <WelcomeBanner

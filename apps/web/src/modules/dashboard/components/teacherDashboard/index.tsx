@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/use-app-store";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { useTeacherDashboard } from "@/lib/graphql/hooks";
 import { toast } from "sonner";
 import { FullPageSkeleton } from "@/components/ui/full-page-skeleton";
@@ -58,6 +59,7 @@ import { actionKeywords } from "@/components/layout/dashboard-keywords";
 
 export function TeacherDashboard() {
   const { push } = useRouter();
+  const tenantHref = useTenantHref();
   const { currentUser, currentTenantSlug, currentTenantId, setCurrentScreen } = useAppStore();
   const [layoutPref, setLayoutPref] = useState<string>("comprehensive");
   const [searchQuery, setSearchQuery] = useState("");
@@ -80,12 +82,7 @@ export function TeacherDashboard() {
 
   const navigateTo = (screen: string) => {
     setCurrentScreen(screen);
-    const tid = currentTenantSlug || currentTenantId || currentUser?.tenantSlug || currentUser?.tenantId;
-    if (tid) {
-      push(`/${tid}/${screen}`);
-    } else {
-      push(`/${screen}`);
-    }
+    push(tenantHref(screen));
   };
 
   const { data, isPending, fetchStatus, isError, error } = useTeacherDashboard(

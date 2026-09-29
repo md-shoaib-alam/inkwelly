@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/use-app-store";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { cn } from "@/lib/utils";
 import { 
   Search, 
@@ -129,6 +130,7 @@ const parentQuickActions: QuickAction[] = [
 
 export function MinimalDashboard() {
   const { push, replace } = useRouter();
+  const tenantHref = useTenantHref();
   const { currentUser, currentTenantSlug, currentTenantId, setCurrentScreen, logout } = useAppStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [clickCounts, setClickCounts] = useState<Record<string, number>>({});
@@ -170,12 +172,7 @@ export function MinimalDashboard() {
     }
 
     setCurrentScreen(screen);
-    const tid = currentTenantSlug || currentTenantId || currentUser?.tenantSlug || currentUser?.tenantId;
-    if (tid) {
-      push(`/${tid}/${screen}`);
-    } else {
-      push(`/${screen}`);
-    }
+    push(tenantHref(screen));
   };
 
   const filteredQuickActions = parentQuickActions.filter((action) => {
