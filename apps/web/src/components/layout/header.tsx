@@ -10,6 +10,9 @@ import { NotificationBell } from "./notification-bell";
 import { ThemeToggle } from "./theme-toggle";
 import { type NavItem, roleColors, roleLabels } from "./nav-config";
 import { useRouter } from "next/navigation";
+import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";
+import { yearSlugOf } from "@/lib/routing/academic-year-url";
+import { splitKey } from "@/lib/routing/module-routes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -80,6 +83,7 @@ export function Header({
 
   const effectiveIsMinimal = layoutPref === "minimal" || prefFromStorage === "minimal";
   const shouldShowDashboard = resolvedScreen !== "dashboard" && effectiveIsMinimal;
+  const { status: yearStatus, years, year, yearSlug, setActiveYear } = useActiveAcademicYear();
 
   const dates = useMemo(() => {
     const now = new Date();
@@ -197,6 +201,37 @@ export function Header({
             {dates.date}
           </span>
         </div>
+
+        {/* Academic Year Chip — the URL is the authority; this is its control */}
+        {yearStatus === 'ready' && year !== null && splitKey(resolvedScreen).screen !== 'academic-years' && (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={cn(
+                "items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl bg-slate-100/80 dark:bg-zinc-900/80 border border-slate-200/70 dark:border-zinc-800 text-xs font-medium text-slate-700 dark:text-zinc-300 shadow-2xs select-none whitespace-nowrap shrink-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
+                shouldShowDashboard ? "hidden md:flex" : "flex",
+                !effectiveIsMinimal && "hidden sm:flex"
+              )}
+              aria-label="Change academic session"
+            >
+              <Calendar className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+              <span className="font-semibold text-slate-900 dark:text-zinc-100">
+                {year.name}
+              </span>
+              <ChevronDown className="size-3 opacity-60 shrink-0" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-40">
+              {years.map((y: any) => (
+                <DropdownMenuItem
+                  key={y.id}
+                  onClick={() => setActiveYear(yearSlugOf(y.name))}
+                  className={yearSlugOf(y.name) === yearSlug ? "font-semibold" : ""}
+                >
+                  {y.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
