@@ -24,7 +24,7 @@
 - Never commit the second window's work. See the isolation protocol below.
 - No new dependencies. No Python on this machine.
 - Year identity is the **name string** (`students.academicYear`, `feeStructures.academicYear`, `promotions.academicYear`, `exams.academicYear` are `text` columns holding the name), never the id.
-- The dispatcher's 62 screen keys and 77 `dynamic()` specifiers are **not** changed by any task here (the working tree may read 63/78 — that is the other window's AI Connect row, leave it).
+- The dispatcher's screen-key and `dynamic()`-specifier counts are **not** changed by any task here. Read the current numbers from the top of `src/modules/__tests__/screen-registry.test.ts` at the start of each task and treat those as the oracle — the second window adds rows (it moved 62/77 → 64/79 for the Academics command centre on 2026-09-29), so a number copied into this plan is already stale. If a task ever makes that test fail on a count, the task is wrong, not the number.
 - Do not run `bun run build` at the repo root: the other window's `next dev` (PID was 14984) shares `.next`.
 - **Scope: Spec 1 of two.** This plan puts the year in the URL, in the header, and in front of every screen as a gate, and stamps `students` on create because that is where the URL year must reach the write. The other 15 year-less tables (spec §9) are Spec 2's; do not widen a task here to cover them.
 
@@ -103,7 +103,7 @@ For a file that is **dirty** (shared), every commit follows this order:
   - `RouteParts = { year: string | null; module: string | null; screen: string }`
   - `RouteContext.yearSlugs?: string[]`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `apps/web/src/lib/__tests__/academic-year-url.test.ts`:
 
@@ -219,12 +219,12 @@ describe("swapYearUrl", () => {
 });
 ```
 
-- [ ] **Step 2: Run them to make sure they fail**
+- [x] **Step 2: Run them to make sure they fail**
 
 Run: `cd apps/web && bun test src/lib/__tests__/academic-year-url.test.ts`
 Expected: `Cannot find module '../routing/academic-year-url'` — a load failure, not a passing run.
 
-- [ ] **Step 3: Write the builders**
+- [x] **Step 3: Write the builders**
 
 Create `apps/web/src/lib/routing/academic-year-url.ts`:
 
@@ -294,12 +294,12 @@ export function swapYearUrl(opts: {
 }
 ```
 
-- [ ] **Step 4: Run the tests to make them pass**
+- [x] **Step 4: Run the tests to make them pass**
 
 Run: `cd apps/web && bun test src/lib/__tests__/academic-year-url.test.ts`
 Expected: PASS, 15 tests, 0 failures.
 
-- [ ] **Step 5: Write the failing parse tests**
+- [x] **Step 5: Write the failing parse tests**
 
 Append to `apps/web/src/lib/__tests__/module-routes.test.ts` (keep whatever it already contains; add a new `describe` block):
 
@@ -381,12 +381,12 @@ describe("parseRoute with a year segment", () => {
 });
 ```
 
-- [ ] **Step 6: Run them to make sure they fail**
+- [x] **Step 6: Run them to make sure they fail**
 
 Run: `cd apps/web && bun test src/lib/__tests__/module-routes.test.ts`
 Expected: FAIL — `year` is not a property of the returned object (TypeScript) or the assertions mismatch.
 
-- [ ] **Step 7: Update the five pre-existing assertions, which the widened shape breaks**
+- [x] **Step 7: Update the five pre-existing assertions, which the widened shape breaks**
 
 `bun:test`'s `toEqual` treats an extra defined key as a mismatch, so every `parseRoute` assertion already in `src/lib/__tests__/module-routes.test.ts` must gain `year: null`. The file's `ctx` has no `yearSlugs`, so nothing there is read as a year and `null` is always correct. Apply exactly these five edits (the block is `describe("parseRoute")`, currently lines 26-64):
 
@@ -431,7 +431,7 @@ Expected: FAIL — `year` is not a property of the returned object (TypeScript) 
 
 Leave the `key helpers` and `canonicalOwner` blocks and the two trailing tests untouched.
 
-- [ ] **Step 8: Extend the contract**
+- [x] **Step 8: Extend the contract**
 
 In `apps/web/src/lib/routing/module-routes.ts`, replace `RouteParts`, `RouteContext` and `parseRoute` with:
 
@@ -484,12 +484,12 @@ export function parseRoute(pathname: string, ctx: RouteContext): RouteParts {
 
 Leave `qualifiedKey`, `splitKey`, `COMPONENT_OVERRIDES`, `componentKey` and `canonicalOwner` exactly as they are, and keep the file's header comment plus the two doc comments above `parseRoute` and `COMPONENT_OVERRIDES` — add to the `parseRoute` doc: *"A `year: null` result is not an error; it means the caller must canonicalise the URL (spec §3), except for the screen the gate itself renders."*
 
-- [ ] **Step 9: Run the whole web suite**
+- [x] **Step 9: Run the whole web suite**
 
 Run: `cd apps/web && bun test src/lib/__tests__/ src/modules/__tests__/ && bun run typecheck`
 Expected: all tests PASS. `typecheck` reports errors **only** at the two `parseRoute` call sites that now read a widened return type — `tenant-screen-dispatcher.tsx` and `app-layout.tsx` destructure `{ module, screen }`, which still typechecks; if either reads `RouteParts` exhaustively, note it for Task 2 and do not fix it here.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 All four paths are clean of the other window unless `git status` says otherwise — check first, then:
 
@@ -521,7 +521,7 @@ git show --stat HEAD
 
 **Interim behaviour, deliberately:** this task passes `yearSlugs: []`, so nothing is treated as a year yet and URLs keep working exactly as they do now. The gate arrives in Task 4. A reviewer rejecting Task 2 must only be able to reject the route shape.
 
-- [ ] **Step 1: Prove the two-segment tree is a dead end first**
+- [x] **Step 1: Prove the two-segment tree is a dead end first**
 
 ```bash
 cd apps/web && ls src/app/\(authenticated\)/\[slug\]/\[screen\]/ src/app/\(authenticated\)/\[slug\]/\[screen\]/\[detail\]/
@@ -529,7 +529,7 @@ curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3000/loadtest-academy/
 ```
 Expected: the four files listed; the curl prints `404` — today a year-shaped URL cannot resolve because the deepest route is three segments. Keep the number; Task 10 checks it becomes `200`.
 
-- [ ] **Step 2: Snapshot the shared dispatcher and record its baseline counts**
+- [x] **Step 2: Snapshot the shared dispatcher and record its baseline counts**
 
 ```bash
 cd /d/per/inkwelly
@@ -540,7 +540,7 @@ git status --porcelain -- "apps/web/src/app/(authenticated)/[slug]/[screen]/page
 ```
 Expected: the two counts (baseline, whatever the tree currently says) and **no output** from `git status` — the three page/loading files must be clean. If any is dirty, stop and report the collision before moving it.
 
-- [ ] **Step 3: Write the new page**
+- [x] **Step 3: Write the new page**
 
 Create `apps/web/src/app/(authenticated)/[slug]/[...segments]/page.tsx`. `generateMetadata` reproduces both title formats the app serves today — `<Screen> | <Tenant> | SchoolSaaS` and, for the screen/detail shape, `<Detail> - <Screen> | <Tenant> | SchoolSaaS` — with the year excluded:
 
@@ -591,7 +591,7 @@ export default function TenantScreenDispatcher() {
 
 The old `[detail]/page.tsx` produced `${displayDetail} - ${displayScreen}` where `screen` was the module word — `tail[tail.length - 1]` and `tail[0]` reproduce that pair from one route, so `/slug/academics/classes` and `/slug/2026-2027/academics/classes` both still read `Classes - Academics | …`.
 
-- [ ] **Step 4: Write the new loading**
+- [x] **Step 4: Write the new loading**
 
 Create `apps/web/src/app/(authenticated)/[slug]/[...segments]/loading.tsx`. It keys off the *last* segment, so `/slug/2026-2027/dashboard` still gets the dashboard skeleton. No year shape is sniffed here — the year needs the tenant's own list, which this component cannot fetch, and a momentary generic skeleton is the right cost for not duplicating the parse rule:
 
@@ -614,7 +614,7 @@ export default function ScreenLoading() {
 }
 ```
 
-- [ ] **Step 5: Move the dispatcher and change only how it reads the route**
+- [x] **Step 5: Move the dispatcher and change only how it reads the route**
 
 Copy the file to the new path and replace its route-reading prologue. Everything below line "const screenKey = …" — the permission maps, the four role switches, all 77 `dynamic()` imports — stays byte-for-byte:
 
@@ -653,17 +653,15 @@ rmdir "\[screen\]/\[detail\]"
 
 (`tenant-screen-dispatcher.tsx` at the old path is removed in Step 7 as part of the commit, so its deletion is recorded with both sides of the move.)
 
-- [ ] **Step 6: Update the registry guard's paths, counts unchanged**
+- [x] **Step 6: Update every guard path, counts unchanged**
 
-In `apps/web/src/modules/__tests__/screen-registry.test.ts`, change only the two `path` strings:
+**Five** strings name the old dispatcher path, not two: `screen-registry.test.ts` has one in `REGISTRIES` *and* one inside the "guards and switches on the resolved key" test (`join(APP_ROOT, …)`), and `module-catalogue.test.ts:12` and `module-nav.test.ts:12` each keep their own copy. Retarget all five to `[slug]/[...segments]/tenant-screen-dispatcher.tsx`. `generic-slug-dispatcher` keeps its path (it does not move). Do **not** touch `specifiers` or `keys` — read them from the file and leave them.
 
-```ts
-path: "src/app/(authenticated)/[slug]/[...segments]/tenant-screen-dispatcher.tsx",
-```
+- [x] **Step 6b: Regenerate the route types before typechecking**
 
-`generic-slug-dispatcher` keeps its path (it does not move). Do **not** touch `specifiers` or `keys` in the working copy — the tree currently reads 78/63 because of the other window's AI Connect row.
+Deleting a route folder leaves `.next/types/validator.ts` pointing at the removed `page.js` modules, and `bun run typecheck` fails with TS2307 on files that no longer exist. The running `next dev` does **not** refresh them. Fix with `cd apps/web && bunx next typegen` (writes only `.next/types`, touches no compiled output, so the other window's server is unaffected) — never `bun run build`, which is what the shared `.next` rule protects.
 
-- [ ] **Step 7: Prove the move changed no counts, then typecheck**
+- [x] **Step 7: Prove the move changed no counts, then typecheck**
 
 ```bash
 cd apps/web
@@ -673,11 +671,11 @@ bun run typecheck && bun test src/modules/__tests__/screen-registry.test.ts
 ```
 Expected: both counts identical to Step 2. `bun test` must pass **against the working copy**, i.e. at the working counts (78/63 today). If the numbers moved, the move is wrong — diff the two dispatcher copies with `diff /tmp/theirs-disp.tsx "src/app/(authenticated)/[slug]/[...segments]/tenant-screen-dispatcher.tsx"` and confirm every difference is inside the Step 5 block.
 
-- [ ] **Step 8: Prove it in the browser, at the URL shape the app serves today**
+- [x] **Step 8: Prove it in the browser, at the URL shape the app serves today**
 
 With the other window's `next dev` already on :3000 (or start one if it is gone: `cd apps/web && bun run dev`), open `http://localhost:3000/loadtest-academy/dashboard`, `/loadtest-academy/academics/classes` and `/loadtest-academy/results-entry`. Use the network log, not rendered text: each returns 200 and the screen's own data requests fire. `/loadtest-academy/2026-2027/academics/classes` still 404s at this stage (no year is recognised yet) — that is expected and fixed in Task 4, so write it down rather than "fixing" it here.
 
-- [ ] **Step 9: Commit through the isolation protocol, naming both sides of the move**
+- [x] **Step 9: Commit through the isolation protocol, naming both sides of the move**
 
 ```bash
 cd /d/per/inkwelly
@@ -692,10 +690,12 @@ git commit -m "refactor(web): collapse the tenant route tree so a year segment c
   "apps/web/src/app/(authenticated)/[slug]/[screen]/loading.tsx" \
   "apps/web/src/app/(authenticated)/[slug]/[screen]/[detail]/page.tsx" \
   "apps/web/src/app/(authenticated)/[slug]/[screen]/tenant-screen-dispatcher.tsx" \
-  apps/web/src/modules/__tests__/screen-registry.test.ts
-git show --stat HEAD
+  apps/web/src/modules/__tests__/screen-registry.test.ts \
+  apps/web/src/modules/__tests__/module-catalogue.test.ts \
+  apps/web/src/modules/__tests__/module-nav.test.ts
+git show --stat -M HEAD
 ```
-Expected: a `rename` line for the dispatcher (similarity ≥ 95 %) and three `delete mode` lines. A large insertion count on the dispatcher means their `ai-connect` lines rode along — undo with `git reset --soft HEAD~1`, rebuild the committed variant, commit again. Afterwards restore their working copies of the dispatcher (at the **new** path, with their lines and your Step 5 block) and of `screen-registry.test.ts` (`cp /tmp/theirs-registry.ts` back, then re-apply only the Step 6 path edit), and report the surviving unstaged delta.
+Expected: a `rename … (97%)` line for the dispatcher (only the prologue differs) and two `delete mode` lines. Also delete `[screen]/tenant-screen-dispatcher.tsx` from the working tree and `rmdir [screen]` **before** staging, otherwise the old copy is neither deleted nor renamed and the move is recorded half-done. A large insertion count on the dispatcher means their lines rode along — undo with `git reset --soft HEAD~1`, rebuild the committed variant, commit again. Afterwards restore their working copies of the dispatcher (at the **new** path, with their lines and your Step 5 block) and of `screen-registry.test.ts` (`cp /tmp/theirs-registry.ts` back, then re-apply only the Step 6 path edit), and report the surviving unstaged delta.
 
 ---
 
@@ -714,7 +714,7 @@ Expected: a `rename` line for the dispatcher (similarity ≥ 95 %) and three `de
   - `useTenantHref(): (tail: string) => string`
   - `useAcademicYears()` unchanged in shape, cache key now `['academic-years', tenantSlug]`.
 
-- [ ] **Step 1: Scope the cache key per tenant**
+- [x] **Step 1: Scope the cache key per tenant**
 
 In `apps/web/src/modules/academics/hooks/use-academic-years.ts` replace the hook body's query key and all four invalidation calls so the list never leaks across schools:
 
@@ -734,7 +734,7 @@ export function useAcademicYears() {
 
 Add the store import at the top (`import { useAppStore } from '@/store/use-app-store';`) and change each of the four `onSuccess` handlers to `queryClient.invalidateQueries({ queryKey: cacheKey })`. Leave the GraphQL documents and the returned object exactly as they are.
 
-- [ ] **Step 2: Write the year context**
+- [x] **Step 2: Write the year context**
 
 Create `apps/web/src/modules/academics/hooks/use-active-academic-year.ts`:
 
@@ -819,7 +819,7 @@ export function useActiveAcademicYear() {
 }
 ```
 
-- [ ] **Step 3: Write the link adapter**
+- [x] **Step 3: Write the link adapter**
 
 Create `apps/web/src/modules/academics/hooks/use-tenant-href.ts`:
 
@@ -848,7 +848,7 @@ export function useTenantHref(): (tail: string) => string {
 }
 ```
 
-- [ ] **Step 4: Make the sidebar resolve through the year**
+- [x] **Step 4: Make the sidebar resolve through the year**
 
 In `apps/web/src/components/layout/app-layout.tsx`, give the module-level resolver the year list and thread it from the component (shared file — snapshot it first per the protocol):
 
@@ -880,14 +880,14 @@ import { useActiveAcademicYear } from '@/modules/academics/hooks/use-active-acad
   }, [pathname, currentUser, currentTenantSlug, yearSlugs]);
 ```
 
-- [ ] **Step 5: Prove the year does not become the active row**
+- [x] **Step 5: Prove the year does not become the active row**
 
 ```bash
 cd apps/web && bun run typecheck && bun test src/lib/__tests__/ src/modules/__tests__/
 ```
 Expected: green. Then in the browser, open `/loadtest-academy/2026-2027/dashboard` **manually typed** and check the network log: the URL 404s today (Task 4 makes it live), so instead prove this task's claim at `/loadtest-academy/dashboard` — the sidebar still highlights Dashboard and `resolvedScreen` in React DevTools is `'dashboard'`, not `'2026'`. The year-aware resolution is only observable after Task 4; record that in the task report rather than claiming it works.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 `use-academic-years.ts` and the two new hooks are usually quiet; `app-layout.tsx` is not — commit Step 4's edits through the protocol:
 
@@ -914,7 +914,7 @@ git show --stat HEAD
 - Consumes: `useActiveAcademicYear()`, `canonicalTenantUrl`, `academicYearUrl`.
 - Produces: `YEAR_FREE_SCREENS` — the screens reachable with no year, currently `new Set(['academic-years'])`.
 
-- [ ] **Step 1: Wire the parser to the real years and add the gate**
+- [x] **Step 1: Wire the parser to the real years and add the gate**
 
 In the moved dispatcher, replace the Task 2 interim `yearSlugs: []` block with the hook and the gate. The gate goes **after** the existing mounted/user guard and **before** the role blocks, so it inherits the "during render" redirect mechanism the file already uses:
 
@@ -998,7 +998,7 @@ and `const searchParams = useSearchParams();` with the other hook calls. `hasPer
 const YEAR_FREE_SCREENS = new Set(['academic-years']);
 ```
 
-- [ ] **Step 2: Teach the remaining in-file redirects about the year**
+- [x] **Step 2: Teach the remaining in-file redirects about the year**
 
 The dispatcher still has seven `redirect(\`/${tid}/dashboard\`)`-style lines (staff denial, per-role defaults, the invalid-screen fail-safe). Replace each with the builder so an internal bounce never costs an extra canonicalisation hop:
 
@@ -1016,7 +1016,7 @@ const dashboardUrl = (tenant: string) =>
 
 then `redirect(dashboardUrl(tid))`. If `activeYearSlug` is `''` (empty-year school) `academicYearUrl` returns the year-free `/[slug]/dashboard`, which is what the `empty` branch wants.
 
-- [ ] **Step 3: `/[slug]` lands on the year-carrying dashboard**
+- [x] **Step 3: `/[slug]` lands on the year-carrying dashboard**
 
 In `generic-slug-dispatcher.tsx`, the two `redirect` lines inside the tenant block (currently `redirect(\`/${slug}/dashboard\`)` and the fail-safe `redirect(fallback ? \`/${fallback}/dashboard\` : "/dashboard")`) become year-aware. Import `useActiveAcademicYear`, `canonicalTenantUrl`, `yearSlugOf`, and note the platform switch must stay reachable without a year:
 
@@ -1039,7 +1039,7 @@ In `generic-slug-dispatcher.tsx`, the two `redirect` lines inside the tenant blo
 
 Use `academicYearUrl` for the auto-correct case because the tail there is empty by construction; the `yearStatus === 'empty'` arms send the admin to the setup screen and leave a non-admin on `/[slug]`, where this file's own fail-safe then bounces them to `/dashboard` and the dispatcher's `empty` branch handles them. Do **not** touch the super-admin `switch (slug)` block — platform routes have no tenant and therefore no year.
 
-- [ ] **Step 4: The setup banner**
+- [x] **Step 4: The setup banner**
 
 In `apps/web/src/modules/academics/academic-years/index.tsx` (shared, dirty — snapshot first), render the banner above the existing list when `status === 'empty'`:
 
@@ -1052,7 +1052,7 @@ In `apps/web/src/modules/academics/academic-years/index.tsx` (shared, dirty — 
 ```
 with `const { status: yearStatus } = useActiveAcademicYear();` at the top of the component.
 
-- [ ] **Step 5: Prove the four gate branches in the browser, with the network log**
+- [x] **Step 5: Prove the four gate branches in the browser, with the network log**
 
 Against `next dev` on :3000, for the seeded school (`loadtest-academy`, one year `2026-2027`):
 
@@ -1064,7 +1064,7 @@ Then in the browser: type `/loadtest-academy/2024-2025/exams` and confirm the ad
 
 For the two `empty` arms, a year-less tenant is needed. Rather than create one through the UI, fake the response: in DevTools → Network, block `/api/academic-years` (or override it to return `{ years: [] }`) on the seeded school and reload as an admin — expect one hop to `/loadtest-academy/academic-years` and the amber banner; then sign in as the seeded teacher/student/parent and expect the `NoAcademicYearNotice` and **no** redirect (this is the loop guard, so watch the address bar stay put). Unblock afterwards. Verify each with the network log, not the rendered text alone: a blocked request that yields a silent empty state looks identical to the notice.
 
-- [ ] **Step 6: Full web verification and commit**
+- [x] **Step 6: Full web verification and commit**
 
 ```bash
 cd apps/web && bun run typecheck && bun test src/lib/__tests__/ src/modules/__tests__/
@@ -1091,7 +1091,7 @@ Report the surviving unstaged delta.
 - Consumes: `useActiveAcademicYear()` (`status`, `years`, `year`, `setActiveYear`).
 - Produces: nothing later tasks depend on.
 
-- [ ] **Step 1: Snapshot, then re-read the chip you are sitting next to**
+- [x] **Step 1: Snapshot, then re-read the chip you are sitting next to**
 
 ```bash
 cd /d/per/inkwelly && cp apps/web/src/components/layout/header.tsx /tmp/theirs-header.tsx
@@ -1099,7 +1099,7 @@ grep -n "Date Display Chip" -A 22 apps/web/src/components/layout/header.tsx
 ```
 The chip's container class string is what the year chip must reuse; the file's own `cn(...)` and `shouldShowDashboard`/`effectiveIsMinimal` variables are already in scope at that point.
 
-- [ ] **Step 2: Add the chip after the date chip**
+- [x] **Step 2: Add the chip after the date chip**
 
 Insert immediately after the closing `</div>` of the Date Display Chip block, reusing that block's class string verbatim and swapping the label content:
 
@@ -1144,11 +1144,11 @@ Add to the component body with the other hook calls:
 
 and imports: `import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";` and `import { yearSlugOf } from "@/lib/routing/academic-year-url";`. `Calendar`, `ChevronDown`, `cn`, `DropdownMenu*` and `useRouter` are already imported in this file — verify with `grep -n "ChevronDown" apps/web/src/components/layout/header.tsx` rather than assuming.
 
-- [ ] **Step 3: Prove it changes the URL and nothing else**
+- [x] **Step 3: Prove it changes the URL and nothing else**
 
 In the browser on a tenant screen, open the chip and pick the other year. Confirm in the address bar that **only** segment 1 changed (e.g. `/loadtest-academy/2026-2027/exams?tab=published` → `/loadtest-academy/2025-2026/exams?tab=published`), that `useRouter().replace` was used (no new history entry: press Back and confirm you return to the *previous screen*, not the previous year), and that the screen's data refetches for the new year. Also confirm the chip is absent on `/loadtest-academy/academic-years`.
 
-- [ ] **Step 4: Typecheck, then commit through the protocol**
+- [x] **Step 4: Typecheck, then commit through the protocol**
 
 ```bash
 cd apps/web && bun run typecheck
@@ -1169,7 +1169,7 @@ The last `cp` is the "restore their working copy" step and must be followed by r
 - Consumes: `useTenantHref()` (Task 3), `academicYearUrl` / `canonicalTenantUrl` (Task 1).
 - Produces: a guard test the rest of the plan (and future work) is checked against.
 
-- [ ] **Step 1: Write the guard so the sweep has a finish line**
+- [x] **Step 1: Write the guard so the sweep has a finish line**
 
 Create `apps/web/src/modules/__tests__/year-carrying-links.test.ts`:
 
@@ -1243,7 +1243,7 @@ describe("every tenant link carries the academic year", () => {
 
 Run it now: `cd apps/web && bun test src/modules/__tests__/year-carrying-links.test.ts` — it must fail, listing the sites below. That list **is** the work queue; if it differs from the table, trust the test.
 
-- [ ] **Step 2: Convert the seven shared helpers first**
+- [x] **Step 2: Convert the seven shared helpers first**
 
 Each becomes a `tenantHref(tail)` call. `useTenantHref` supplies slug and year, so the helpers lose their tenant plumbing but keep their side effects:
 
@@ -1282,7 +1282,7 @@ cd apps/web/src/modules && grep -n "push(\`/\${" dashboard/components/adminDashb
 ```
 In each, replace `push(\`/${tid}/${screen}\`)` with `push(tenantHref(screen))` (adding `const tenantHref = useTenantHref();` beside the other hooks) and delete the now-unused `const tid = …` line **only if** nothing else in that function uses it.
 
-- [ ] **Step 3: Convert the inline screen-site literals**
+- [x] **Step 3: Convert the inline screen-site literals**
 
 The mechanical rule at every site: keep the tail exactly as it was, drop the `/${tenant}` prefix, wrap in `tenantHref(...)`. Query strings and encoded details stay inside the tail.
 
@@ -1309,18 +1309,18 @@ The mechanical rule at every site: keep the tail exactly as it was, drop the `/$
 
 Add `import { useTenantHref } from '@/modules/academics/hooks/use-tenant-href';` and one `const tenantHref = useTenantHref();` per converted component. Where a file has several sites, one hook call covers them. **Re-read each line before editing** — the other window shifts line numbers.
 
-- [ ] **Step 4: Run the guard and the suite**
+- [x] **Step 4: Run the guard and the suite**
 
 ```bash
 cd apps/web && bun test src/modules/__tests__/year-carrying-links.test.ts && bun run typecheck
 ```
 Expected: the guard passes. Trim `ALLOWLIST` entries whose literal you actually removed; an allowlist line that matches nothing should be deleted, not kept "just in case".
 
-- [ ] **Step 5: Prove three of them in the browser**
+- [x] **Step 5: Prove three of them in the browser**
 
 Classes → "view students" (`?classId=` must survive with the year in front); Exams screen → a results-entry row (`?examId=&classId=`); a parent account → Fees → `subscription`. For each, the address bar must contain the year after exactly one navigation with no redirect hop — check the network log for a single 200 document, not a 307 then 200.
 
-- [ ] **Step 6: Commit in two slices**
+- [x] **Step 6: Commit in two slices**
 
 ```bash
 git commit -m "feat(web): shared navigation helpers carry the academic year" -- \
@@ -1367,7 +1367,7 @@ git show --stat HEAD~1 HEAD
 - Consumes: `useActiveAcademicYear()`.
 - Produces: `POST /api/students` accepting `academicYear` (a name the tenant owns); a created student row whose `academicYear` equals the URL segment.
 
-- [ ] **Step 1: Point each screen at the hook**
+- [x] **Step 1: Point each screen at the hook**
 
 Each file below currently derives a year the same wrong way — `academicYears.find(y => y.isCurrent)?.name || '<literal>'` or a local `useState` seeded from the list. Replace the derivation with the hook and keep every downstream variable name, so no child component's props change:
 
@@ -1386,7 +1386,7 @@ cd apps/web/src/modules && grep -rn "isCurrent" assessment examinations student-
 | `students/promotions/index.tsx:44,198` | `currentAcademicYear` from the list | `year?.name` for the form; keep the `'all'` **filter** |
 | the remaining `CreateExamWizard.tsx`, `EditExamDialog.tsx`, `ExamDialogs.tsx`, `wizard/Step1BasicDetails.tsx`, `PublishedResultsView.tsx`, `examinations/exams/index.tsx`, `studentMyGrades/grades-header.tsx`, `structures/AddFeeStructureDialog.tsx` | receive years/selected year as props | unchanged: their parent now supplies the URL year, so no edit is needed **unless** the file itself calls `useAcademicYears()` — check with `grep -n "useAcademicYears()" <file>` and convert those two lines only |
 
-- [ ] **Step 2: Remove the two redundant pickers**
+- [x] **Step 2: Remove the two redundant pickers**
 
 `assessment/components/adminExams/ExamsHeader.tsx` and the year `<Select>` in `student-fees/fees/adminFees/SetFeesTab.tsx` (and `structures/AddFeeStructureDialog.tsx`, which mirrors it) now duplicate the header chip and the URL. Delete the control and its `onValueChange` wiring; where the dialog used `form.academicYear` from the select, it now reads `year?.name` from the hook and the field stays hidden — do not leave a disabled `<Select>` behind. Then grep for orphans:
 
@@ -1397,7 +1397,7 @@ Expected: no matches, or only a `yearFilter === 'all'` comparison.
 
 `students/promotions/index.tsx` keeps its year filter select — `promotions.routes.ts:30` explicitly supports `academicYear !== 'all'`, so "All years" is a legitimate in-screen filter while writes still use the URL year.
 
-- [ ] **Step 3: Write the failing server test for the student stamp**
+- [x] **Step 3: Write the failing server test for the student stamp**
 
 Create `apps/server/src/modules/students/student-create-year.test.ts`:
 
@@ -1426,7 +1426,7 @@ describe("student create honours the requested academic year", () => {
 
 Run: `cd apps/server && bun test src/modules/students/student-create-year.test.ts` → fails, module missing.
 
-- [ ] **Step 4: Add the guard and thread the year through create**
+- [x] **Step 4: Add the guard and thread the year through create**
 
 Create `apps/server/src/modules/students/student.create.guards.ts`:
 
@@ -1478,7 +1478,7 @@ and in the insert (`const [student] = await tx.insert(schema.students).values({�
   }
 ```
 
-- [ ] **Step 5: Send the year from the web create form**
+- [x] **Step 5: Send the year from the web create form**
 
 In `apps/web/src/modules/students/students/index.tsx`, add the hook beside the others and extend the payload at line ~354:
 
@@ -1504,11 +1504,11 @@ Then block the create entry point rather than relying on the server's current-ye
 
 **Why this is worth one line:** `students.academicYear` has a schema default of `'2024-2025'` (`schema.ts:102`), and the server guard falls back to the tenant's current year when the field is absent. Either way a save still succeeds — it just lands under a year nobody chose. Disabling the opener turns that silent misfile into a visible precondition, and it stays inside a file Task 7 already commits, so `StudentDialog.tsx` is not touched.
 
-- [ ] **Step 6: Verify the four stamped writes**
+- [x] **Step 6: Verify the four stamped writes**
 
 `cd apps/server && bun test && bun run typecheck && bun run lint`, then `cd apps/web && bun run typecheck && bun test src/lib/__tests__/ src/modules/__tests__/`. In the browser, on `/loadtest-academy/2025-2026/academics/academic-years`, create the year `2025-2026` if it is missing, switch to it with the chip, then: create a student, create an exam, add a fee structure, create a promotion. For each, read the **request body** in the network log and confirm `academicYear` is `2025-2026` — not `2026-2027`, not the schema default. Then reload the screen and confirm the new row appears under that year and disappears under the other.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git commit -m "feat(web): screens read the academic year from the URL instead of guessing it" -- \
@@ -1544,7 +1544,7 @@ Any file the Step 1 table marks "unchanged" must not appear in the pathspec. `ac
 - Consumes: `schema.academicYears`, Drizzle `db.transaction`.
 - Produces: `defaultYearNames(now?: Date): { name: string; startDate: string; endDate: string }` and `ensureYearsForTenants(): Promise<{ created: number; tenants: number[] }>` — importable by the test and by the script's `main`.
 
-- [ ] **Step 1: Write the failing test for the default year**
+- [x] **Step 1: Write the failing test for the default year**
 
 Create `apps/server/src/db/backfill_academic_years.test.ts`:
 
@@ -1576,7 +1576,7 @@ describe("defaultYearNames", () => {
 
 Run: `cd apps/server && bun test src/db/backfill_academic_years.test.ts` → fails, module missing.
 
-- [ ] **Step 2: Write the shared default and the backfill**
+- [x] **Step 2: Write the shared default and the backfill**
 
 Create `apps/server/src/db/backfill_academic_years.ts`:
 
@@ -1628,7 +1628,7 @@ if (import.meta.main) {
 ```
 Check the seed files for the real import specifiers before writing (`grep -n "^import" apps/server/src/db/full_seed_data.ts`), and drop `and`/`eq` if the final version does not use them — `bun run lint` will tell you.
 
-- [ ] **Step 3: Run it against the local database**
+- [x] **Step 3: Run it against the local database**
 
 Add to `apps/server/package.json` scripts: `"db:backfill:years": "bun run src/db/backfill_academic_years.ts"`. Then:
 
@@ -1637,7 +1637,7 @@ cd apps/server && bun run db:backfill:years && bun run db:backfill:years
 ```
 Expected: the first run reports a count ≥ 0, the second reports `0 tenant(s)` — idempotent. Requires Docker Desktop running; a ~5000 ms route-resolution timeout means it is paused, not that the code broke.
 
-- [ ] **Step 4: Give a new tenant its year inside the same transaction**
+- [x] **Step 4: Give a new tenant its year inside the same transaction**
 
 `apps/server/src/modules/support/common.resolvers.ts` — `createTenant` currently does `const [tenant] = await db.insert(schema.tenants).values({…}).returning();`. Wrap that insert plus the year insert in `db.transaction`, using `defaultYearNames()` imported from `../../db/backfill_academic_years` (verify the relative path with `grep -rn "from '\.\./\.\./db" apps/server/src/modules/support/ | head -3`):
 
@@ -1659,11 +1659,11 @@ Expected: the first run reports a count ≥ 0, the second reports `0 tenant(s)` 
 
 `apps/server/src/modules/tenancy/tenants.routes.ts` `POST /` — the same shape around its `db.insert(schema.tenants).values({ name: b.name, slug: b.slug, logo: logoUrl, … })`. Keep the audit-log call after the transaction, exactly where it is now.
 
-- [ ] **Step 5: Prove a brand-new school opens straight into a year**
+- [x] **Step 5: Prove a brand-new school opens straight into a year**
 
 Through the super-admin UI, create a tenant. Then as its first admin, sign in and confirm the address bar is `/<new-slug>/<year>/dashboard` with **no** bounce through `/academic-years`, and that the chip is present. Then delete only that tenant's `AcademicYear` rows in `bun run db:studio` and re-check the admin sees the setup banner from Task 4.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd apps/server && bun run typecheck && bun run lint && bun test
@@ -1690,7 +1690,7 @@ git show --stat HEAD
 - Consumes: the module-level `db` from `../../lib/db` and `schema.students` / `schema.feeStructures` / `schema.promotions` / `schema.exams` / `schema.fees`. Verified at HEAD: all five exist with those exact export names (`schema.ts:96, 314, 616, 677, 267`); the first four each carry a not-null `academicYear` **text column holding the year name**; `fees` has **no** `academicYear` column — its year lives inside `dueDate` (`schema.ts:275`).
 - Produces: `yearUsageCounts(tenantId, name)` → `Record<UsageTable, number>`, and the message prefix `YEAR_IN_USE:` on the thrown error.
 
-- [ ] **Step 1: Write the failing guard test**
+- [x] **Step 1: Write the failing guard test**
 
 Create `apps/server/src/modules/academics/academic.year-in-use.test.ts`:
 
@@ -1721,7 +1721,7 @@ Neither case queries the database. Verified on this machine: `bun -e "import('./
 
 Run: `cd apps/server && bun test src/modules/academics/academic.year-in-use.test.ts` → fails, module missing.
 
-- [ ] **Step 2: Extract the usage probe**
+- [x] **Step 2: Extract the usage probe**
 
 Create `apps/server/src/modules/academics/academic.year-usage.ts`. Typed Drizzle, no raw SQL, no `db: any` parameter — `academic.resolvers.ts:1-3` already imports `db` and `* as schema` at module scope, and `class.service.ts:7` shows `count` is the house aggregate:
 
@@ -1771,7 +1771,7 @@ export async function yearUsageCounts(tenantId: string, name: string): Promise<R
 
 If `typecheck` complains that Drizzle cannot infer `table.tenantId` across the union of four tables, keep the four `.map` arms but write them out as four explicit `db.select(...)` calls instead of looping — do **not** reach for `as any`.
 
-- [ ] **Step 3: Refuse the rename in `updateAcademicYear`**
+- [x] **Step 3: Refuse the rename in `updateAcademicYear`**
 
 `academic.resolvers.ts:714-728`. Today it is `requireModule` → `db.transaction` → `if (!year) throw new Error('Academic year not found')`. Insert the guard **between** `requireModule` and the transaction so no partial write happens and a rename of a nonexistent id still reports not-found:
 
@@ -1797,7 +1797,7 @@ Verified: `GraphQLError` appears nowhere in `academic.resolvers.ts` and every fa
 
 Leave the rest of the resolver alone: date/status/`isCurrent` edits still go through the transaction and only the name is blocked. `deleteAcademicYear` (line 730) is **not** touched in this plan (spec §7) — the four columns are plain text, so no FK would catch a delete, and the question is data retention, which is Spec 2's.
 
-- [ ] **Step 4: Surface it in the edit dialog**
+- [x] **Step 4: Surface it in the edit dialog**
 
 In `apps/web/src/modules/academics/academic-years/index.tsx` (shared, dirty — protocol first), where the update mutation is awaited, show the server message inline instead of a generic toast:
 
@@ -1810,11 +1810,11 @@ In `apps/web/src/modules/academics/academic-years/index.tsx` (shared, dirty — 
 ```
 with `const [renameError, setRenameError] = useState<string | null>(null);`, `{renameError && <p className="text-xs text-red-600 dark:text-red-400">{renameError}</p>}` inside the dialog, and `setRenameError(null)` on open. If the file already has an error state for this dialog, reuse it rather than adding a second one — read the file first.
 
-- [ ] **Step 5: Prove both arms**
+- [x] **Step 5: Prove both arms**
 
 Server: `cd apps/server && bun test && bun run typecheck && bun run lint`. Browser: on the seeded school, try to rename `2026-2027` (which has students, exams, fees from `full_seed_data.ts`) → the dialog shows the count message and the row keeps its name. Change only its end date → saves. On a school with a brand-new empty year (Task 8's default, before any data), rename it → succeeds.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git commit -m "feat(server): an academic year with data attached cannot be renamed" -- \
@@ -1831,7 +1831,7 @@ git show --stat HEAD
 
 **Files:** none modified (except anything a failure proves wrong).
 
-- [ ] **Step 1: Both apps green**
+- [x] **Step 1: Both apps green**
 
 ```bash
 cd apps/web && bun run typecheck && bun test src/lib/__tests__/ src/modules/__tests__/
@@ -1839,14 +1839,14 @@ cd apps/server && bun run typecheck && bun run lint && bun test
 ```
 Expected: web and server suites green, including `screen-registry.test.ts` at the working counts and the new `year-carrying-links.test.ts`.
 
-- [ ] **Step 2: Route-resolution proof on the server**
+- [x] **Step 2: Route-resolution proof on the server**
 
 ```bash
 cd apps/server && bun test src/route-resolution.test.ts
 ```
 Expected: pass — no SDL or mount moved in this plan.
 
-- [ ] **Step 3: The URL matrix, each with the network log**
+- [x] **Step 3: The URL matrix, each with the network log**
 
 For `loadtest-academy` on :3000, from a signed-in admin, and recorded as a table in the task report:
 
@@ -1856,7 +1856,7 @@ For `loadtest-academy` on :3000, from a signed-in admin, and recorded as a table
 | `/loadtest-academy/results-entry` (bookmark) | `/<slug>/<year>/results-entry`, one hop, Results Entry renders |
 | `/loadtest-academy/academics/classes` (qualified bookmark) | `/<slug>/<year>/academics/classes`, Classes renders |
 | `/loadtest-academy/2026-2027/academics/classes` | renders, no redirect |
-| `/loadtest-academy/2024-2025/exams` (unknown year) | `/<slug>/<year>/exams` |
+| `/loadtest-academy/2024-2025/exams` (unknown year) | ~~`/<slug>/<year>/exams`~~ **observed `/<slug>/<year>/dashboard`** — this row contradicted spec §3 case 3; see Execution notes 1 |
 | `/loadtest-academy/2026-2027` | `/<slug>/<year>/dashboard` |
 | `/loadtest-academy/academic-years` | renders, chip hidden, banner only when empty |
 | `/loadtest-academy/2026-2027/students?classId=C-9` | renders with the class pre-filtered |
@@ -1868,10 +1868,65 @@ A silent 404 looks exactly like a healthy empty state, so check the response cod
 
 Sign in as one non-admin role and confirm: the year segment is present, the chip renders and switching works, and no `STAFF_FORBIDDEN_SCREENS` behaviour regressed (the staff denial still lands on `/<slug>/<year>/dashboard`).
 
-- [ ] **Step 5: Report, and name the collisions**
+- [x] **Step 5: Report, and name the collisions**
 
 Write the report as: what changed, the four verification commands with their real output, the URL matrix, and — explicitly — any file that was dirty when you touched it and the surviving unstaged delta. Nothing gets claimed without its command and output.
 
 - [ ] **Step 6: Hand to superpowers:finishing-a-development-branch**
 
 It decides merge/PR/cleanup, and it is the only place a push could be proposed — this repo's rule is local commits only, so say so before any push is offered.
+
+---
+
+## Execution notes (written while executing, not planned)
+
+Things where the code, the data, or the environment disagreed with this plan. Each is
+recorded with what was actually observed so the next reader does not re-chase it.
+
+1. **Task 10 Step 3's "unknown year" row contradicted spec §3, and the spec won.** The row
+   expected `/slug/2024-2025/exams` to be repaired to `/slug/<active year>/exams`. Spec §3
+   case 3 says an unrecognised segment at index 1 is parsed as the *screen*, and Task 2's own
+   unit test (`module-routes` "an unrecognised segment at index 1 is a screen, not a year")
+   locks that in. So `2024-2025` becomes the screen name, no `case` matches it, and the
+   dispatcher's `default:` sends the user to `/<slug>/<active year>/dashboard`. Observed on
+   `demo-academy`. Not a defect — a wrong expectation in this table, now annotated.
+   Consequence worth knowing: after a year is renamed or deleted, deep links carrying the old
+   year land on the dashboard instead of the screen they named. Task 9's rename block makes
+   that much rarer, and Spec 2 can revisit repairing the tail.
+2. **Only some screens are actually year-scoped for reading.** The chip switch was proven on
+   Student Fees: `/demo-academy/2025-2026/fees` → 2 structures; switch to a second (empty)
+   year → `0 structures found`, Total Structures ₹0, year filter auto-follows the URL; switch
+   back → 2 rows again. The *Active Exams* tab is not year-filtered at all
+   (`useActiveExamsData.ts:191` filters on status and search only), so Step 3's "switch on
+   Exams and watch the list change" cannot pass as written; the year-scoped exam surface is
+   Published Results. The Students screen reads the URL year for the **write** path only
+   (`students/index.tsx:364`) — the roster list is not year-filtered.
+3. **Task 9 needed the GraphQL error mask widened.** `apps/server/src/graphql/route.ts`
+   replaces every thrown error with `Unexpected error.`, so a plain
+   `new Error('YEAR_IN_USE: …')` never reached the browser. The allowlist is now
+   `CLIENT_READABLE_CODES = { FORBIDDEN, UNAUTHENTICATED, YEAR_IN_USE }` and the resolver
+   throws a `GraphQLError` with `extensions.code`. Without this the UI can only say "failed".
+4. **Task 9's usage query is five hand-written arms, not a loop.** The plan assumed every
+   year-bearing table has `tenantId`. `students` and `feeStructures` do not — they reach the
+   school through `users` and `feeCategories` — and `fees` has no `academicYear` column at
+   all, so it is matched with `like(dueDate, '<name>-%')`. Typecheck caught all three.
+5. **Task 8 Step 5 was proved through the resolver, not the super-admin UI.** `createTenant`
+   was run with a forged root context against the live database (tenant created, year created,
+   re-run created 0). The REST `POST /tenants` path shares the same helper but is only
+   typechecked — a real call needs a super-admin bearer token this session does not have.
+6. **Task 4's amber "no academic year" notice is unverified.** Reaching the `notice` arm needs
+   a role that lacks `academic-years` view; every account available was an admin.
+7. **Task 10 Step 4 (staff/teacher/student/parent) was not run.** No non-admin credentials
+   exist in the repo and the session holds only a school-admin login.
+8. **`?classId=` survival was proved by clicking, not by typing.** From the Classes screen,
+   "View Students" produced `/demo-academy/2025-2026/students?classId=<id>` with the class
+   filter applied (Grade 1-A, 15 rows) and the chip still showing `2025-2026`.
+9. **`rscNavs` (counting `_rsc` resource entries) is not a reliable hop counter** in a hidden
+   tab; treat the address bar plus the emitted `Location` as the evidence.
+10. **Data finding for Spec 2:** students are stamped with years no `AcademicYear` row owns —
+    `demo-academy` 401 students @ `2024-2025`, `loadtest-academy` 5000 @ `2025-2026` (the old
+    schema default). The URL year is now authoritative on write, so the backlog is reachable.
+11. **Environment:** verification ran against the other window's `next dev` on :3000. Two
+    fixture years (one for the rename probe, one for the chip-switch probe) were created and
+    both deleted; `demo-academy` is verified back to exactly one year (`2025-2026`, current).
+
