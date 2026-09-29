@@ -5,24 +5,17 @@ import { useAppStore } from "@/store/use-app-store";
 import { cn } from "@/lib/utils";
 import {
   findModuleForScreen,
-  getDefaultScreen,
   type ModuleNavItem,
 } from "./module-nav-config";
-import { qualifyAdminTail } from "./screen-owners";
 import { ModuleRail } from "./ModuleRail";
 import { ModulePanel } from "./ModulePanel";
 
 const COLLAPSED_STORAGE_KEY = "inkwelly_module_sidebar_collapsed";
 
-/**
- * The tail a rail click sends you to, qualified against the module being *entered*
- * rather than the one the URL is still on: Transport's landing screen is also a row
- * of the Student Fees panel, so qualifying it against the current module would keep
- * `student-fees` in the address bar and light up the wrong panel.
- */
-function landingTail(module: ModuleNavItem): string {
-  return qualifyAdminTail(getDefaultScreen(module), module.key);
-}
+// A rail's tail is its own key: the module root *is* its landing screen, so
+// `/academics` opens the Academics command center and no redirect is needed to
+// get there. It is also unambiguous across modules — `transport` and
+// `student-fees` are different roots even though they share a landing screen.
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -119,14 +112,14 @@ export function ModuleSidebar({
         // If the module is a single direct item, navigate right away.
         const totalItems = module.sections.flatMap((s) => s.items).length;
         if (totalItems === 1) {
-          navigateTo(landingTail(module));
+          navigateTo(module.key);
           setSidebarOpen(false);
         }
         return;
       }
 
       if (collapsed) toggleCollapsed();
-      navigateTo(landingTail(module));
+      navigateTo(module.key);
     },
     [isMobile, collapsed, toggleCollapsed, navigateTo, setSidebarOpen]
   );

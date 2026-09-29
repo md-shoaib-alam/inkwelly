@@ -12,6 +12,7 @@ import {
   getDefaultScreen,
   isAdminModuleScreen,
 } from "@/components/layout/sidebar/module-nav-config";
+import { qualifyAdminTail } from "@/components/layout/sidebar/screen-owners";
 import { componentKey, parseRoute } from "@/lib/routing/module-routes";
 
 const APP_ROOT = resolve(import.meta.dir, "..", "..", "..");
@@ -64,6 +65,23 @@ describe("module roots", () => {
     for (const item of buildAdminRail()) {
       expect(resolveAdminRoute(null, item.key).screen).toBe(getDefaultScreen(item));
     }
+  });
+
+  test("the link builder never rewrites a rail name, wherever the click comes from", () => {
+    // `module-sidebar` hands `module.key` to the tail builder, so the address bar only
+    // reads `/slug/2026-27/academics` if `qualifyAdminTail` leaves a module id alone.
+    // Checked against every other module as the *current* one: a name that is also
+    // somebody's panel row would qualify to `that-module/academics` and light the
+    // wrong panel.
+    const ids = buildAdminRail().map((m) => m.key);
+    const rewritten: string[] = [];
+    for (const id of ids) {
+      for (const ofModule of [null, ...ids]) {
+        const tail = qualifyAdminTail(id, ofModule);
+        if (tail !== id) rewritten.push(`${id} from /${ofModule ?? "-"} -> ${tail}`);
+      }
+    }
+    expect(rewritten).toEqual([]);
   });
 });
 
