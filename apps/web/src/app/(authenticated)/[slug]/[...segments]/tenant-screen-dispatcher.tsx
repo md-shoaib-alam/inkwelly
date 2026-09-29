@@ -62,6 +62,7 @@ const AdminPromotions = dynamic(() => import('@/modules/students/promotions').th
 const StudentsBulkPromote = dynamic(() => import('@/modules/students/bulk-promote').then(m => m.StudentsBulkPromote), { loading: LoadingScreen });
 const StudentsGraduated = dynamic(() => import('@/modules/students/graduated').then(m => m.StudentsGraduated), { loading: LoadingScreen });
 const AdminCertificates = dynamic(() => import('@/modules/students/certificates').then(m => m.AdminCertificates), { loading: LoadingScreen });
+const ClassRoster = dynamic(() => import('@/modules/students/classes').then(m => m.ClassRoster), { loading: LoadingScreen });
 const AdminLeaves = dynamic(() => import('@/modules/leaves/student-leaves').then(m => m.AdminLeaves), { loading: LoadingScreen });
 const StaffAttendance = dynamic(() => import('@/modules/employee-attendance/teacher-attendance').then(m => m.StaffAttendance), { loading: LoadingScreen });
 const EmployeeStaffAttendance = dynamic(() => import('@/modules/employee-attendance/staff-attendance').then(m => m.EmployeeStaffAttendance), { loading: LoadingScreen });
@@ -337,6 +338,7 @@ export default function TenantScreenDispatcherClient() {
       case 'teachers': return <AdminTeachers />;
       case 'parents': return <AdminParents />;
       case 'classes': return <AdminClasses />;
+      case 'class-roster': return <ClassRoster />;
       case 'subjects': return <AdminSubjects />;
       case 'attendance': return <AdminAttendance />;
       case 'fees':

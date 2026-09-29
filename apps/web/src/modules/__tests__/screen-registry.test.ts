@@ -25,14 +25,16 @@ function resolvesToAFile(specifier: string): boolean {
 // for the Academics command center, and 64 -> 65 keys for `session`, the Academics panel row's
 // own key next to the legacy `academic-years` alias, and 19 -> 20 on 2026-09-29 for the `module`
 // launcher key (the tenant file renamed rather than grew; the generic one keeps a `dashboard`
-// case purely to redirect the retired URL). Changing one of these numbers
+// case purely to redirect the retired URL), and 79/65 -> 80/66 the same day for the Students
+// class roster, the first screen to use a `students/classes` key that COMPONENT_OVERRIDES had
+// been reserving since it was written. Changing one of these numbers
 // must be a deliberate act in a task step, never a side effect of a rewrite.
 const REGISTRIES = [
   {
     name: "tenant-screen-dispatcher",
     path: "src/app/(authenticated)/[slug]/[...segments]/tenant-screen-dispatcher.tsx",
-    specifiers: 79,
-    keys: 65,
+    specifiers: 80,
+    keys: 66,
   },
   {
     name: "generic-slug-dispatcher",
