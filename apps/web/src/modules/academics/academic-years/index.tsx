@@ -69,6 +69,7 @@ export function AcademicYearsScreen() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingYear, setEditingYear] = useState<any>(null);
+  const [renameError, setRenameError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -103,6 +104,7 @@ export function AcademicYearsScreen() {
         isCurrent: false
       });
     }
+    setRenameError(null);
     setIsDialogOpen(true);
   };
 
@@ -126,6 +128,11 @@ export function AcademicYearsScreen() {
       }
       setIsDialogOpen(false);
     } catch (error) {
+      const err = error as { message?: string };
+      if (err?.message?.includes("YEAR_IN_USE")) {
+        setRenameError(err.message.replace(/^.*YEAR_IN_USE:\s*/, ""));
+        return;
+      }
       toast.error("Failed to save academic year");
     }
   };
@@ -251,6 +258,7 @@ export function AcademicYearsScreen() {
                   />
                 </div>
               </div>
+              {renameError && <p className="text-xs text-red-600 dark:text-red-400">{renameError}</p>}
               <DialogFooter className="pt-3">
                 <Button 
                   type="submit" 
