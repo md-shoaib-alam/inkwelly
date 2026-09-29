@@ -128,9 +128,9 @@ describe("the dashboard grid categorises modules", () => {
     expect(orphaned).toEqual([]);
   });
 
-  test("the grid renders the 39 top-level cards, 14 of them live", () => {
-    // 48 catalogue cards less the 9 that name a parent; 25 of the 39 are "Soon".
-    expect(gridModuleCards.length).toBe(39);
-    expect(gridModuleCards.filter((c) => c.screen !== null).length).toBe(14);
+  test("the grid renders the 40 top-level cards, 15 of them live", () => {
+    // 48 catalogue cards less the 8 that name a parent; 25 of the 40 are "Soon".
+    expect(gridModuleCards.length).toBe(40);
+    expect(gridModuleCards.filter((c) => c.screen !== null).length).toBe(15);
   });
 });

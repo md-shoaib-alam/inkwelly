@@ -81,13 +81,25 @@ describe("academics", () => {
   // task's uncommitted work in it. Moving it renames the folder AND deletes the
   // `case 'academic-years'` fallback the staff accordion and the year gate still use.
   test("every academics row lives under modules/academics/<row>/", () => {
-    for (const row of ["academics-dashboard", "classes", "subjects", "academic-years", "timetable", "calendar", "school-settings"]) {
+    for (const row of ["academics-dashboard", "classes", "subjects", "academic-years", "timetable", "school-settings"]) {
       expect(rowHasScreen("academics", row)).toBe(true);
     }
   });
 });
 
-// The 36 live rows that have a folder, read off adminPanelSections and cross-checked
+describe("events", () => {
+  // The mirror image of the exception above. `calendar` left the Academics panel when
+  // Events became a rail module, but its screen stayed at modules/academics/calendar/.
+  // Moving the folder means editing the dispatcher's import line, which the off-session
+  // task already has open. The row is live either way -- `case 'calendar'` mounts it --
+  // so this records where the file really is instead of asserting a tidy lie.
+  test("its one live row is still filed under academics", () => {
+    expect(rowHasScreen("academics", "calendar")).toBe(true);
+    expect(rowHasScreen("events", "calendar")).toBe(false);
+  });
+});
+
+// The 35 live rows that have a folder, read off adminPanelSections and cross-checked
 // against the dispatcher's case keys. A row whose bare key is shared with a sibling module is
 // NOT here -- see the deferral list two tests down. A new row that can be addressed today must
 // appear here AND as a folder.
@@ -96,7 +108,7 @@ const LIVE_ROWS: [string, string][] = [
   ["iam", "permissions-catalog"],
   ["academics", "academics-dashboard"],
   ["academics", "academic-years"], ["academics", "classes"], ["academics", "subjects"],
-  ["academics", "timetable"], ["academics", "calendar"], ["academics", "school-settings"],
+  ["academics", "timetable"], ["academics", "school-settings"],
   ["ai-connect", "ai-connect"],
   ["students", "students"], ["students", "promotions"], ["students", "bulk-promote"],
   ["students", "graduated"], ["students", "certificates"], ["students", "classes"],
@@ -112,12 +124,12 @@ const LIVE_ROWS: [string, string][] = [
 ];
 
 describe("the module-keyed convention", () => {
-  test("36 of the 54 live rows have their own folder", () => {
-    expect(LIVE_ROWS.length).toBe(36);
+  test("35 of the 54 live rows have their own folder", () => {
+    expect(LIVE_ROWS.length).toBe(35);
     for (const [module, row] of LIVE_ROWS) expect(rowHasScreen(module, row)).toBe(true);
   });
 
-  test("the other 18 of the 54 live rows are 9 collapses and 9 deferrals", () => {
+  test("the other 19 of the 54 live rows are 9 collapses, 9 deferrals and 1 move", () => {
     // Collapsed onto a sibling folder in the same module, because their cases are stacked
     // fall-throughs with identical props:
     //   student-fees/fees <- fee-categories, fee-concessions, check-payments, make-payment,
@@ -142,10 +154,11 @@ describe("the module-keyed convention", () => {
       expect(rowHasScreen(module, row)).toBe(false);
     }
 
-    // 36 folders (33 built by this plan + AI Connect, the Academics command center and the
-    // Students class roster) + 9 collapsed + 9 deferred = 54 live rows, counted off
+    // 35 folders (32 built by this plan + AI Connect, the Academics command center and the
+    // Students class roster) + 9 collapsed + 9 deferred + 1 row that moved panels but not
+    // folders (events/calendar, asserted above) = 54 live rows, counted off
     // adminPanelSections on 2026-09-29.
-    expect(36 + 9 + 9).toBe(54);
+    expect(35 + 9 + 9 + 1).toBe(54);
   });
 
   test("no admin screen is still filed by domain", () => {

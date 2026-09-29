@@ -160,7 +160,7 @@ export const moduleCatalogue: ModuleCard[] = [
   { id: "lesson-plan", title: "Lesson Plan", subtitle: "Curriculum & pacing", icon: CalendarDays, tint: "emerald", screen: null },
   { id: "letterhead", title: "Letterhead", subtitle: "Official letters & certificates", icon: FileText, tint: "green", screen: null },
   { id: "id-cards", title: "ID Cards", subtitle: "Design & issue", icon: IdCard, tint: "blue", screen: null },
-  { id: "events", title: "Events", subtitle: "Calendar & notices", icon: Calendar, tint: "blue", screen: "calendar", permModule: "calendar", parent: "academics" },
+  { id: "events", title: "Events", subtitle: "Calendar & notices", icon: Calendar, tint: "blue", screen: "calendar", permModule: "calendar", inRail: true },
   { id: "library", title: "Library", subtitle: "Books & circulation", icon: Library, tint: "amber", screen: null },
   { id: "media-center", title: "Media Center", subtitle: "Files & documents", icon: Clapperboard, tint: "orange", screen: null },
 

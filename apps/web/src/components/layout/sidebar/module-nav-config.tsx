@@ -483,13 +483,31 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
         { key: "timetable", label: "Timetables", icon: <Clock className={iconCls} /> },
         { key: "timetable-templates", label: "Templates", icon: <LayoutGrid className={iconCls} />, disabled: true },
         { key: "timetable-by-class", label: "By Class", icon: <Map className={iconCls} />, disabled: true },
-        { key: "calendar", label: "Calendar", icon: <Calendar className={iconCls} /> },
       ],
     },
     {
       label: "Admin",
       items: [
         { key: "school-settings", label: "Settings", icon: <Settings className={iconCls} />, permModule: "settings" },
+      ],
+    },
+  ],
+  events: [
+    {
+      label: "Overview",
+      items: [
+        { key: "events-dashboard", label: "Dashboard", icon: <LayoutDashboard className={iconCls} />, disabled: true },
+        { key: "calendar", label: "Calendar", icon: <Calendar className={iconCls} /> },
+        { key: "all-events", label: "All Events", icon: <CalendarCheck className={iconCls} />, disabled: true },
+        { key: "upcoming", label: "Upcoming", icon: <Clock className={iconCls} />, disabled: true },
+        { key: "day-programs", label: "Day Programs", icon: <CalendarDays className={iconCls} />, disabled: true },
+      ],
+    },
+    {
+      label: "Operations",
+      items: [
+        { key: "create-event", label: "Create Event", icon: <Plus className={iconCls} />, disabled: true },
+        { key: "bulk-add", label: "Bulk Add", icon: <Wand2 className={iconCls} />, disabled: true },
       ],
     },
   ],

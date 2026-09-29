@@ -29,7 +29,6 @@ describe("qualifyAdminTail", () => {
 
   test("a screen owned by a parented card gets that module", () => {
     expect(qualifyAdminTail("timetable", null)).toBe("academics/timetable");
-    expect(qualifyAdminTail("calendar", null)).toBe("academics/calendar");
     expect(qualifyAdminTail("graduated", null)).toBe("students/graduated");
   });
 
@@ -37,6 +36,7 @@ describe("qualifyAdminTail", () => {
     // The dashboard grid links these, and the rail navigates to them, so they are
     // the URLs an admin lands on most often.
     expect(qualifyAdminTail("academics-dashboard", null)).toBe("academics/academics-dashboard");
+    expect(qualifyAdminTail("calendar", null)).toBe("events/calendar");
     expect(qualifyAdminTail("fees", null)).toBe("student-fees/fees");
     expect(qualifyAdminTail("exams", null)).toBe("examinations/exams");
     expect(qualifyAdminTail("iam-dashboard", null)).toBe("iam/iam-dashboard");
@@ -82,6 +82,7 @@ describe("qualifyAdminTail", () => {
 describe("qualified tails round-trip through parseRoute", () => {
   const TAILS: Array<[string, string | null]> = [
     ["timetable", null],
+    ["calendar", null],
     ["academics-dashboard", null],
     ["fees", null],
     ["exams", null],

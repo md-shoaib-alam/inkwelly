@@ -22,14 +22,18 @@ const routedKeys = new Set(
   [...readFileSync(join(APP_ROOT, DISPATCHER), "utf8").matchAll(KEY_RE)].map((m) => m[2]),
 );
 
-// Nine of the twelve rail modules open on a screen whose name is not the module's
+// Nine of the thirteen rail modules open on a screen whose name is not the module's
 // own, which is why `/slug/academics` used to bounce: no dispatcher case is named
 // `academics`. Measured off the rail, so this pin is the list of roots that need
 // resolving, and a card that starts or stops naming its own screen must change it.
+// `academics` is measured against the thirteen purchasable rail modules, not the
+// launcher row. The three not listed (`students`, `leaves`, `ai-connect`) open on a
+// screen of their own name and so need no entry.
 const EXPECTED_LANDINGS: [string, string][] = [
   ["academics", "academics-dashboard"],
   ["employee-attendance", "staff-attendance"],
   ["employees", "staff"],
+  ["events", "calendar"],
   ["examinations", "exams"],
   ["iam", "iam-dashboard"],
   ["money-book", "expenses"],
@@ -47,7 +51,7 @@ describe("module roots", () => {
     expect(bounced).toEqual([]);
   });
 
-  test("the landings are exactly the nine non-identity roots", () => {
+  test("the landings are exactly the ten non-identity roots", () => {
     expect(Object.entries(adminModuleLandings).sort()).toEqual(
       [...EXPECTED_LANDINGS].sort(),
     );
