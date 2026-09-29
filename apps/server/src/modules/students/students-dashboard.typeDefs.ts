@@ -108,6 +108,8 @@ export const studentsDashboardTypeDefs = /* GraphQL */ `#graphql
     birthdays: [StudentBirthday!]!
     alerts: [StudentAlert!]!
     recentActivity: [StudentActivityEntry!]!
+    """When the newest student record in this cohort changed, as a whole ISO instant."""
+    lastUpdated: String
     untracked: [StudentsUntrackedTile!]!
   }
 

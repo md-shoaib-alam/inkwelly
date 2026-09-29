@@ -16,6 +16,7 @@ import { RecentActivityCard } from "./components/recent-activity-card";
 import { MovementCard } from "./components/movement-card";
 import { AgePyramidCard } from "./components/age-pyramid-card";
 import { ClassStrengthCard } from "./components/class-strength-card";
+import { UpdatedFooter } from "./components/updated-footer";
 
 /**
  * Students -> Dashboard. The reference gives this module a roll-shaped screen of its
@@ -110,6 +111,8 @@ export function AdminStudentsDashboard() {
           <ClassStrengthCard classes={data?.classStrength ?? []} loading={isLoading} />
         </>
       )}
+
+      <UpdatedFooter at={data?.lastUpdated} />
     </div>
   );
 }

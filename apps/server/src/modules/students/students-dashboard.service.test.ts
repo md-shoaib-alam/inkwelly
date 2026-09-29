@@ -7,6 +7,7 @@ import {
   daysSince,
   expectedMinAgeForGrade,
   inWindow,
+  latestStamp,
   medianAge,
   monthKey,
   nepStageKey,
@@ -207,6 +208,7 @@ describe("untracked tiles", () => {
       "movement",
       "alerts",
       "recentActivity",
+      "lastUpdated",
     ];
     expect(keys.filter((k) => computed.includes(k))).toEqual([]);
   });
@@ -230,5 +232,28 @@ describe("recent activity", () => {
     expect(daysSince("", "2026-09-29")).toBe(0);
     expect(daysSince("not a date", "2026-09-29")).toBe(0);
     expect(daysSince("2026-09-20", "")).toBe(0);
+  });
+});
+
+describe("the footer stamp", () => {
+  test("the newest row wins, whatever order the cohort arrives in", () => {
+    expect(
+      latestStamp([
+        "2026-08-01T00:00:00.000Z",
+        "2026-09-29T18:08:00.000Z",
+        "2026-09-29T06:12:00.000Z",
+      ]),
+    ).toBe("2026-09-29T18:08:00.000Z");
+  });
+
+  test("a cohort with nothing stamped has no footer at all", () => {
+    // An empty string would render as "Updated Invalid Date" under the cards.
+    expect(latestStamp([])).toBeNull();
+    expect(latestStamp([null, null])).toBeNull();
+  });
+
+  test("the whole ISO instant survives, because the footer shows a time", () => {
+    // `updatedAt` is otherwise formatted to a date and the clock is thrown away.
+    expect(latestStamp(["2026-09-29T23:38:11.000Z"])).toBe("2026-09-29T23:38:11.000Z");
   });
 });

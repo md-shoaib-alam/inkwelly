@@ -244,6 +244,16 @@ function dayOfYear(isoMonthDay: string): number {
   return Math.floor(Date.UTC(2024, m - 1, d) / 86400000);
 }
 
+/**
+ * The newest of a set of ISO stamps, or null when none of them is set. Fixed-width UTC,
+ * so the greatest string is the greatest instant and there is no parsing to get wrong.
+ */
+export function latestStamp(stamps: (string | null)[]): string | null {
+  let newest: string | null = null;
+  for (const s of stamps) if (s && (!newest || s > newest)) newest = s;
+  return newest;
+}
+
 /** Whole days between two `YYYY-MM-DD` dates, clamped at zero for a clock skew. */
 export function daysSince(iso: string, today: string): number {
   const at = Date.parse(`${iso}T00:00:00Z`);
@@ -341,7 +351,13 @@ export const StudentsDashboardService = {
             .from(schema.students)
             .innerJoin(schema.users, eq(schema.students.userId, schema.users.id))
             .where(inArray(schema.students.classId, classIds))
-        ).map((r) => ({ ...r, updatedAt: r.updatedAt ? formatDate(r.updatedAt as Date) : null })))
+        ).map((r) => ({
+          ...r,
+          // `updatedAt` is what every tile reads, and it is a date; the footer needs the
+          // clock too, so the instant is kept beside it rather than reconstructed.
+          stampedAt: r.updatedAt ? (r.updatedAt as Date).toISOString() : null,
+          updatedAt: r.updatedAt ? formatDate(r.updatedAt as Date) : null,
+        })))
       : [];
 
     const active = cohort.filter((r) => r.status === 'active');
@@ -491,6 +507,9 @@ export const StudentsDashboardService = {
         daysAgo: daysSince(r.updatedAt!, today),
       }));
 
+    // The footer's "Updated …" is when a record last changed, not when this query ran.
+    const lastUpdated = latestStamp(active.map((r) => r.stampedAt));
+
     // --- Composition ---
     const stageOf = (r: Student) => nepStageKey(classById.get(r.classId)?.grade);
     const stages = NEP_STAGES.map((stage) => ({
@@ -577,6 +596,7 @@ export const StudentsDashboardService = {
       birthdays,
       alerts,
       recentActivity,
+      lastUpdated,
       untracked: UNTRACKED_TILES,
     };
   },

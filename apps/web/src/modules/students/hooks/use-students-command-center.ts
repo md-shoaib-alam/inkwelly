@@ -94,6 +94,8 @@ export type StudentsCommandCenter = {
   birthdays: StudentsBirthday[];
   alerts: StudentsAlert[];
   recentActivity: StudentsActivityEntry[];
+  /** When the newest student record in this cohort changed, as a whole ISO instant. */
+  lastUpdated: string | null;
   untracked: StudentsUntrackedTile[];
 };
 
@@ -137,6 +139,7 @@ const GET_COMMAND_CENTER = `
       birthdays { id name className date daysAway }
       alerts { code severity count title detail screen }
       recentActivity { id name className at daysAgo }
+      lastUpdated
       untracked { key label reason }
     }
   }

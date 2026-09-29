@@ -90,3 +90,24 @@ test("the dashboard search hands its term to the roster rather than filtering in
   // Nothing on this screen is a list of students, so the box can only be a link.
   expect(CARDS).toMatch(/list\?search=/);
 });
+
+test("the footer names the last change to a record, not the moment the query ran", () => {
+  const footer = readFileSync(resolve(DASH, "components", "updated-footer.tsx"), "utf8");
+  const hook = readFileSync(resolve(STUDENTS, "hooks", "use-students-command-center.ts"), "utf8");
+
+  expect(INDEX).toContain("<UpdatedFooter");
+  expect(hook).toMatch(/lastUpdated: string \| null/);
+  // A field the type declares but the query never asks for is always undefined.
+  expect(hook).toMatch(/\n {6}lastUpdated\n/);
+
+  // An empty cohort has no stamp. Rendering one would say "Updated Invalid Date".
+  expect(footer).toMatch(/return null/);
+  expect(footer).toMatch(/en-GB/);
+  // The reference reads "Updated 29 Sept 2026 · 11:38 pm" — day first, and a dot between.
+  expect(footer).toMatch(/Updated \{/);
+  expect(footer).toMatch(/·/);
+  // The stamp is the only clock: `new Date()` with no argument would report when the
+  // page was opened, and the footer would always read as today.
+  expect(footer).toMatch(/new Date\(at\)/);
+  expect(footer).not.toMatch(/new Date\(\)/);
+});
