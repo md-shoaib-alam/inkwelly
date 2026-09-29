@@ -27,7 +27,7 @@ function resolvesToAFile(specifier: string): boolean {
 const REGISTRIES = [
   {
     name: "tenant-screen-dispatcher",
-    path: "src/app/(authenticated)/[slug]/[screen]/tenant-screen-dispatcher.tsx",
+    path: "src/app/(authenticated)/[slug]/[...segments]/tenant-screen-dispatcher.tsx",
     specifiers: 79,
     keys: 64,
   },
@@ -87,7 +87,7 @@ test("finance keys are still routed across both registries", () => {
 // the admin class editor.
 test("the dispatcher guards and switches on the resolved key, not the raw param", () => {
   const src = readFileSync(
-    join(APP_ROOT, "src/app/(authenticated)/[slug]/[screen]/tenant-screen-dispatcher.tsx"),
+    join(APP_ROOT, "src/app/(authenticated)/[slug]/[...segments]/tenant-screen-dispatcher.tsx"),
     "utf8",
   );
   expect(src).toMatch(/STAFF_FORBIDDEN_SCREENS\.has\(screenKey\)/);

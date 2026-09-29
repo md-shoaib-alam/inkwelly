@@ -147,21 +147,27 @@ const STAFF_FORBIDDEN_SCREENS = new Set([
 ]);
 
 export default function TenantScreenDispatcherClient() {
-  const { slug, screen, detail } = useParams();
+  const { slug, segments: rawSegments } = useParams();
+  const segments = (rawSegments ?? []) as string[];
   const mounted = useHydrated();
   const { currentUser } = useAppStore();
 
   // This route always puts the tenant in the first segment, so parts[0] is the
   // root by construction and can never be a module name.
-  // A module-scoped admin URL arrives as screen=module, detail=screen.
-  const route = parseRoute(`/${slug}/${screen}${detail ? `/${detail}` : ''}`, {
+  // A module-scoped admin URL arrives as two trailing segments; a year, when
+  // the tenant has one, arrives as the first of them.
+  // Task 4 replaces the empty list below with the tenant's own years. Until
+  // then nothing is read as a year, so this matches the old behaviour.
+  const route = parseRoute(`/${slug}/${segments.join('/')}`, {
     isModuleScreen: isAdminModuleScreen,
     isTenantRoot: (first) => first === slug,
+    yearSlugs: [],
   });
   const screenKey = componentKey(route.module, route.screen);
+  const screen = route.screen;
 
   // REDIRECTION LOGIC (DURING RENDER)
-  if (mounted && currentUser && typeof slug === 'string' && typeof screen === 'string') {
+  if (mounted && currentUser && typeof slug === 'string') {
     const urlSlug = slug.toLowerCase();
     const userTenantId = currentUser?.tenantId?.toLowerCase() || '';
     const userTenantSlug = currentUser?.tenantSlug?.toLowerCase() || '';
@@ -170,12 +176,12 @@ export default function TenantScreenDispatcherClient() {
     if (currentUser.role !== 'super_admin' && !isTenantMatch) {
       const correctSlug = currentUser.tenantSlug || currentUser.tenantId;
       if (correctSlug) {
-        redirect(`/${correctSlug}/${screen}`);
+        redirect(`/${correctSlug}/${segments.join('/')}`);
       }
     }
   }
 
-  if (!mounted || !currentUser || typeof slug !== 'string' || typeof screen !== 'string') {
+  if (!mounted || !currentUser || typeof slug !== 'string') {
     if (screen === 'dashboard') {
       return <DashboardLoadingScreen />;
     }

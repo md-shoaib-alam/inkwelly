@@ -6,12 +6,14 @@ import { AdminDashboardSkeleton } from "@/modules/dashboard/components/adminDash
 
 export default function ScreenLoading() {
   const params = useParams();
-  const screen = params?.screen as string | undefined;
+  const segments = (params?.segments ?? []) as string[];
 
-  if (screen === "dashboard") {
+  // The last segment is the screen for every shape except a year-only URL,
+  // which gets the generic skeleton for a moment; reading the year here would
+  // mean duplicating parseRoute's membership rule in a server component.
+  if (segments[segments.length - 1] === "dashboard") {
     return <AdminDashboardSkeleton />;
   }
 
   return <FullPageSkeleton />;
 }
-

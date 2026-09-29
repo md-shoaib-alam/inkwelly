@@ -9,7 +9,7 @@ const APP_ROOT = resolve(import.meta.dir, "..", "..", "..");
 // A card that links a key absent from them renders a blank screen, which looks like an
 // empty state rather than the broken link it is.
 const REGISTRY_PATHS = [
-  "src/app/(authenticated)/[slug]/[screen]/tenant-screen-dispatcher.tsx",
+  "src/app/(authenticated)/[slug]/[...segments]/tenant-screen-dispatcher.tsx",
   "src/app/(authenticated)/[slug]/generic-slug-dispatcher.tsx",
 ];
 const KEY_RE = /case\s(['"])([a-z0-9-]+)\1/g;

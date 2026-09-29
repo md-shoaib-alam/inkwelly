@@ -9,7 +9,7 @@ const APP_ROOT = resolve(import.meta.dir, "..", "..", "..");
 // Same oracle as module-catalogue.test.ts: a key absent from both dispatchers renders
 // the tenant fallback, which reads to a user as an empty state rather than a dead link.
 const REGISTRY_PATHS = [
-  "src/app/(authenticated)/[slug]/[screen]/tenant-screen-dispatcher.tsx",
+  "src/app/(authenticated)/[slug]/[...segments]/tenant-screen-dispatcher.tsx",
   "src/app/(authenticated)/[slug]/generic-slug-dispatcher.tsx",
 ];
 const KEY_RE = /case\s(['"])([a-z0-9-]+)\1/g;
