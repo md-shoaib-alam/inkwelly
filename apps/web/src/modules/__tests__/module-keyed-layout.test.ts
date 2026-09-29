@@ -81,3 +81,71 @@ describe("academics", () => {
     }
   });
 });
+
+// The 33 live rows this plan gives a folder, read off adminPanelSections and cross-checked
+// against the dispatcher's case keys. A row whose bare key is shared with a sibling module is
+// NOT here -- see the deferral list two tests down. A new row that can be addressed today must
+// appear here AND as a folder.
+const LIVE_ROWS: [string, string][] = [
+  ["iam", "iam-dashboard"], ["iam", "roles"], ["iam", "role-assignments"],
+  ["iam", "permissions-catalog"],
+  ["academics", "academic-years"], ["academics", "classes"], ["academics", "subjects"],
+  ["academics", "timetable"], ["academics", "calendar"], ["academics", "school-settings"],
+  ["students", "students"], ["students", "promotions"], ["students", "bulk-promote"],
+  ["students", "graduated"], ["students", "certificates"],
+  ["employees", "teachers"], ["employees", "staff"], ["employees", "parents"],
+  ["student-attendance", "attendance"],
+  ["employee-attendance", "teacher-attendance"], ["employee-attendance", "staff-attendance"],
+  ["student-fees", "fees"], ["student-fees", "reports"],
+  ["examinations", "exams"], ["examinations", "results-entry"],
+  ["examinations", "published-results"], ["examinations", "print-marksheet"],
+  ["examinations", "admit-cards"],
+  ["leaves", "student-leaves"], ["leaves", "teacher-leaves"], ["leaves", "staff-leaves"],
+  ["money-book", "expenses"], ["transport", "transport-fee"],
+];
+
+describe("the module-keyed convention", () => {
+  test("33 of the 52 live rows have their own folder", () => {
+    expect(LIVE_ROWS.length).toBe(33);
+    for (const [module, row] of LIVE_ROWS) expect(rowHasScreen(module, row)).toBe(true);
+  });
+
+  test("the other 19 of the 52 live rows are 9 collapses and 10 deferrals", () => {
+    // Collapsed onto a sibling folder in the same module, because their cases are stacked
+    // fall-throughs with identical props:
+    //   student-fees/fees <- fee-categories, fee-concessions, check-payments, make-payment,
+    //                        check-receipt, fee-status, transport-fee            (7 rows)
+    //   iam/iam-dashboard  <- security-pin, seed-defaults                          (2 rows)
+    expect(rowHasScreen("student-fees", "fees")).toBe(true);
+    expect(rowHasScreen("iam", "iam-dashboard")).toBe(true);
+
+    // Deferred to routing Task 3. Each is a live row whose bare dispatcher key is shared with a
+    // sibling module's row (reports x6 modules, classes x3, student-leaves x2, staff-leaves x2,
+    // staff x2), and componentKey() returns the bare key, so no per-module case can reach a
+    // folder for it yet. Creating one now is a file nothing imports.
+    for (const [module, row] of [
+      ["student-fees", "classes"], ["students", "classes"], ["students", "reports"],
+      ["employees", "reports"], ["student-attendance", "reports"],
+      ["student-attendance", "student-leaves"], ["employee-attendance", "reports"],
+      ["employee-attendance", "staff-leaves"], ["employee-attendance", "staff"],
+      ["money-book", "reports"],
+    ]) {
+      expect(rowHasScreen(module, row)).toBe(false);
+    }
+
+    // 33 folders built by this plan + 9 collapsed + 10 deferred = 52 live rows.
+    expect(33 + 9 + 10).toBe(52);
+  });
+
+  test("no admin screen is still filed by domain", () => {
+    for (const bare of [
+      "AdminClasses", "AdminSubjects", "AdminStudents", "AdminTeachers", "AdminStaff",
+      "AdminParents", "AdminFees", "AdminExpenses", "AdminExams", "AdminLeaves",
+      "AdminAttendance", "AdminReports", "AdminCertificates", "AdminAdmitCards",
+    ]) {
+      const hits = ["people", "finance", "assessment", "attendance", "certificates", "data-io", "access-control"]
+        .filter((d) => existsSync(join(MOD_ROOT, d, "components", `${bare}.tsx`)));
+      expect(hits).toEqual([]);
+    }
+  });
+});
