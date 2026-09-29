@@ -33,14 +33,15 @@ function resolvesToAFile(specifier: string): boolean {
 // key. 81/68 -> 82/69 on 2026-09-29 for `class-change`, the Students operations screen,
 // which is a new specifier and a new key rather than a reuse of the roster's. 82/69 -> 83/70 on
 // 2026-09-29 for `student-trash`, the Students trash screen — its own specifier and its own key.
+// 83/70 -> 84/71 on 2026-09-30 for `admissions`, the Students New admission screen.
 // Changing one of these numbers
 // must be a deliberate act in a task step, never a side effect of a rewrite.
 const REGISTRIES = [
   {
     name: "tenant-screen-dispatcher",
     path: "src/app/(authenticated)/[slug]/[...segments]/tenant-screen-dispatcher.tsx",
-    specifiers: 83,
-    keys: 70,
+    specifiers: 84,
+    keys: 71,
   },
   {
     name: "generic-slug-dispatcher",

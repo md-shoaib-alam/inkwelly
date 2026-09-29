@@ -44,7 +44,6 @@ import type { ClassInfo, StudentFormData } from "./types";
 interface StudentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  mode: "create" | "edit";
   classes?: ClassInfo[];
   formData: StudentFormData;
   setFormData: (data: StudentFormData) => void;
@@ -55,15 +54,11 @@ interface StudentDialogProps {
 export function StudentDialog({
   open,
   onOpenChange,
-  mode,
-  classes,
   formData,
   setFormData,
   submitting,
   onSubmit,
 }: StudentDialogProps) {
-  const isCreate = mode === "create";
-
   const [showCustomPickup, setShowCustomPickup] = useState(false);
   const [customPickupName, setCustomPickupName] = useState("");
   const [customPickupFee, setCustomPickupFee] = useState("");
@@ -111,26 +106,7 @@ export function StudentDialog({
     : [];
 
   const handleReset = () => {
-    if (isCreate) {
-      setFormData({
-        name: "",
-        email: "",
-        username: "",
-        password: "",
-        phone: "",
-        rollNumber: "",
-        classId: "",
-        gender: "male",
-        dateOfBirth: "",
-        bloodGroup: "",
-        house: "",
-        transportEnabled: false,
-        routeId: "",
-        pickupPoint: "",
-      });
-    } else {
-      setFormData({ ...initialSnapshot });
-    }
+    setFormData({ ...initialSnapshot });
     setShowCustomPickup(false);
     setCustomPickupName("");
     setCustomPickupFee("");
@@ -159,15 +135,13 @@ export function StudentDialog({
           <div className="flex items-center justify-between gap-6 pr-8">
             <div className="space-y-1 z-10 max-w-lg">
               <p className="text-[11px] font-bold tracking-wider text-emerald-600 dark:text-emerald-400 uppercase">
-                {isCreate ? "ADD NEW STUDENT" : "EDIT STUDENT"}
+                EDIT STUDENT
               </p>
               <DialogTitle className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                {isCreate ? "Add New Student" : "Edit Student Profile"}
+                Edit Student Profile
               </DialogTitle>
               <DialogDescription className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 leading-relaxed">
-                {isCreate
-                  ? "Fill in the details below. A unique School ID (e.g. STU2026xxxx) will be generated automatically for login."
-                  : "Update the student information below and save your changes."}
+                Update the student information below and save your changes.
               </DialogDescription>
             </div>
 
@@ -375,11 +349,10 @@ export function StudentDialog({
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
                   <Input
-                    value={formData.username || (isCreate ? "Auto-generated" : "")}
-                    disabled={isCreate}
+                    value={formData.username || ""}
                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                     placeholder="Auto-generated"
-                    className="pl-9 h-10 text-xs rounded-xl bg-slate-100/70 dark:bg-zinc-800/40 text-slate-500 border-slate-200 dark:border-zinc-800 cursor-not-allowed"
+                    className="pl-9 h-10 text-xs rounded-xl bg-slate-100/70 dark:bg-zinc-800/40 text-slate-500 border-slate-200 dark:border-zinc-800"
                   />
                 </div>
               </div>
@@ -621,12 +594,12 @@ export function StudentDialog({
               {submitting ? (
                 <>
                   <Loader2 className="size-3.5 animate-spin" />
-                  {isCreate ? "Adding Student..." : "Updating..."}
+                  Updating...
                 </>
               ) : (
                 <>
                   <Plus className="size-4" />
-                  {isCreate ? "Add Student" : "Update Student"}
+                  Update Student
                 </>
               )}
             </Button>

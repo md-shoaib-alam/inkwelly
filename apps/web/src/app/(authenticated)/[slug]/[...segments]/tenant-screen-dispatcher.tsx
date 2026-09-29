@@ -78,6 +78,7 @@ const AdminAcademicsDashboard = dynamic(() => import('@/modules/academics/academ
 const AdminStudentsDashboard = dynamic(() => import('@/modules/students/students-dashboard').then(m => m.AdminStudentsDashboard), { loading: LoadingScreen });
 const AdminClassChange = dynamic(() => import('@/modules/students/class-change').then(m => m.AdminClassChange), { loading: LoadingScreen });
 const AdminStudentTrash = dynamic(() => import('@/modules/students/student-trash').then(m => m.AdminStudentTrash), { loading: LoadingScreen });
+const AdminAdmissions = dynamic(() => import('@/modules/students/admissions').then(m => m.AdminAdmissions), { loading: LoadingScreen });
 const ExpensesScreen = dynamic(() => import('@/modules/money-book/expenses').then(m => m.ExpensesScreen), { loading: LoadingScreen });
 const AdminSubscription = dynamic(() => import('@/modules/tenancy/components/AdminSubscription').then(m => m.SchoolSubscriptionScreen), { loading: LoadingScreen });
 const ManagePlanScreen = dynamic(() => import('@/modules/tenancy/components/AdminManagePlan').then(m => m.ManagePlanScreen), { loading: LoadingScreen });
@@ -137,6 +138,9 @@ const STAFF_EXTRA_PERMISSIONS: Record<string, string> = {
   // `/students/list` does, so leaving it unmapped would hand a student list to a
   // staff account the students module was never granted.
   'class-change': 'students',
+  // Admissions writes to the same roster the students module owns; the server
+  // gates the POST on the same permission.
+  'admissions': 'students',
 };
 
 /**
@@ -364,6 +368,7 @@ export default function TenantScreenDispatcherClient() {
       case 'students-dashboard': return <AdminStudentsDashboard />;
       case 'class-change': return <AdminClassChange />;
       case 'student-trash': return <AdminStudentTrash />;
+      case 'admissions': return <AdminAdmissions />;
       case 'teachers': return <AdminTeachers />;
       case 'parents': return <AdminParents />;
       case 'classes': return <AdminClasses />;
