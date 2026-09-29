@@ -10,6 +10,7 @@ import { createAuditLog } from '../../lib/audit-helper';
 import Elysia, { t } from 'elysia';
 import { formatDate } from '../../lib/date-utils';
 import { StudentService } from './student.service';
+import { academicYearIsKnown } from './student.create.guards';
 
 const PHONE_PATTERN = '^\\+?[0-9\\-()\\s]{7,20}$';
 const DATE_PATTERN = '^\\d{4}-\\d{2}-\\d{2}$';
@@ -36,7 +37,8 @@ const studentCreateBodySchema = t.Object({
   newPickupPointFee: t.Optional(t.Union([
     t.Number(),
     t.String()
-  ]))
+  ])),
+  academicYear: t.Optional(t.String({ maxLength: 64 }))
 });
 
 const studentUpdateBodySchema = t.Object({
@@ -313,6 +315,23 @@ const handleCreateStudent = async (body: any, tenantId: string, user: any, reque
     throw new StudentRouteError(400, 'INVALID_TRANSPORT_ROUTE', 'Route ID is required when transport is enabled');
   }
 
+  // Resolve the partition key before anything is written, so a student never
+  // lands under the schema's literal default year.
+  const ownedYears = await db.query.academicYears.findMany({
+    where: eq(schema.academicYears.tenantId, tenantId),
+    columns: { name: true, isCurrent: true },
+  });
+  let academicYear: string;
+  try {
+    academicYear = academicYearIsKnown(
+      data.academicYear,
+      ownedYears.map((y) => y.name),
+      ownedYears.find((y) => y.isCurrent)?.name,
+    );
+  } catch (err) {
+    throw new StudentRouteError(400, 'INVALID_ACADEMIC_YEAR', (err as Error).message);
+  }
+
   const hashedPassword = await hashPassword(rawPassword || 'Student@123');
   const result = await db.transaction(async (tx) => {
     const cls = await tx.query.classes.findFirst({
@@ -359,6 +378,7 @@ const handleCreateStudent = async (body: any, tenantId: string, user: any, reque
       userId: newUser.id,
       rollNumber: data.rollNumber.trim(),
       classId: data.classId,
+      academicYear,
       parentId: cleanParentId,
       gender: cleanGender,
       dateOfBirth: cleanDob,
