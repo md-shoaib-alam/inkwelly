@@ -1,12 +1,12 @@
 "use client";
 
-import { CheckSquare, Layers, ShieldCheck } from "lucide-react";
+import { CheckSquare, Languages, Layers, ShieldCheck, Users } from "lucide-react";
 import { Card, SoonNote } from "./card";
 
 /**
- * The three cards the shipped design shows that this build has no table behind. Each
- * keeps its real frame, its place in the grid and the reason the server gives for the
- * gap, and renders no numbers — an empty bar or a zero would read as a measurement.
+ * The cards the shipped design shows that this build has no table behind. Each keeps its
+ * real frame, its place in the grid and the reason the server gives for the gap, and
+ * renders no numbers — an empty bar or a zero would read as a measurement.
  *
  * The field names in `ComplianceCard` are the four the server's own reason names, so
  * they are a promise about what a column would hold, not a claim about this school.
@@ -48,6 +48,8 @@ export function ComplianceCard({ reasons }: { reasons: Record<string, string> })
   return (
     <Card
       title="Compliance"
+      icon={ShieldCheck}
+      tint="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300"
       bodyClassName="px-5 pb-5 space-y-3"
     >
       <div className="grid grid-cols-2 gap-3">
@@ -64,6 +66,32 @@ export function ComplianceCard({ reasons }: { reasons: Record<string, string> })
         ))}
       </div>
       <SoonNote reason={reasonFor(reasons, "compliance")} />
+    </Card>
+  );
+}
+
+export function ReligionCard({ reasons }: { reasons: Record<string, string> }) {
+  return (
+    <Card
+      title="Religion"
+      subtitle="Recorded per student"
+      icon={Users}
+      tint="bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
+    >
+      <SoonNote reason={reasonFor(reasons, "religion")} />
+    </Card>
+  );
+}
+
+export function MotherTongueCard({ reasons }: { reasons: Record<string, string> }) {
+  return (
+    <Card
+      title="Mother tongue"
+      subtitle="Languages spoken at home"
+      icon={Languages}
+      tint="bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300"
+    >
+      <SoonNote reason={reasonFor(reasons, "motherTongue")} />
     </Card>
   );
 }

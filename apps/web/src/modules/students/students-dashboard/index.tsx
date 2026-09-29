@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion";
 import { useAppStore } from "@/store/use-app-store";
 import { useStudentsCommandCenter } from "../hooks/use-students-command-center";
 import { SectionLabel } from "./components/card";
@@ -11,8 +12,15 @@ import { AlertsCard } from "./components/alerts-card";
 import { BirthdaysCard } from "./components/birthdays-card";
 import { GenderSplitCard } from "./components/gender-split-card";
 import { StagesCard } from "./components/stages-card";
-import { CategoryCard, ComplianceCard, DocumentsCard } from "./components/untracked-cards";
+import {
+  CategoryCard,
+  ComplianceCard,
+  DocumentsCard,
+  MotherTongueCard,
+  ReligionCard,
+} from "./components/untracked-cards";
 import { RecentActivityCard } from "./components/recent-activity-card";
+import { EnrolmentGrowthCard } from "./components/enrolment-growth-card";
 import { MovementCard } from "./components/movement-card";
 import { AgePyramidCard } from "./components/age-pyramid-card";
 import { ClassStrengthCard } from "./components/class-strength-card";
@@ -37,7 +45,7 @@ export function AdminStudentsDashboard() {
   const duplicates = (data?.untracked ?? []).find((t) => t.key === "duplicates");
 
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className="-mt-1 lg:-mt-2 space-y-3 sm:space-y-4">
       {error && !isLoading && (
         <div className="rounded-xl border border-rose-200/80 dark:border-rose-500/30 bg-rose-50/60 dark:bg-rose-500/10 px-4 py-3">
           <p className="text-[13px] font-semibold text-rose-700 dark:text-rose-300">
@@ -53,7 +61,7 @@ export function AdminStudentsDashboard() {
 
       <DashboardSearch />
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-3">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 items-stretch">
         <AlertsCard
           alerts={data?.alerts ?? []}
           openCount={stats?.openAlerts ?? 0}
@@ -81,36 +89,84 @@ export function AdminStudentsDashboard() {
         </div>
       </div>
 
-      <div className="flex justify-center pt-1">
-        <button
-          type="button"
-          onClick={() => setShowMore((v) => !v)}
-          aria-expanded={showMore}
-          className="inline-flex items-center gap-2 rounded-full border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] px-5 py-2.5 text-[13px] font-semibold text-slate-600 dark:text-zinc-300 shadow-2xs hover:bg-slate-50 dark:hover:bg-zinc-900/60 transition-colors"
-        >
-          <ChevronDown className={`size-4 transition-transform ${showMore ? "rotate-180" : ""}`} />
-          {showMore ? "Show fewer insights" : "Show more insights"}
-        </button>
-      </div>
+      <LazyMotion features={domAnimation}>
+        {/* One flex column, so the collapsed drawer leaves no `space-y` gap above the pill. */}
+        <div className="flex flex-col">
+          <AnimatePresence initial={false}>
+            {showMore && (
+              <m.div
+                key="insights"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: [0.25, 0.8, 0.3, 1] }}
+                style={{ overflow: "hidden" }}
+              >
+                <div className="space-y-3 sm:space-y-4">
+                  <SectionLabel>Trends</SectionLabel>
 
-      {/* Mounted on expand, so the charts below are not built until someone asks for them. */}
-      {showMore && (
-        <>
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-            <MovementCard
-              movement={data?.movement ?? []}
-              enrolment={data?.enrolment ?? []}
-              loading={isLoading}
-            />
-            <AgePyramidCard
-              bands={data?.agePyramid ?? []}
-              unknown={stats?.ageUnknown ?? 0}
-              loading={isLoading}
-            />
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 items-start">
+                    <EnrolmentGrowthCard
+                      enrolment={data?.enrolment ?? []}
+                      stats={stats}
+                      loading={isLoading}
+                    />
+                    <MovementCard
+                      movement={data?.movement ?? []}
+                      stats={stats}
+                      reasons={reasons}
+                      loading={isLoading}
+                    />
+                  </div>
+
+                  <SectionLabel>Classes</SectionLabel>
+
+                  <ClassStrengthCard
+                    classes={data?.classStrength ?? []}
+                    average={stats?.averageClassSize ?? 0}
+                    largest={
+                      stats
+                        ? { name: stats.largestClassName, students: stats.largestClassSize }
+                        : null
+                    }
+                    loading={isLoading}
+                  />
+
+                  <SectionLabel>Demographics</SectionLabel>
+
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 items-start">
+                    <AgePyramidCard
+                      bands={data?.agePyramid ?? []}
+                      stats={stats}
+                      loading={isLoading}
+                    />
+                    <div className="space-y-3">
+                      <ReligionCard reasons={reasons} />
+                      <MotherTongueCard reasons={reasons} />
+                    </div>
+                  </div>
+                </div>
+              </m.div>
+            )}
+          </AnimatePresence>
+
+          <div className="flex justify-center pt-4">
+            <button
+              type="button"
+              onClick={() => setShowMore((v) => !v)}
+              aria-expanded={showMore}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] px-5 py-2.5 text-[13px] font-semibold text-slate-600 dark:text-zinc-300 shadow-2xs hover:bg-slate-50 dark:hover:bg-zinc-900/60 transition-colors"
+            >
+              <ChevronDown
+                className={`size-4 transition-transform duration-300 ${
+                  showMore ? "rotate-180" : ""
+                }`}
+              />
+              {showMore ? "Show less" : "Show more insights"}
+            </button>
           </div>
-          <ClassStrengthCard classes={data?.classStrength ?? []} loading={isLoading} />
-        </>
-      )}
+        </div>
+      </LazyMotion>
 
       <UpdatedFooter at={data?.lastUpdated} />
     </div>

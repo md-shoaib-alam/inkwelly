@@ -1,126 +1,105 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { BarChart3 } from "lucide-react";
+import { GitCompareArrows } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { StudentsAgeBand } from "../../hooks/use-students-command-center";
+import { Card } from "./card";
+import type {
+  StudentsAgeBand,
+  StudentsStats,
+} from "../../hooks/use-students-command-center";
+
+const BOYS = "#2563EB";
+const GIRLS = "#EC4899";
 
 /**
- * Boys and girls per band, from `Student.dateOfBirth` against today. A band with no one in
- * it is still drawn: an empty 3-5 row in a school that starts at Grade 1 is a fact about the
- * school, not a gap in the data.
+ * Age spread drawn the way the reference draws it: two bars growing away from the band in
+ * the middle, so the eye compares boys against girls rather than reading a number off an
+ * axis. A band with nobody in it is still drawn — an empty 3-5 row in a school that starts
+ * at Grade 1 is a fact about the school, not a gap in the data.
  */
 export function AgePyramidCard({
   bands,
-  unknown,
+  stats,
   loading,
 }: {
   bands: StudentsAgeBand[];
-  unknown: number;
+  stats?: StudentsStats;
   loading: boolean;
 }) {
-  const [recharts, setRecharts] = useState<typeof import("recharts") | null>(null);
-
-  useEffect(() => {
-    import("recharts").then(setRecharts);
-  }, []);
-
-  const rows = bands.map((b) => ({ band: b.band, boys: b.boys, girls: b.girls }));
+  const rows = bands;
+  const widest = Math.max(1, ...rows.map((b) => Math.max(b.boys, b.girls)));
   const tracked = rows.reduce((sum, r) => sum + r.boys + r.girls, 0);
+  const unknown = stats?.ageUnknown ?? 0;
+  const youngest = stats?.youngestAge ?? 0;
+  const oldest = stats?.oldestAge ?? 0;
 
   return (
-    <div className="rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] shadow-2xs overflow-hidden flex flex-col">
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-100 dark:border-zinc-800/80">
-        <span className="text-violet-600 dark:text-violet-400">
-          <BarChart3 className="size-4" />
-        </span>
-        <span className="text-[13px] font-semibold text-slate-700 dark:text-zinc-200">Age spread</span>
-        <span className="text-[11px] text-slate-400 dark:text-zinc-500">
-          · {tracked.toLocaleString()} with a date of birth
-        </span>
-      </div>
-
-      <div className="p-4 flex-1">
-        {loading ? (
-          <Skeleton className="h-[212px] w-full rounded-lg" />
-        ) : tracked === 0 ? (
-          <div className="h-[212px] grid place-items-center px-6 text-center">
-            <p className="text-[12px] text-slate-400 dark:text-zinc-500">
-              {unknown > 0
-                ? `None of the ${unknown.toLocaleString()} students on roll has a date of birth, so there is no age to plot.`
-                : "No students on roll yet."}
-            </p>
-          </div>
-        ) : (
-          <div className="h-[212px] w-full">
-            {recharts ? (
-              (() => {
-                const {
-                  ResponsiveContainer,
-                  BarChart,
-                  Bar,
-                  XAxis,
-                  YAxis,
-                  CartesianGrid,
-                  Tooltip,
-                  Legend,
-                } = recharts;
-                return (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={rows}
-                      layout="vertical"
-                      margin={{ top: 0, right: 12, left: -6, bottom: 0 }}
-                      barGap={2}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" opacity={0.6} />
-                      <XAxis
-                        type="number"
-                        tickLine={false}
-                        axisLine={false}
-                        fontSize={11}
-                        tick={{ fill: "#64748B" }}
-                      />
-                      <YAxis
-                        type="category"
-                        dataKey="band"
-                        tickLine={false}
-                        axisLine={false}
-                        fontSize={11}
-                        width={48}
-                        tick={{ fill: "#64748B" }}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          borderRadius: 12,
-                          border: "none",
-                          boxShadow: "0 10px 30px rgba(2,6,23,.16)",
-                          fontSize: 12,
-                        }}
-                      />
-                      <Legend
-                        verticalAlign="bottom"
-                        height={18}
-                        iconType="circle"
-                        wrapperStyle={{ fontSize: 11 }}
-                      />
-                      <Bar dataKey="boys" name="Boys" fill="#0EA5E9" radius={[0, 3, 3, 0]} barSize={9} />
-                      <Bar dataKey="girls" name="Girls" fill="#8B5CF6" radius={[0, 3, 3, 0]} barSize={9} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                );
-              })()
-            ) : null}
-          </div>
-        )}
-      </div>
-
-      {!loading && unknown > 0 && (
-        <p className="px-4 pb-3 text-[11px] text-slate-400 dark:text-zinc-500">
-          {unknown.toLocaleString()} students are missing from this chart because no date of
-          birth is on their record.
+    <Card
+      title="Age pyramid"
+      subtitle="Boys (left) vs girls (right) by age band"
+      icon={GitCompareArrows}
+      tint="bg-violet-50 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300"
+      bodyClassName="px-5 pb-5 space-y-4"
+    >
+      {loading ? (
+        <Skeleton className="h-[212px] w-full rounded-xl" />
+      ) : tracked === 0 ? (
+        <p className="py-8 text-center text-[12px] text-slate-400 dark:text-zinc-500">
+          {unknown > 0
+            ? `None of the ${unknown.toLocaleString()} students on roll has a date of birth, so there is no age to plot.`
+            : "No students on roll yet."}
         </p>
+      ) : (
+        <>
+          <ul className="space-y-2.5">
+            {rows.map((b) => (
+              <li key={b.band} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                <span className="flex h-2.5 justify-end overflow-hidden rounded-full bg-slate-100/70 dark:bg-zinc-800/70">
+                  <span
+                    className="h-full rounded-l-full"
+                    style={{ width: `${(b.boys / widest) * 100}%`, backgroundColor: BOYS }}
+                    title={`${b.boys.toLocaleString()} boys aged ${b.band}`}
+                  />
+                </span>
+                <span className="w-12 text-center text-[12px] text-slate-500 dark:text-zinc-400 tabular-nums">
+                  {b.band}
+                </span>
+                <span className="flex h-2.5 justify-start overflow-hidden rounded-full bg-slate-100/70 dark:bg-zinc-800/70">
+                  <span
+                    className="h-full rounded-r-full"
+                    style={{ width: `${(b.girls / widest) * 100}%`, backgroundColor: GIRLS }}
+                    title={`${b.girls.toLocaleString()} girls aged ${b.band}`}
+                  />
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 rounded-xl bg-slate-50/80 dark:bg-zinc-900/40 px-4 py-3">
+            <p className="text-[13px] text-slate-500 dark:text-zinc-400">
+              Median age ·{" "}
+              <span className="font-semibold text-slate-900 dark:text-zinc-50">
+                {stats?.medianAge ?? 0} yrs
+              </span>
+            </p>
+            {youngest > 0 && oldest > 0 && (
+              <p className="text-[13px] text-slate-500 dark:text-zinc-400">
+                Range ·{" "}
+                <span className="font-semibold text-slate-900 dark:text-zinc-50">
+                  {youngest}–{oldest} yrs
+                </span>
+              </p>
+            )}
+          </div>
+
+          {unknown > 0 && (
+            <p className="text-[12px] text-slate-400 dark:text-zinc-500">
+              {unknown.toLocaleString()} students are missing from this chart because no date
+              of birth is on their record.
+            </p>
+          )}
+        </>
       )}
-    </div>
+    </Card>
   );
 }

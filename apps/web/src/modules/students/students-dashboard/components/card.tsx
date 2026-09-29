@@ -108,6 +108,50 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** A number-and-label box inside a card: `+286` over `Admitted`. */
+export function MiniTile({
+  value,
+  label,
+  tone = "slate",
+  soon = false,
+  title,
+}: {
+  value: React.ReactNode;
+  label: string;
+  tone?: "slate" | "teal" | "amber" | "rose" | "emerald";
+  /** Renders the box empty and dashed: the reference's frame with no number behind it. */
+  soon?: boolean;
+  title?: string;
+}) {
+  const tones = {
+    slate: "text-slate-900 dark:text-zinc-50",
+    teal: "text-teal-600 dark:text-teal-400",
+    amber: "text-amber-600 dark:text-amber-400",
+    rose: "text-rose-600 dark:text-rose-400",
+    emerald: "text-emerald-600 dark:text-emerald-400",
+  };
+  return (
+    <div
+      title={title}
+      className={
+        "rounded-xl px-4 py-3 " +
+        (soon
+          ? "border border-dashed border-slate-300/80 dark:border-zinc-700 bg-slate-50/50 dark:bg-zinc-900/30"
+          : "bg-slate-50/80 dark:bg-zinc-900/40")
+      }
+    >
+      <p
+        className={`text-[15px] font-semibold leading-6 tabular-nums ${
+          soon ? "text-slate-400 dark:text-zinc-500" : tones[tone]
+        }`}
+      >
+        {value}
+      </p>
+      <p className="text-[12px] text-slate-500 dark:text-zinc-400">{label}</p>
+    </div>
+  );
+}
+
 /**
  * A card the shipped design shows and this build has no table for. The frame and its
  * real title stay, so the layout matches; the numbers are replaced by this note rather

@@ -14,6 +14,8 @@ export const studentsDashboardTypeDefs = /* GraphQL */ `#graphql
     admissions: Int!
     withdrawals: Int!
     graduated: Int!
+    "Completed promotions inside the current session."
+    promoted: Int!
     profileCompletePercent: Int!
     boys: Int!
     girls: Int!

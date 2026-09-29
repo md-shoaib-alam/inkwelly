@@ -79,6 +79,11 @@ export const UNTRACKED_TILES = [
     label: 'Mother tongue',
     reason: 'No mother tongue field exists on a student record.',
   },
+  {
+    key: 'transfers',
+    label: 'Transferred in',
+    reason: 'A class move is written to the audit trail as a student update, the same row a profile edit leaves, so the two cannot be counted apart.',
+  },
 ];
 
 function pct(part: number, whole: number): number {
@@ -200,11 +205,12 @@ export function inWindow(iso: string | null | undefined, from: string, to: strin
 }
 
 /**
- * The twelve `YYYY-MM` keys ending with the month `today` sits in.
+ * The `YYYY-MM` keys ending with the month `today` sits in, `span` of them.
  *
- * Deliberately not the session window: a session is one school's calendar, so plotting
- * admissions against it would restart the curve every April and blame a quiet July on the
- * month rather than the school. A trailing year is the shortest span that shows a trend.
+ * The trend cards are framed on the session the school is running, because that is what
+ * they claim on their face — "across the session", "this session". With no session row
+ * there is nothing to frame on, so the caller asks for a trailing year instead, which is
+ * the shortest span that still reads as a trend.
  */
 export function trendMonths(today: string, span = 12): string[] {
   const key = monthKey(today);
@@ -222,6 +228,20 @@ export function trendMonths(today: string, span = 12): string[] {
     }
   }
   return out;
+}
+
+/**
+ * How many months of axis a window needs, inclusive at both ends. Without a session start
+ * there is no window to measure, and the caller keeps the trailing year it defaults to.
+ */
+export function monthSpan(from: string | null | undefined, to: string): number {
+  const a = monthKey(from);
+  const b = monthKey(to);
+  if (!a || !b) return 12;
+  const [ay, am] = a.split('-').map(Number);
+  const [by, bm] = b.split('-').map(Number);
+  if (!ay || !am || !by || !bm) return 12;
+  return Math.max(1, (by - ay) * 12 + (bm - am) + 1);
 }
 
 function monthLabel(key: string): string {
@@ -539,8 +559,27 @@ export const StudentsDashboardService = {
       })
       .filter((row, i) => i < AGE_BANDS.length || row.boys + row.girls > 0);
 
-    // --- Trends: the trailing year, whether or not a session row exists to frame it. ---
-    const months = trendMonths(today);
+    // A promotion is a fact only once it has run; a pending row is still a plan. With no
+    // session row there is no "this session" to count inside, so the tile says none.
+    const promoted = session
+      ? Number(
+          (
+            await db
+              .select({ n: count() })
+              .from(schema.promotions)
+              .where(
+                and(
+                  eq(schema.promotions.tenantId, tenantId),
+                  eq(schema.promotions.academicYear, session.name),
+                  eq(schema.promotions.status, 'completed'),
+                ),
+              )
+          )[0]?.n ?? 0,
+        )
+      : 0;
+
+    // --- Trends: the session the school is running, or a trailing year with no session. ---
+    const months = trendMonths(today, monthSpan(windowStart, today));
     const movement = months.map((m) => ({
       month: m,
       label: monthLabel(m),
@@ -573,6 +612,7 @@ export const StudentsDashboardService = {
         admissions: admittedThisSession,
         withdrawals: withdrawn.length,
         graduated: graduated.length,
+        promoted,
         profileCompletePercent: profileCompletenessPct(active),
         boys,
         girls,

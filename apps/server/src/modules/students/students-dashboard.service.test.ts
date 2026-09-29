@@ -10,6 +10,7 @@ import {
   latestStamp,
   medianAge,
   monthKey,
+  monthSpan,
   nepStageKey,
   profileCompletenessPct,
   profileFieldCount,
@@ -198,6 +199,8 @@ describe("untracked tiles", () => {
       "total",
       "admissions",
       "withdrawals",
+      "graduated",
+      "promoted",
       "profileCompleteness",
       "gender",
       "stages",
@@ -232,6 +235,25 @@ describe("recent activity", () => {
     expect(daysSince("", "2026-09-29")).toBe(0);
     expect(daysSince("not a date", "2026-09-29")).toBe(0);
     expect(daysSince("2026-09-20", "")).toBe(0);
+  });
+});
+
+describe("the trend window", () => {
+  test("a session's months are counted inclusively", () => {
+    expect(monthSpan("2026-06-01", "2026-09-29")).toBe(4);
+  });
+
+  test("a session that crosses a year boundary still counts its months", () => {
+    expect(monthSpan("2025-11-02", "2026-02-10")).toBe(4);
+  });
+
+  test("with no session row there is no window, so a trailing year is kept", () => {
+    expect(monthSpan(null, "2026-09-29")).toBe(12);
+    expect(monthSpan("not a date", "2026-09-29")).toBe(12);
+  });
+
+  test("a session that has not opened yet still gets one month of axis", () => {
+    expect(monthSpan("2026-12-01", "2026-09-29")).toBe(1);
   });
 });
 

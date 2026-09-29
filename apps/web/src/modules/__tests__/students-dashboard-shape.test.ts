@@ -7,9 +7,12 @@ import { resolve } from "node:path";
 // honest about the rendered layout rather than the module graph.
 const DASH = resolve(import.meta.dir, "..", "students", "students-dashboard");
 const STUDENTS = resolve(import.meta.dir, "..", "students");
-const INDEX = readFileSync(resolve(DASH, "index.tsx"), "utf8");
+// The pins below count indentation, so a working copy saved with CRLF would fail a
+// layout that is unchanged. Line endings carry no meaning for what this file asserts.
+const read = (p: string) => readFileSync(p, "utf8").replace(/\r\n/g, "\n");
+const INDEX = read(resolve(DASH, "index.tsx"));
 const CARDS = readdirSync(resolve(DASH, "components"))
-  .map((f) => readFileSync(resolve(DASH, "components", f), "utf8"))
+  .map((f) => read(resolve(DASH, "components", f)))
   .join("\n");
 const ALL = `${INDEX}\n${CARDS}`;
 
@@ -56,6 +59,12 @@ test("every card the reference shows is mounted", () => {
     "Document completeness",
     "Compliance",
     "Recent activity",
+    "Enrolment growth",
+    "Movement this session",
+    "Class strength",
+    "Age pyramid",
+    "Religion",
+    "Mother tongue",
   ]) {
     expect(ALL, `the dashboard no longer draws "${title}"`).toContain(title);
   }
@@ -70,16 +79,77 @@ test("every card the reference shows is mounted", () => {
     "DocumentsCard",
     "ComplianceCard",
     "RecentActivityCard",
+    "EnrolmentGrowthCard",
+    "MovementCard",
+    "ClassStrengthCard",
+    "AgePyramidCard",
+    "ReligionCard",
+    "MotherTongueCard",
   ]) {
     expect(INDEX, `index.tsx no longer mounts ${card}`).toContain(`<${card}`);
   }
 });
 
-test("the four frames with no data source say Soon rather than measuring nothing", () => {
-  // Category, Document completeness and Compliance have no table, and duplicate
-  // identifiers has no column to match on. A bar at zero reads as a finding.
-  const untracked = readFileSync(resolve(DASH, "components", "untracked-cards.tsx"), "utf8");
-  expect([...untracked.matchAll(/<SoonNote/g)]).toHaveLength(3);
+test("the expanded region carries the labels and footings the reference draws", () => {
+  for (const text of [
+    "Trends",
+    "Classes",
+    "Demographics",
+    "Transfers",
+    "Admitted",
+    "Withdrawn",
+    "Net change",
+    "Admissions",
+    "Withdrawals",
+    "Transferred in",
+    "Promoted",
+    "Average class size",
+    "Largest ·",
+    "Median age",
+    "Range ·",
+  ]) {
+    expect(ALL, `the expanded region no longer draws "${text}"`).toContain(text);
+  }
+});
+
+test("the toggle sits below the drawer it opens, and the footer below that", () => {
+  // The reference puts the pill at the very end of the page, so an expanded screen has
+  // to be scrolled to before it can be collapsed again. Above the charts it is a lie
+  // about direction — the drawer would open upward, over content already read.
+  const drawer = INDEX.indexOf("<AnimatePresence");
+  const pill = INDEX.indexOf("Show more insights");
+  const footer = INDEX.indexOf("<UpdatedFooter");
+  expect(drawer).toBeGreaterThan(-1);
+  expect(pill).toBeGreaterThan(drawer);
+  expect(footer).toBeGreaterThan(pill);
+  expect(INDEX).toContain("Show less");
+});
+
+test("the drawer is mounted only when open, and animates its height", () => {
+  // The recharts panes are code-split; rendering them collapsed would pay for them on
+  // every page load. A fixed-height slide would clip the tallest card.
+  expect(INDEX).toMatch(/\{showMore && \(/);
+  expect(INDEX).toContain('animate={{ height: "auto", opacity: 1 }}');
+  expect(INDEX).toContain('exit={{ height: 0, opacity: 0 }}');
+  expect(INDEX).toContain('overflow: "hidden"');
+});
+
+test("a class move is a link and a Soon tile, never a counted number", () => {
+  // Nothing in this build's schema separates a promotion from a profile edit, so the
+  // tile says so; `Promoted` is the one movement the Promotion table does record.
+  const movement = read(resolve(DASH, "components", "movement-card.tsx"));
+  expect(movement).toMatch(/tenantHref\("class-change"\)/);
+  expect(movement).toMatch(/label="Transferred in"\s*\n\s*soon/);
+  const hook = read(resolve(STUDENTS, "hooks", "use-students-command-center.ts"));
+  expect(hook).toMatch(/\n {8}promoted\n/);
+});
+
+test("the frames with no data source say Soon rather than measuring nothing", () => {
+  // Category, Document completeness, Compliance, Religion and Mother tongue have no
+  // column to read, and duplicate identifiers no field to match on. A bar at zero
+  // reads as a finding.
+  const untracked = read(resolve(DASH, "components", "untracked-cards.tsx"));
+  expect([...untracked.matchAll(/<SoonNote/g)]).toHaveLength(5);
   expect(untracked).not.toMatch(/width: `/);
   expect(CARDS, "an alert row was invented for a check the server does not run").not.toMatch(
     /Aadhaar numbers/,
@@ -92,8 +162,8 @@ test("the dashboard search hands its term to the roster rather than filtering in
 });
 
 test("the footer names the last change to a record, not the moment the query ran", () => {
-  const footer = readFileSync(resolve(DASH, "components", "updated-footer.tsx"), "utf8");
-  const hook = readFileSync(resolve(STUDENTS, "hooks", "use-students-command-center.ts"), "utf8");
+  const footer = read(resolve(DASH, "components", "updated-footer.tsx"));
+  const hook = read(resolve(STUDENTS, "hooks", "use-students-command-center.ts"));
 
   expect(INDEX).toContain("<UpdatedFooter");
   expect(hook).toMatch(/lastUpdated: string \| null/);

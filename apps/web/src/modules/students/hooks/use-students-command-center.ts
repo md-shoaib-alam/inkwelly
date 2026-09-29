@@ -16,6 +16,8 @@ export type StudentsStats = {
   admissions: number;
   withdrawals: number;
   graduated: number;
+  /** Completed promotions inside the session the card is framed on. */
+  promoted: number;
   profileCompletePercent: number;
   boys: number;
   girls: number;
@@ -116,6 +118,7 @@ const GET_COMMAND_CENTER = `
         admissions
         withdrawals
         graduated
+        promoted
         profileCompletePercent
         boys
         girls

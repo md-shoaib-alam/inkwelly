@@ -1,82 +1,92 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TrendingUp } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Repeat } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, MiniTile } from "./card";
+import { useTenantHref } from "../../hooks/use-tenant-href";
 import type {
-  StudentsEnrolmentPoint,
   StudentsMovementPoint,
+  StudentsStats,
 } from "../../hooks/use-students-command-center";
 
 /**
- * One trailing year, not the session window: a school that admits in April and loses
- * students in June reads as a flat line if the chart only spans the months already elapsed,
- * and the months a session has not reached yet cannot be shown at all.
+ * Admissions and withdrawals month by month, inside the session the school is running.
+ * A move between two classes of the same school is neither of those, so it is not counted
+ * here — the header links to the screen that does that work, and the tile that would hold
+ * it says so rather than showing a number nothing measures.
  */
 export function MovementCard({
   movement,
-  enrolment,
+  stats,
+  reasons,
   loading,
 }: {
   movement: StudentsMovementPoint[];
-  enrolment: StudentsEnrolmentPoint[];
+  stats?: StudentsStats;
+  reasons: Record<string, string>;
   loading: boolean;
 }) {
   const [recharts, setRecharts] = useState<typeof import("recharts") | null>(null);
+  const tenantHref = useTenantHref();
 
   useEffect(() => {
     import("recharts").then(setRecharts);
   }, []);
 
-  const points = movement.map((m) => {
-    const enrolled = enrolment.find((e) => e.period === m.month)?.students ?? 0;
-    return { label: m.label, admissions: m.admissions, withdrawals: -m.withdrawals, enrolled };
-  });
-  const net = points.reduce((sum, p) => sum + p.admissions + p.withdrawals, 0);
+  const points = movement.map((m) => ({
+    label: m.label,
+    Admissions: m.admissions,
+    Withdrawals: m.withdrawals,
+  }));
+  const transfersReason = reasons["transfers"] ?? "No table records a class move on its own.";
 
   return (
-    <div className="rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] shadow-2xs overflow-hidden flex flex-col">
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-100 dark:border-zinc-800/80">
-        <span className="text-teal-600 dark:text-teal-400">
-          <TrendingUp className="size-4" />
-        </span>
-        <span className="text-[13px] font-semibold text-slate-700 dark:text-zinc-200">
-          Movement and enrolment
-        </span>
-        <span className="text-[11px] text-slate-400 dark:text-zinc-500">
-          · last {points.length} months · {net >= 0 ? "+" : ""}
-          {net.toLocaleString()} net
-        </span>
-      </div>
-
-      <div className="p-4 flex-1">
-        {loading ? (
-          <Skeleton className="h-[212px] w-full rounded-lg" />
-        ) : points.length === 0 ? (
-          <div className="h-[212px] grid place-items-center">
-            <p className="text-[12px] text-slate-400 dark:text-zinc-500">
-              No student carries an admission date this side of the trailing year.
-            </p>
-          </div>
-        ) : (
-          <div className="h-[212px] w-full">
+    <Card
+      title="Movement this session"
+      subtitle="Admissions vs withdrawals by month"
+      icon={Repeat}
+      tint="bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300"
+      bodyClassName="px-5 pb-5 space-y-4"
+      trailing={
+        <a
+          href={tenantHref("class-change")}
+          className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold text-teal-700 hover:text-teal-800 dark:text-teal-300 dark:hover:text-teal-200"
+        >
+          Transfers
+          <ArrowUpRight className="size-3.5" />
+        </a>
+      }
+    >
+      {loading ? (
+        <Skeleton className="h-[224px] w-full rounded-xl" />
+      ) : (
+        <>
+          <div className="h-[150px] w-full">
             {recharts ? (
               (() => {
                 const {
                   ResponsiveContainer,
-                  ComposedChart,
+                  BarChart,
                   Bar,
-                  Line,
                   XAxis,
                   YAxis,
                   CartesianGrid,
                   Tooltip,
-                  ReferenceLine,
                 } = recharts;
                 return (
                   <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={points} margin={{ top: 8, right: 8, left: -14, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.6} />
+                    <BarChart
+                      data={points}
+                      margin={{ top: 4, right: 4, left: -18, bottom: 0 }}
+                      barGap={3}
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="#E2E8F0"
+                        opacity={0.6}
+                      />
                       <XAxis
                         dataKey="label"
                         tickLine={false}
@@ -86,87 +96,74 @@ export function MovementCard({
                         tick={{ fill: "#64748B" }}
                       />
                       <YAxis
-                        yAxisId="movement"
                         tickLine={false}
                         axisLine={false}
                         fontSize={11}
-                        tick={{ fill: "#64748B" }}
                         width={44}
-                      />
-                      <YAxis
-                        yAxisId="enrolment"
-                        orientation="right"
-                        tickLine={false}
-                        axisLine={false}
-                        fontSize={11}
+                        allowDecimals={false}
                         tick={{ fill: "#94A3B8" }}
-                        width={44}
                       />
-                      <ReferenceLine yAxisId="movement" y={0} stroke="#CBD5E1" />
                       <Tooltip
+                        cursor={{ fill: "rgba(148,163,184,0.08)" }}
                         contentStyle={{
                           borderRadius: 12,
                           border: "none",
                           boxShadow: "0 10px 30px rgba(2,6,23,.16)",
                           fontSize: 12,
                         }}
-                        formatter={(value: unknown, name: string) => [
-                          Math.abs(Number(value ?? 0)).toLocaleString(),
-                          name,
-                        ]}
                       />
-                      <Bar
-                        yAxisId="movement"
-                        dataKey="admissions"
-                        name="Admitted"
-                        fill="#0D9488"
-                        radius={[3, 3, 0, 0]}
-                        barSize={12}
-                      />
-                      <Bar
-                        yAxisId="movement"
-                        dataKey="withdrawals"
-                        name="Withdrawn"
-                        fill="#F43F5E"
-                        radius={[0, 0, 3, 3]}
-                        barSize={12}
-                      />
-                      <Line
-                        yAxisId="enrolment"
-                        type="monotone"
-                        dataKey="enrolled"
-                        name="Enrolment"
-                        stroke="#0EA5E9"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 4 }}
-                      />
-                    </ComposedChart>
+                      <Bar dataKey="Admissions" fill="#0D9488" radius={[3, 3, 0, 0]} barSize={10} />
+                      <Bar dataKey="Withdrawals" fill="#F59E0B" radius={[3, 3, 0, 0]} barSize={10} />
+                    </BarChart>
                   </ResponsiveContainer>
                 );
               })()
-            ) : null}
+            ) : (
+              <Skeleton className="h-full w-full rounded-xl" />
+            )}
           </div>
-        )}
-      </div>
 
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-4 py-3 border-t border-slate-100 dark:border-zinc-800/80">
-        <div className="flex items-center gap-2">
-          <span className="size-2.5 rounded-full bg-teal-600" />
-          <span className="text-[11px] font-medium text-slate-500 dark:text-zinc-400">Admitted</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="size-2.5 rounded-full bg-rose-500" />
-          <span className="text-[11px] font-medium text-slate-500 dark:text-zinc-400">Withdrawn</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="size-2.5 rounded-full bg-sky-500" />
-          <span className="text-[11px] font-medium text-slate-500 dark:text-zinc-400">Enrolment</span>
-        </div>
-        <span className="text-[11px] text-slate-400 dark:text-zinc-500 ml-auto">
-          Withdrawals are drawn below the axis
-        </span>
-      </div>
-    </div>
+          <div className="flex items-center gap-5">
+            <span className="flex items-center gap-2">
+              <span className="size-2.5 rounded-full bg-teal-600" />
+              <span className="text-[12px] font-medium text-slate-500 dark:text-zinc-400">
+                Admissions
+              </span>
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="size-2.5 rounded-full bg-amber-500" />
+              <span className="text-[12px] font-medium text-slate-500 dark:text-zinc-400">
+                Withdrawals
+              </span>
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <MiniTile
+              value={(stats?.admissions ?? 0).toLocaleString()}
+              label="Admissions"
+              tone="teal"
+            />
+            <MiniTile
+              value={(stats?.withdrawals ?? 0).toLocaleString()}
+              label="Withdrawals"
+              tone="amber"
+            />
+            <MiniTile
+              value={<ArrowRight className="size-4" />}
+              label="Transferred in"
+              soon
+              title={transfersReason}
+            />
+            <MiniTile
+              value={(stats?.promoted ?? 0).toLocaleString()}
+              label="Promoted"
+              tone="emerald"
+              title="Completed promotions inside this session"
+            />
+          </div>
+        </>
+      )}
+    </Card>
   );
 }
