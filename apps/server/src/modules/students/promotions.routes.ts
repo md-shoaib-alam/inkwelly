@@ -1,7 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { db } from '../../lib/db';
 import * as schema from '../../db/schema';
-import { eq, and, desc, inArray, count } from 'drizzle-orm';
+import { eq, and, desc, inArray, count, isNull } from 'drizzle-orm';
 import { requireAuth } from '../../lib/auth';
 import { requirePermission } from '../../lib/permissions';
 import { posthog, captureError } from '../../lib/monitoring/posthog';
@@ -141,7 +141,8 @@ export const promotionsRoutes = new Elysia({ prefix: '/promotions' })
         const students = await db.query.students.findMany({
           where: and(
             eq(schema.students.classId, fromClassId),
-            eq(schema.students.status, 'active')
+            eq(schema.students.status, 'active'),
+            isNull(schema.students.deletedAt)
           ),
           with: {
             class: { columns: { tenantId: true } }

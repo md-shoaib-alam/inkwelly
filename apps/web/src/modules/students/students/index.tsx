@@ -2,7 +2,6 @@
 
 import { useReducer, useEffect, useCallback, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -10,14 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Eye, RotateCcw } from "lucide-react";
+import { Eye, RotateCcw } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
 import { useModulePermissions } from "@/modules/access-control/hooks/use-permissions";
 import { useAppStore } from "@/store/use-app-store";
 import { useStudents } from "@/lib/graphql/hooks/academic.hooks";
-import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";
 import { ClassSelect } from "@/components/ui/class-select";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/graphql/keys";
@@ -62,7 +60,6 @@ type State = {
   currentPage: number;
   itemsPerPage: number;
   dialogOpen: boolean;
-  dialogMode: "create" | "edit";
   editingStudent: StudentInfo | null;
   formData: StudentFormData;
   submitting: boolean;
@@ -75,7 +72,6 @@ type Action =
   | { type: 'SET_GENDER_FILTER'; payload: string }
   | { type: 'SET_CURRENT_PAGE'; payload: number }
   | { type: 'SET_ITEMS_PER_PAGE'; payload: number }
-  | { type: 'OPEN_CREATE' }
   | { type: 'OPEN_EDIT'; payload: StudentInfo }
   | { type: 'CLOSE_DIALOG' }
   | { type: 'SET_FORM_DATA'; payload: StudentFormData }
@@ -89,7 +85,6 @@ const initialState: State = {
   currentPage: 1,
   itemsPerPage: 15,
   dialogOpen: false,
-  dialogMode: "create",
   editingStudent: null,
   formData: emptyFormData,
   submitting: false,
@@ -109,12 +104,9 @@ function reducer(state: State, action: Action): State {
       return { ...state, currentPage: action.payload };
     case 'SET_ITEMS_PER_PAGE':
       return { ...state, itemsPerPage: action.payload, currentPage: 1 };
-    case 'OPEN_CREATE':
-      return { ...state, dialogMode: "create", formData: emptyFormData, dialogOpen: true };
     case 'OPEN_EDIT':
       return {
         ...state,
-        dialogMode: "edit",
         editingStudent: action.payload,
         formData: {
           name: action.payload.name,
@@ -156,7 +148,6 @@ function AdminStudentsContent() {
     currentPage,
     itemsPerPage,
     dialogOpen,
-    dialogMode,
     editingStudent,
     formData,
     submitting,
@@ -192,7 +183,6 @@ function AdminStudentsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const { year } = useActiveAcademicYear();
   const classIdParam = searchParams.get("classId");
   const pageParam = searchParams.get("page");
   const limitParam = searchParams.get("limit");
@@ -234,8 +224,6 @@ function AdminStudentsContent() {
   }, [pathname, router, searchParams]);
 
   // --- Handlers ---
-
-  const handleOpenCreate = () => dispatch({ type: 'OPEN_CREATE' });
 
   const handleOpenEdit = (student: StudentInfo) => dispatch({ type: 'OPEN_EDIT', payload: student });
 
@@ -317,7 +305,7 @@ function AdminStudentsContent() {
   };
 
   const handleSubmit = async () => {
-    const isCreate = dialogMode === "create";
+    if (!editingStudent) return;
 
     // Required fields validation
     if (!formData.name || !formData.rollNumber || !formData.classId) {
@@ -334,32 +322,28 @@ function AdminStudentsContent() {
       }
     }
 
-    // OPTIMISTIC UPDATE: Update the UI instantly if editing
-    if (!isCreate && editingStudent) {
-      const updatedStudent = { ...editingStudent, ...formData };
-      queryClient.setQueriesData(
-        { queryKey: queryKeys.students },
-        (old: any) => {
-          if (!old || !old.students) return old;
-          return {
-            ...old,
-            students: old.students.map((s: any) =>
-              s.id === editingStudent.id ? updatedStudent : s,
-            ),
-          };
-        },
-      );
-    }
+    // OPTIMISTIC UPDATE: Update the UI instantly
+    const updatedStudent = { ...editingStudent, ...formData };
+    queryClient.setQueriesData(
+      { queryKey: queryKeys.students },
+      (old: any) => {
+        if (!old || !old.students) return old;
+        return {
+          ...old,
+          students: old.students.map((s: any) =>
+            s.id === editingStudent.id ? updatedStudent : s,
+          ),
+        };
+      },
+    );
 
     toast.promise(
       (async () => {
         dispatch({ type: 'SET_SUBMITTING', payload: true });
         try {
-          const url = "/api/students";
-          const method = isCreate ? "POST" : "PUT";
-
           // Clean payload: omit empty strings for optional fields to avoid backend schema validation errors
           const payload: Record<string, any> = {
+            id: editingStudent.id,
             name: formData.name.trim(),
             rollNumber: formData.rollNumber.trim(),
             classId: formData.classId,
@@ -367,24 +351,11 @@ function AdminStudentsContent() {
             transportEnabled: Boolean(formData.transportEnabled),
           };
 
-          if (isCreate && year?.name) {
-            payload.academicYear = year.name;
-          }
-
-          if (!isCreate && editingStudent) {
-            payload.id = editingStudent.id;
-          }
           if (formData.email?.trim()) {
             payload.email = formData.email.trim();
           }
           if (formData.phone?.trim()) {
             payload.phone = formData.phone.trim();
-          }
-          if (formData.username?.trim()) {
-            payload.username = formData.username.trim();
-          }
-          if (formData.password?.trim()) {
-            payload.password = formData.password.trim();
           }
           if (formData.dateOfBirth?.trim()) {
             payload.dateOfBirth = formData.dateOfBirth.trim();
@@ -399,18 +370,17 @@ function AdminStudentsContent() {
             }
           }
 
-          const res = await apiFetch(url, {
-            method,
+          const res = await apiFetch("/api/students", {
+            method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           });
 
           if (!res.ok) {
             const errData = await res.json().catch(() => ({}));
-            throw new Error(errData.error || `Failed to ${dialogMode} student`);
+            throw new Error(errData.error || "Failed to update student");
           }
 
-          const resData = await res.json().catch(() => ({}));
           dispatch({ type: 'CLOSE_DIALOG' });
           // Refresh from server to ensure total accuracy
           queryClient.invalidateQueries({ queryKey: queryKeys.students });
@@ -418,33 +388,26 @@ function AdminStudentsContent() {
             queryKey: ["admin-dashboard", currentTenantId],
           });
           // The profile view caches by id, so a write has to clear that too.
-          if (!isCreate && editingStudent?.id) {
-            queryClient.invalidateQueries({ queryKey: ["student-detail", editingStudent.id] });
-          }
-          if (isCreate && resData.username) {
-            return `Student registered! School ID: ${resData.username}`;
-          }
-          return isCreate
-            ? "Student registered successfully"
-            : "Student details updated";
+          queryClient.invalidateQueries({ queryKey: ["student-detail", editingStudent.id] });
+          return "Student details updated";
         } finally {
           dispatch({ type: 'SET_SUBMITTING', payload: false });
         }
       })(),
       {
-        loading: isCreate
-          ? "Registering new student..."
-          : "Updating student details...",
+        loading: "Updating student details...",
         success: (msg) => msg,
         error: (err: any) => err.message,
       },
     );
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, reason?: string) => {
     toast.promise(
       (async () => {
-        const res = await apiFetch(`/api/students?id=${id}`, {
+        const params = new URLSearchParams({ id });
+        if (reason) params.set("reason", reason);
+        const res = await apiFetch(`/api/students?${params.toString()}`, {
           method: "DELETE",
         });
         if (!res.ok) {
@@ -457,12 +420,13 @@ function AdminStudentsContent() {
         queryClient.invalidateQueries({
           queryKey: ["admin-dashboard", currentTenantId],
         });
+        queryClient.invalidateQueries({ queryKey: ["student-trash"] });
 
         // Force a RED morphing pill for deletion
-        throw new Error("Student record removed");
+        throw new Error("Student moved to Trash");
       })(),
       {
-        loading: "Deleting student records...",
+        loading: "Deleting student record...",
         success: () => "", // Not reached
         error: (err: any) => err.message, // Shows the red pill
       },
@@ -490,7 +454,6 @@ function AdminStudentsContent() {
           onOpenChange={(open) => {
             if (!open) dispatch({ type: 'CLOSE_DIALOG' });
           }}
-          mode={dialogMode}
           formData={formData}
           setFormData={(fd) => dispatch({ type: 'SET_FORM_DATA', payload: fd })}
           submitting={submitting}
@@ -569,17 +532,6 @@ function AdminStudentsContent() {
                 queryClient.invalidateQueries({ queryKey: queryKeys.students })
               }
             />
-            {canCreate && (
-              <Button
-                className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white h-9 sm:h-10"
-                onClick={handleOpenCreate}
-                disabled={!year?.name}
-                title={!year?.name ? "Choose an academic session first" : undefined}
-              >
-                <Plus className="size-4 mr-2" />
-                Add Student
-              </Button>
-            )}
           </div>
         )}
       </div>
@@ -630,8 +582,9 @@ function AdminStudentsContent() {
 
       <StudentDialog
         open={dialogOpen}
-        onOpenChange={(open) => dispatch({ type: open ? 'OPEN_CREATE' : 'CLOSE_DIALOG' })}
-        mode={dialogMode}
+        onOpenChange={(open) => {
+          if (!open) dispatch({ type: 'CLOSE_DIALOG' });
+        }}
         formData={formData}
         setFormData={(fd) => dispatch({ type: 'SET_FORM_DATA', payload: fd })}
         submitting={submitting}

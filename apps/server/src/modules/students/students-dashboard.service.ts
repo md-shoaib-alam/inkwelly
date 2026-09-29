@@ -1,6 +1,6 @@
 import { db } from '../../lib/db';
 import * as schema from '../../db/schema';
-import { and, count, eq, inArray, notInArray } from 'drizzle-orm';
+import { and, count, eq, inArray, isNull, notInArray } from 'drizzle-orm';
 import { formatDate } from '../../lib/date-utils';
 import {
   pickCurrentSession,
@@ -370,7 +370,7 @@ export const StudentsDashboardService = {
             })
             .from(schema.students)
             .innerJoin(schema.users, eq(schema.students.userId, schema.users.id))
-            .where(inArray(schema.students.classId, classIds))
+            .where(and(inArray(schema.students.classId, classIds), isNull(schema.students.deletedAt)))
         ).map((r) => ({
           ...r,
           // `updatedAt` is what every tile reads, and it is a date; the footer needs the
@@ -442,6 +442,7 @@ export const StudentsDashboardService = {
                 and(
                   eq(schema.users.tenantId, tenantId),
                   notInArray(schema.students.classId, classIds),
+                  isNull(schema.students.deletedAt),
                 ),
               )
           )[0]?.n ?? 0,

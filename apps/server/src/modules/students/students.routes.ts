@@ -1,7 +1,7 @@
 import { db } from '../../lib/db';
 import { hashPassword } from '../../lib/passwords';
 import * as schema from '../../db/schema';
-import { eq, and, or, sql, desc, count, ilike, inArray, isNull } from 'drizzle-orm';
+import { eq, and, or, sql, desc, count, ilike, inArray, isNull, isNotNull } from 'drizzle-orm';
 import { requireAuth } from '../../lib/auth';
 import { requirePermission } from '../../lib/permissions';
 import { dataCache } from '../../lib/cache';
@@ -554,7 +554,62 @@ const handleUpdateStudent = async (body: any, tenantId: string, user: any, reque
   return { success: true };
 };
 
-const handleDeleteStudent = async (id: string, tenantId: string, user: any, request: any) => {
+const handleDeleteStudent = async (id: string, tenantId: string, user: any, request: any, reason?: string) => {
+  const student = await db.query.students.findFirst({ 
+    where: eq(schema.students.id, id), 
+    with: { user: true } 
+  });
+
+  if (!student) throw new StudentRouteError(404, 'STUDENT_NOT_FOUND', 'Student not found');
+  if (student.user.tenantId !== tenantId) throw new StudentRouteError(403, 'STUDENT_ACCESS_DENIED', 'Access denied');
+  if (student.deletedAt) throw new StudentRouteError(409, 'STUDENT_ALREADY_DELETED', 'Student is already in the trash');
+
+  const deletedAt = new Date();
+  await db.update(schema.students).set({
+    deletedAt,
+    deletedBy: user.id,
+    deletionReason: reason?.trim() ? reason.trim().slice(0, 500) : null,
+    updatedAt: deletedAt,
+  }).where(eq(schema.students.id, id));
+
+  await dataCache.deleteMatch([
+    `*students*${tenantId}*`,
+    `dashboard:${tenantId}:*`
+  ]);
+
+  posthog.capture({
+    distinctId: tenantId || 'system',
+    event: 'student_deleted',
+    properties: {
+      tenantId,
+      studentId: id,
+      studentName: student.user.name
+    }
+  });
+
+  await createAuditLog({
+    action: 'DELETE_STUDENT',
+    resource: 'student',
+    userId: user.id,
+    userRole: user.role,
+    tenantId,
+    ipAddress: request.headers.get('x-forwarded-for') || '127.0.0.1',
+    userAgent: request.headers.get('user-agent'),
+    details: {
+      id,
+      name: student.user.name,
+      email: student.user.email,
+      rollNumber: student.rollNumber,
+      classId: student.classId,
+      reason: reason?.trim() || null,
+      deletedAt: deletedAt.toISOString()
+    }
+  });
+
+  return { success: true };
+};
+
+const handlePermanentDeleteStudent = async (id: string, tenantId: string, user: any, request: any) => {
   const student = await db.query.students.findFirst({ 
     where: eq(schema.students.id, id), 
     with: { user: true } 
@@ -595,12 +650,13 @@ const handleDeleteStudent = async (id: string, tenantId: string, user: any, requ
     properties: {
       tenantId,
       studentId: id,
-      studentName: student.user.name
+      studentName: student.user.name,
+      permanent: true
     }
   });
 
   await createAuditLog({
-    action: 'DELETE_STUDENT',
+    action: 'PERMANENT_DELETE_STUDENT',
     resource: 'student',
     userId: user.id,
     userRole: user.role,
@@ -613,11 +669,100 @@ const handleDeleteStudent = async (id: string, tenantId: string, user: any, requ
       email: student.user.email,
       rollNumber: student.rollNumber,
       classId: student.classId,
-      deletedAt: new Date().toISOString()
+      deletedAt: student.deletedAt?.toISOString() || null
     }
   });
 
   return { success: true };
+};
+
+const handleRestoreStudent = async (id: string, tenantId: string, user: any, request: any) => {
+  const student = await db.query.students.findFirst({
+    where: eq(schema.students.id, id),
+    with: { user: true }
+  });
+
+  if (!student) throw new StudentRouteError(404, 'STUDENT_NOT_FOUND', 'Student not found');
+  if (student.user.tenantId !== tenantId) throw new StudentRouteError(403, 'STUDENT_ACCESS_DENIED', 'Access denied');
+  if (!student.deletedAt) throw new StudentRouteError(409, 'STUDENT_NOT_IN_TRASH', 'Student is not in the trash');
+
+  await db.update(schema.students).set({
+    deletedAt: null,
+    deletedBy: null,
+    deletionReason: null,
+    updatedAt: new Date(),
+  }).where(eq(schema.students.id, id));
+
+  await dataCache.deleteMatch([
+    `*students*${tenantId}*`,
+    `dashboard:${tenantId}:*`
+  ]);
+
+  await createAuditLog({
+    action: 'RESTORE_STUDENT',
+    resource: 'student',
+    userId: user.id,
+    userRole: user.role,
+    tenantId,
+    ipAddress: request.headers.get('x-forwarded-for') || '127.0.0.1',
+    userAgent: request.headers.get('user-agent'),
+    details: {
+      id,
+      name: student.user.name,
+      rollNumber: student.rollNumber,
+      classId: student.classId
+    }
+  });
+
+  return { success: true };
+};
+
+const handleGetDeletedStudents = async (search: string | undefined, tenantId: string) => {
+  const conditions: any[] = [
+    isNotNull(schema.students.deletedAt),
+    sql`EXISTS (
+      SELECT 1 FROM ${schema.users} u
+      WHERE u.id = ${schema.students.userId} AND u."tenantId" = ${tenantId}
+    )`
+  ];
+
+  if (search?.trim()) {
+    const pattern = `%${search.trim()}%`;
+    conditions.push(
+      or(
+        sql`EXISTS (
+          SELECT 1 FROM ${schema.users} u
+          WHERE u.id = ${schema.students.userId}
+            AND (u.name ILIKE ${pattern} OR u.username ILIKE ${pattern})
+        )`,
+        ilike(schema.students.rollNumber, pattern),
+      )!
+    );
+  }
+
+  const rows = await db.query.students.findMany({
+    where: and(...conditions),
+    with: {
+      user: { columns: { name: true, username: true, email: true, avatar: true } },
+      class: { columns: { name: true, section: true } },
+    },
+    orderBy: desc(schema.students.deletedAt),
+    limit: 500,
+  });
+
+  return {
+    items: rows.map((s: any) => ({
+      id: s.id,
+      name: s.user?.name || 'Unknown',
+      username: s.user?.username || '',
+      avatar: s.user?.avatar || null,
+      rollNumber: s.rollNumber,
+      className: s.class ? `${s.class.name} - ${s.class.section}` : 'Unassigned',
+      deletedAt: s.deletedAt,
+      deletionReason: s.deletionReason,
+    })),
+    total: rows.length,
+  };
 };
 
 // --- ROUTES ---
@@ -646,7 +791,10 @@ export const studentsRoutes = new Elysia({ prefix: '/students' })
       if (!tenantId) { set.status = 403; return { error: 'Tenant ID is required' }; }
       
       const student = await db.query.students.findFirst({
-        where: eq(schema.students.userId, user.id),
+        where: and(
+          eq(schema.students.userId, user.id),
+          isNull(schema.students.deletedAt)
+        ),
         with: {
           user: { columns: { name: true, email: true, phone: true, avatar: true } },
           class: { columns: { name: true, section: true } },
@@ -681,6 +829,20 @@ export const studentsRoutes = new Elysia({ prefix: '/students' })
       captureError(error, { method: 'GET', path: '/students/me', tenantId });
       set.status = 500;
       return { error: 'Failed to load profile' };
+    }
+  })
+  .get('/trash', async ({ query, tenantId, user, set }) => {
+    try {
+      if (!tenantId) { set.status = 403; return { error: 'Tenant ID is required' }; }
+      if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+        set.status = 403;
+        return { error: 'Access denied: administrator privileges required' };
+      }
+      return await handleGetDeletedStudents(query.search as string | undefined, tenantId);
+    } catch (error) {
+      captureError(error, { method: 'GET', path: '/students/trash', tenantId });
+      set.status = 500;
+      return { error: 'Failed to load trash' };
     }
   })
   .get('/:id', async ({ params: { id }, tenantId, user, set }) => {
@@ -811,7 +973,7 @@ export const studentsRoutes = new Elysia({ prefix: '/students' })
       }
       const id = query.id as string;
       if (!id) { set.status = 400; return { error: 'ID required' }; }
-      return await handleDeleteStudent(id, tenantId, user, request);
+      return await handleDeleteStudent(id, tenantId, user, request, query.reason as string | undefined);
     } catch (error: any) {
       captureError(error, { method: 'DELETE', path: '/students', tenantId });
       // handleDeleteStudent reports expected failures as StudentRouteError with
@@ -822,5 +984,47 @@ export const studentsRoutes = new Elysia({ prefix: '/students' })
       }
       set.status = 500;
       return { error: 'Failed to delete student' };
+    }
+  })
+  .post('/restore', async ({ body, tenantId, user, request, set }) => {
+    try {
+      if (!tenantId) { set.status = 403; return { error: 'Tenant ID is required' }; }
+      if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+        set.status = 403;
+        return { error: 'Access denied: administrator privileges required' };
+      }
+      const id = (body as any)?.id as string;
+      if (!id) { set.status = 400; return { error: 'ID required' }; }
+      return await handleRestoreStudent(id, tenantId, user, request);
+    } catch (error: any) {
+      captureError(error, { method: 'POST', path: '/students/restore', tenantId });
+      if (error instanceof StudentRouteError) {
+        set.status = error.status;
+        return { error: error.message, code: error.code };
+      }
+      set.status = 500;
+      return { error: 'Failed to restore student' };
+    }
+  }, {
+    body: t.Object({ id: t.String({ minLength: 1 }) })
+  })
+  .delete('/permanent', async ({ query, tenantId, user, request, set }) => {
+    try {
+      if (!tenantId) { set.status = 403; return { error: 'Tenant ID is required' }; }
+      if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+        set.status = 403;
+        return { error: 'Access denied: administrator privileges required' };
+      }
+      const id = query.id as string;
+      if (!id) { set.status = 400; return { error: 'ID required' }; }
+      return await handlePermanentDeleteStudent(id, tenantId, user, request);
+    } catch (error: any) {
+      captureError(error, { method: 'DELETE', path: '/students/permanent', tenantId });
+      if (error instanceof StudentRouteError) {
+        set.status = error.status;
+        return { error: error.message, code: error.code };
+      }
+      set.status = 500;
+      return { error: 'Failed to delete student permanently' };
     }
   });

@@ -82,6 +82,7 @@ function normalizePagination(page?: number, limit?: number) {
 
 function buildWhereConditions(tenantId: string, params: StudentListParams, tableAlias: string = 'students') {
   const conditions: any[] = [
+    sql`${sql.raw(`"${tableAlias}"."deletedAt"`)} IS NULL`,
     sql`EXISTS (
       SELECT 1 FROM ${schema.users} u
       WHERE u.id = ${sql.raw(`"${tableAlias}"."userId"`)} AND u."tenantId" = ${tenantId}

@@ -552,7 +552,7 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
       label: "Admin",
       items: [
         { key: "student-settings", label: "Settings", icon: <Settings className={iconCls} />, disabled: true },
-        { key: "student-trash", label: "Trash", icon: <Trash2 className={iconCls} />, disabled: true },
+        { key: "student-trash", label: "Trash", icon: <Trash2 className={iconCls} /> },
       ],
     },
   ],

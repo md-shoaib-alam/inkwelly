@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -36,8 +38,67 @@ interface StudentTableProps {
   canEdit: boolean;
   canDelete: boolean;
   onEdit: (student: StudentInfo) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string, reason?: string) => void;
   onView: (student: StudentInfo) => void;
+}
+
+function DeleteStudentDialog({
+  student,
+  onDelete,
+  trigger,
+}: {
+  student: StudentInfo;
+  onDelete: (id: string, reason?: string) => void;
+  trigger: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+
+  return (
+    <AlertDialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setReason("");
+      }}
+    >
+      <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
+      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete Student</AlertDialogTitle>
+          <AlertDialogDescription>
+            <strong>{student.name}</strong> will be moved to Trash. You can
+            restore them later, or delete them permanently from Trash.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="space-y-1.5">
+          <label htmlFor={`delete-reason-${student.id}`} className="text-sm font-medium">
+            Reason <span className="text-muted-foreground font-normal">(optional)</span>
+          </label>
+          <Textarea
+            id={`delete-reason-${student.id}`}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Why is this student being deleted?"
+            rows={2}
+            maxLength={500}
+          />
+        </div>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-red-600 hover:bg-red-700 text-white"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(student.id, reason.trim() || undefined);
+            }}
+          >
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
 }
 
 export function StudentTable({
@@ -163,8 +224,10 @@ export function StudentTable({
                         </Button>
                       )}
                       {canDelete && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
+                        <DeleteStudentDialog
+                          student={student}
+                          onDelete={onDelete}
+                          trigger={
                             <Button
                               variant="ghost"
                               size="icon"
@@ -172,29 +235,8 @@ export function StudentTable({
                             >
                               <Trash2 className="size-4" />
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Delete Student
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete{" "}
-                                <strong>{student.name}</strong>? This action
-                                cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                className="bg-red-600 hover:bg-red-700 text-white"
-                                onClick={() => onDelete(student.id)}
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                          }
+                        />
                       )}
                     </div>
 
@@ -219,34 +261,16 @@ export function StudentTable({
                             </DropdownMenuItem>
                           )}
                           {canDelete && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
+                            <DeleteStudentDialog
+                              student={student}
+                              onDelete={onDelete}
+                              trigger={
                                 <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20 dark:hover:text-red-400 data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
                                   <Trash2 className="mr-2 h-4 w-4" />
                                   <span>Delete Record</span>
                                 </div>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Student</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete <strong>{student.name}</strong>? This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    className="bg-red-600 hover:bg-red-700 text-white"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onDelete(student.id);
-                                    }}
-                                  >
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                              }
+                            />
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
