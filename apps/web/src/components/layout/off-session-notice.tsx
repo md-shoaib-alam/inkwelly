@@ -39,7 +39,7 @@ export function OffSessionNotice() {
   return (
     <div
       role="status"
-      className="pointer-events-none fixed inset-0 z-[70] border-2 border-rose-500"
+      className="pointer-events-none fixed inset-0 z-[70] rounded-2xl border-[3px] border-rose-500"
     >
       <div className="flex justify-center">
         <span className="inline-flex items-center gap-1.5 rounded-b-lg bg-rose-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-md">
