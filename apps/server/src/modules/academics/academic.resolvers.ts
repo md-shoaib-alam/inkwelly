@@ -1,4 +1,5 @@
 import { db } from '../../lib/db'
+import { GraphQLError } from 'graphql'
 import * as schema from '../../db/schema'
 import { eq, and, desc, inArray, count, sql, sum, ilike, or, lt, gt } from 'drizzle-orm'
 import { checkAuth, paginate, requireModule, requireSchoolAdmin, assertTenantOwnership, tenantFromArg } from '../../graphql/resolvers/helpers'
@@ -9,6 +10,7 @@ import { StudentService } from '../students'
 import { TeacherService } from '../employees'
 import { ClassService } from './class.service'
 import { SubjectService } from './subject.service'
+import { yearUsageCounts } from './academic.year-usage'
 import { AcademicsDashboardService } from './academics-dashboard.service'
 
 export const academicQueries = {
@@ -713,7 +715,24 @@ export const academicMutations = {
 
   updateAcademicYear: async (_: unknown, { id, input }: { id: string, input: any }, context: any) => {
     const { tenantId } = await requireModule(context, 'academic-years', 'edit');
-    
+
+    const existing = await db.query.academicYears.findFirst({
+      where: and(eq(schema.academicYears.id, id), eq(schema.academicYears.tenantId, tenantId)),
+    });
+    if (!existing) throw new Error('Academic year not found');
+
+    if (input.name && input.name !== existing.name) {
+      const counts = await yearUsageCounts(tenantId, existing.name);
+      const inUse = Object.entries(counts).filter(([, n]) => n > 0);
+      if (inUse.length) {
+        throw new GraphQLError(
+          `YEAR_IN_USE: "${existing.name}" is in use (${inUse.map(([t, n]) => `${t}: ${n}`).join(', ')}). ` +
+          `Create "${input.name}" as a new session instead of renaming.`,
+          { extensions: { code: 'YEAR_IN_USE' } },
+        );
+      }
+    }
+
     const [year] = await db.transaction(async (tx) => {
       if (input.isCurrent) {
         await tx.update(schema.academicYears)

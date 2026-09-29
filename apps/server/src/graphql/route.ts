@@ -4,17 +4,20 @@ import { GraphQLError } from 'graphql';
 import { schema } from './schema';
 import { verifyJWT } from '../lib/jwt';
 
-const AUTH_ERROR_CODES = new Set(['FORBIDDEN', 'UNAUTHENTICATED']);
-
 /**
  * Masking turns every thrown error into an indistinguishable
  * INTERNAL_SERVER_ERROR, which would hide authorization denials too. Resolvers
  * tag denials with their own code, so let those through and mask everything
  * else behind the generic message.
+ *
+ * `YEAR_IN_USE` is not an auth denial: the rename guard is worth nothing unless
+ * the admin can read which session holds the rows, so its message passes too.
  */
+const CLIENT_READABLE_CODES = new Set(['FORBIDDEN', 'UNAUTHENTICATED', 'YEAR_IN_USE']);
+
 function maskError(error: any) {
   const original = error?.originalError;
-  if (AUTH_ERROR_CODES.has(original?.extensions?.code)) return original;
+  if (CLIENT_READABLE_CODES.has(original?.extensions?.code)) return original;
   return new GraphQLError('Unexpected error.');
 }
 
