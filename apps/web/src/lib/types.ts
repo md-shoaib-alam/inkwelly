@@ -59,6 +59,8 @@ export interface ClassInfo {
   isActive: boolean;
   capacity: number;
   studentCount: number;
+  /** Only the GraphQL `classes` query fills this; the REST row shape omits it. */
+  profileCompletePercent?: number;
   classTeacher?: string;
   classTeacherId?: string | null;
   teachers?: ClassTeacherRef[];

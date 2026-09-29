@@ -4,7 +4,7 @@ import { useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter, useParams } from "next/navigation";
-import { School, SlidersHorizontal } from "lucide-react";
+import { School, SlidersHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,7 +20,7 @@ import { useModulePermissions } from "@/modules/access-control/hooks/use-permiss
 import { useClassFilterOptions, useClassStats, useClassesFiltered, useTeachers } from "@/lib/graphql/hooks";
 import { useViewMode } from "@/hooks/use-view-mode";
 import { useAppStore } from "@/store/use-app-store";
-import { defaultClassFilters, type ClassFilters } from "@/lib/class-options";
+import { defaultClassFilters, filtersAreDefault, type ClassFilters } from "@/lib/class-options";
 import type { ClassInfo, ClassTeacherRef } from "@/lib/types";
 
 import { ReadOnlyBanner } from "./adminClasses/ReadOnlyBanner";
@@ -53,6 +53,7 @@ export function AdminClasses() {
   const [filters, setFilters] = useState<ClassFilters>(defaultClassFilters);
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [page, setPage] = useState(1);
+  const hasActiveFilters = !filtersAreDefault(filters);
 
   // A filter that shrinks the result set can strand the viewer on a page that no
   // longer exists, so every change of criteria goes back to the first page. Both
@@ -214,16 +215,30 @@ export function AdminClasses() {
           inputClassName="rounded-xl bg-white dark:bg-zinc-900 border-slate-200/80 dark:border-zinc-800 h-10 text-sm placeholder:text-slate-400 pl-9 shadow-2xs"
         />
         <Button
-          variant="outline"
+          variant={hasActiveFilters ? "default" : "outline"}
           onClick={() => setFiltersVisible((v) => !v)}
           className={cn(
-            "h-10 px-3.5 rounded-xl border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 text-xs font-semibold gap-1.5 shadow-2xs cursor-pointer",
-            filtersVisible && "bg-slate-100 dark:bg-zinc-800 border-slate-300 dark:border-zinc-700"
+            "h-10 px-3.5 rounded-xl text-xs font-semibold gap-1.5 shadow-2xs cursor-pointer transition-all",
+            hasActiveFilters
+              ? "bg-[#0e766e] hover:bg-[#0d6962] text-white border-transparent"
+              : "border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200",
+            filtersVisible && !hasActiveFilters && "bg-slate-100 dark:bg-zinc-800 border-slate-300 dark:border-zinc-700"
           )}
         >
-          <SlidersHorizontal className="size-3.5 text-slate-500 dark:text-zinc-400" />
-          <span>Filters</span>
+          <SlidersHorizontal className={cn("size-3.5", hasActiveFilters ? "text-white" : "text-slate-500 dark:text-zinc-400")} />
+          <span>Filters{hasActiveFilters ? " •" : ""}</span>
         </Button>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={() => applyFilters(defaultClassFilters())}
+            aria-label="Clear filters"
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-[12.5px] font-medium text-[#991B1B] bg-[#FEE2E2] hover:bg-[#FECACA] dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors cursor-pointer"
+          >
+            <X className="size-3.5" />
+            <span>Clear</span>
+          </button>
+        )}
       </div>
 
       {filtersVisible && (

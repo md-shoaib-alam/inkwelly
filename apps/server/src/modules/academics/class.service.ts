@@ -27,6 +27,8 @@ export interface ClassRow {
   isActive: boolean;
   capacity: number;
   studentCount: number;
+  /** Share of this class's students complete on every profile field the dashboard counts. */
+  profileCompletePercent: number;
   classTeacher: string | null;
   classTeacherId: string | null;
   teachers: { id: string; name: string; avatar?: string | null; isPrimary: boolean }[];
@@ -44,6 +46,38 @@ export const CLASS_SORT_EXPRESSIONS: Record<string, SQL> = {
 
 const ENROLLED_SUBQUERY = sql`(
   select count(*) from "Student" s where s."classId" = "Class"."id"
+)`;
+
+/**
+ * The fields a profile must carry to count as complete — the same set the Students
+ * dashboard scores in `profileFieldCount`, so a class bar and the dashboard total
+ * can never disagree. `class.service.test.ts` proves that function counts exactly
+ * these and nothing else.
+ */
+export const PROFILE_COMPLETE_FIELDS = ['dateOfBirth', 'bloodGroup', 'parentId', 'rollNumber'] as const;
+
+/**
+ * `btrim` rather than a bare `is not null`: `rollNumber` is NOT NULL but arrives
+ * blank from the import path, and the dashboard's `trim().length > 0` does not
+ * accept whitespace as a filled-in field.
+ */
+export function completeProfileCondition(columns: readonly string[]): string {
+  return columns.map((column) => `coalesce(btrim(s."${column}"), '') <> ''`).join(' and ');
+}
+
+const COMPLETE_PROFILE_CONDITION = sql.raw(completeProfileCondition(PROFILE_COMPLETE_FIELDS));
+
+/**
+ * One pass over the class's students for both numbers, so the denominator is the
+ * same population `studentCount` reports — a row that says 24 enrolled and a bar
+ * computed over 22 active students would read as a bug even when it is not.
+ */
+const COMPLETION_SUBQUERY = sql`(
+  select coalesce(
+    round(100.0 * count(*) filter (where ${COMPLETE_PROFILE_CONDITION}) / nullif(count(*), 0)),
+    0
+  )::int
+  from "Student" s where s."classId" = "Class"."id"
 )`;
 
 /** `enrolled` is the one sortable value that isn't a column, so it sorts on the count. */
@@ -89,6 +123,8 @@ export function buildClassFilters(
 /**
  * The cache key has to carry every filter, or two different views of the same
  * tenant collide on one entry and the second caller gets the first one's rows.
+ * The `v3` is the payload's version: adding a field to the row shape has to bump
+ * it, or the cached entries written before the change keep serving rows without it.
  */
 export function classCacheKey(params: ClassListParams, teacherScope: string): string {
   const f = params;
@@ -99,7 +135,7 @@ export function classCacheKey(params: ClassListParams, teacherScope: string): st
     f.sortBy ?? 'name', f.sortDir ?? 'asc',
     teacherScope, String(f.page ?? 1), String(f.limit ?? 50),
   ].map(encodeURIComponent).join('|');
-  return `classes:paginated:v2:${params.tenantId}:${parts}`;
+  return `classes:paginated:v3:${params.tenantId}:${parts}`;
 }
 
 const normalizePaging = (params: ClassListParams) => {
@@ -181,6 +217,7 @@ export const ClassService = {
             isActive: schema.classes.isActive,
             capacity: schema.classes.capacity,
             studentCount: ENROLLED_SUBQUERY.as('studentCount'),
+            profileCompletePercent: COMPLETION_SUBQUERY.as('profileCompletePercent'),
           })
           .from(schema.classes)
           .where(where)
@@ -201,6 +238,7 @@ export const ClassService = {
         return {
           ...r,
           studentCount: Number(r.studentCount ?? 0),
+          profileCompletePercent: Number(r.profileCompletePercent ?? 0),
           teachers,
           classTeacher: primary?.name ?? null,
           classTeacherId: primary?.id ?? null,

@@ -38,7 +38,7 @@ function FilterSelect({
   onValueChange,
   placeholder,
   options,
-  width = "w-full sm:w-[170px]",
+  width = "w-full",
 }: {
   value: string;
   onValueChange: (v: string) => void;
@@ -48,7 +48,7 @@ function FilterSelect({
 }) {
   return (
     <Select value={value || ALL} onValueChange={onValueChange}>
-      <SelectTrigger className={`${width} bg-white dark:bg-zinc-900`}>
+      <SelectTrigger className={`${width} bg-white dark:bg-zinc-900 h-9 rounded-md border-slate-200/90 dark:border-zinc-800 text-xs sm:text-[13px] shadow-2xs`}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -68,84 +68,81 @@ function FilterSelect({
  */
 export function ClassesFilterPanel({ filters, onChange, options }: ClassesFilterPanelProps) {
   return (
-    <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <FilterField label="Grade Level">
-          <FilterSelect
-            value={filters.grade ?? ALL}
-            onValueChange={(v) => onChange({ grade: v })}
-            placeholder="All Grades"
-            options={[
-              { value: ALL, label: "All Grades" },
-              ...options.grades.map((g) => ({ value: g, label: formatGradeLabel(g) })),
-            ]}
-          />
-        </FilterField>
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4 rounded-lg border border-slate-200/80 bg-[#F1F5F9] dark:bg-zinc-900/60 dark:border-zinc-800 mb-4">
+      <FilterField label="Grade Level">
+        <FilterSelect
+          value={filters.grade ?? ALL}
+          onValueChange={(v) => onChange({ grade: v })}
+          placeholder="All Grades"
+          options={[
+            { value: ALL, label: "All Grades" },
+            ...options.grades.map((g) => ({ value: g, label: formatGradeLabel(g) })),
+          ]}
+        />
+      </FilterField>
 
-        <FilterField label="Section">
-          <FilterSelect
-            value={filters.section ?? ALL}
-            onValueChange={(v) => onChange({ section: v })}
-            placeholder="All Sections"
-            options={[
-              { value: ALL, label: "All Sections" },
-              ...options.sections.map((s) => ({ value: s, label: s })),
-            ]}
-          />
-        </FilterField>
+      <FilterField label="Section">
+        <FilterSelect
+          value={filters.section ?? ALL}
+          onValueChange={(v) => onChange({ section: v })}
+          placeholder="All Sections"
+          options={[
+            { value: ALL, label: "All Sections" },
+            ...options.sections.map((s) => ({ value: s, label: s })),
+          ]}
+        />
+      </FilterField>
 
-        <FilterField label="Medium">
-          <FilterSelect
-            value={filters.medium ?? ALL}
-            onValueChange={(v) => onChange({ medium: v })}
-            placeholder="All Mediums"
-            options={[
-              { value: ALL, label: "All Mediums" },
-              ...options.mediums.map((m) => ({ value: m, label: m })),
-            ]}
-          />
-        </FilterField>
+      <FilterField label="Medium">
+        <FilterSelect
+          value={filters.medium ?? ALL}
+          onValueChange={(v) => onChange({ medium: v })}
+          placeholder="All Mediums"
+          options={[
+            { value: ALL, label: "All Mediums" },
+            ...options.mediums.map((m) => ({ value: m, label: m })),
+          ]}
+        />
+      </FilterField>
 
-        <FilterField label="Vocational Ed">
-          <FilterSelect
-            value={filters.vocational ?? ALL}
-            onValueChange={(v) => onChange({ vocational: v })}
-            placeholder="All"
-            options={[...CLASS_VOCATIONAL_OPTIONS]}
-          />
-        </FilterField>
+      <FilterField label="Vocational Ed">
+        <FilterSelect
+          value={filters.vocational ?? ALL}
+          onValueChange={(v) => onChange({ vocational: v })}
+          placeholder="All"
+          options={[...CLASS_VOCATIONAL_OPTIONS]}
+        />
+      </FilterField>
 
-        <FilterField label="Status">
-          <FilterSelect
-            value={filters.status ?? ALL}
-            onValueChange={(v) => onChange({ status: v })}
-            placeholder="All Status"
-            options={[...CLASS_STATUS_OPTIONS]}
-          />
-        </FilterField>
+      <FilterField label="Status">
+        <FilterSelect
+          value={filters.status ?? ALL}
+          onValueChange={(v) => onChange({ status: v })}
+          placeholder="All Status"
+          options={[...CLASS_STATUS_OPTIONS]}
+        />
+      </FilterField>
 
-        <FilterField label="Sort By">
-          <FilterSelect
-            value={filters.sortBy ?? "name"}
-            onValueChange={(v) => onChange({ sortBy: v })}
-            placeholder="Name"
-            options={[...CLASS_SORT_OPTIONS]}
-            width="w-full sm:w-[190px]"
-          />
-        </FilterField>
+      <FilterField label="Sort By">
+        <FilterSelect
+          value={filters.sortBy ?? "name"}
+          onValueChange={(v) => onChange({ sortBy: v })}
+          placeholder="Name"
+          options={[...CLASS_SORT_OPTIONS]}
+        />
+      </FilterField>
 
-        <FilterField label="Sort Order">
-          <FilterSelect
-            value={filters.sortDir ?? "asc"}
-            onValueChange={(v) => onChange({ sortDir: v as "asc" | "desc" })}
-            placeholder="Ascending"
-            options={[
-              { value: "asc", label: "Ascending" },
-              { value: "desc", label: "Descending" },
-            ]}
-          />
-        </FilterField>
-      </div>
+      <FilterField label="Sort Order">
+        <FilterSelect
+          value={filters.sortDir ?? "asc"}
+          onValueChange={(v) => onChange({ sortDir: v as "asc" | "desc" })}
+          placeholder="Ascending"
+          options={[
+            { value: "asc", label: "Ascending" },
+            { value: "desc", label: "Descending" },
+          ]}
+        />
+      </FilterField>
     </div>
   );
 }

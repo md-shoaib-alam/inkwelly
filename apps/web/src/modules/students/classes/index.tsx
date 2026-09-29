@@ -2,36 +2,59 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { GraduationCap, School, Settings, Users } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/shared/pagination";
-import { ClassesStatsRow } from "@/components/shared/classes/ClassesStatsRow";
-import { ClassesFilterPanel } from "@/components/shared/classes/ClassesFilterPanel";
 import { ROSTER_TABLE_COLUMNS, ClassesTableSkeleton } from "@/components/shared/classes/ClassesTableSkeleton";
-import {
-  GradeBadge,
-  MediumBadge,
-  SectionChip,
-  StatusBadge,
-  TeacherStack,
-} from "@/components/shared/classes/ClassBadges";
 import { useAppStore } from "@/store/use-app-store";
 import { useClassFilterOptions, useClassStats, useClassesFiltered } from "@/lib/graphql/hooks";
-import { defaultClassFilters, filtersAreDefault, formatGradeLabel, type ClassFilters } from "@/lib/class-options";
+import { ALL, defaultClassFilters, filtersAreDefault, formatGradeLabel, type ClassFilters } from "@/lib/class-options";
 import type { ClassInfo } from "@/lib/types";
 import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
-import { cn } from "@/lib/utils";
+import { ClassRosterTable } from "./ClassRosterTable";
 
 const PAGE_SIZE = 25;
 
+const SELECT_CLASS =
+  "h-10 w-[160px] rounded-xl border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 " +
+  "text-[13px] text-slate-700 dark:text-zinc-200 shadow-2xs";
+
+/** One of the three inline filters. The frame is a row of selects, not a panel. */
+function RosterSelect({
+  value,
+  onChange,
+  allLabel,
+  options,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  allLabel: string;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className={SELECT_CLASS}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value={ALL}>{allLabel}</SelectItem>
+        {options.map((o) => (
+          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 /**
- * Students -> Classes: how full is each class. The Academics screen of the same name
- * edits these rows; this one only reads them, which is why it is its own component
- * rather than a mode flag on that one. Both ask the server to filter, sort and page,
- * so neither pulls the whole school down to the browser.
+ * Students -> Classes: how full and how complete each class is. The Academics screen
+ * of the same name edits these rows and is laid out for that — stat cards, a filter
+ * panel, a capacity column. This one is a read-only summary, so it carries its own
+ * header line, its own inline filters and its own columns, and the two are expected
+ * to differ. Both ask the server to filter, sort and page.
  */
 export function ClassRoster() {
   const { push } = useRouter();
@@ -39,9 +62,10 @@ export function ClassRoster() {
   const { currentTenantId } = useAppStore();
 
   const [filters, setFilters] = useState<ClassFilters>(defaultClassFilters);
-  const [filtersVisible, setFiltersVisible] = useState(false);
   const [page, setPage] = useState(1);
 
+  // A filter can strand the viewer on a page that no longer exists, so changing
+  // criteria always goes back to the first page — in the handler, not an effect.
   const applyFilters = (patch: Partial<ClassFilters>) => {
     setPage(1);
     setFilters((f) => ({ ...f, ...patch }));
@@ -59,11 +83,11 @@ export function ClassRoster() {
   const classes = (data?.classes ?? []) as ClassInfo[];
   const total = data?.total ?? 0;
   const totalPages = data?.totalPages ?? 0;
+  const matching = filtersAreDefault(filters) ? null : total;
+  const avgPerClass = stats && stats.total > 0 ? Math.round(stats.enrolled / stats.total) : 0;
 
   // `enabled: !!tenantId` keeps `isLoading` false while the tenant is still resolving,
-  // so the first paint would otherwise read an empty table as "no classes". The list
-  // area holds the skeleton instead of the old whole-page return, which painted a
-  // different screen from the one the admin is about to land on.
+  // so the first paint would otherwise read an empty table as "no classes".
   const listPending = isLoading || (!currentTenantId && classes.length === 0);
 
   return (
@@ -71,96 +95,71 @@ export function ClassRoster() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-[16px] leading-6 font-semibold text-slate-900 dark:text-zinc-50">Classes</h1>
-          {listPending ? (
-            <Skeleton className="mt-1 h-3.5 w-48" />
+          {listPending && !stats ? (
+            <Skeleton className="mt-1.5 h-3.5 w-64" />
           ) : (
             <p className="text-[13px] text-slate-500 dark:text-zinc-400">
-              {total} {total === 1 ? "class" : "classes"} match these filters
-              {!filtersAreDefault(filters) && " · clear the filters to see all of them"}
+              <span className="font-semibold text-slate-700 dark:text-zinc-200 tabular-nums">{stats?.total ?? 0}</span>{" "}
+              {stats?.total === 1 ? "class" : "classes"} ·{" "}
+              <span className="font-semibold text-slate-700 dark:text-zinc-200 tabular-nums">{stats?.enrolled ?? 0}</span>{" "}
+              students · avg{" "}
+              <span className="font-semibold text-slate-700 dark:text-zinc-200 tabular-nums">{avgPerClass}</span> per class
+              {matching !== null && (
+                <span> · <button
+                  type="button"
+                  onClick={() => applyFilters(defaultClassFilters())}
+                  className="underline underline-offset-2 decoration-slate-300 hover:text-slate-700 dark:decoration-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+                >
+                  {matching} matching, clear filters
+                </button></span>
+              )}
             </p>
           )}
         </div>
-        <Button variant="outline" onClick={() => push(tenantHref("academics/classes"))}>
-          <Settings className="size-4" /> Manage
-        </Button>
-      </div>
-
-      <ClassesStatsRow stats={stats} loading={listPending && !stats} />
-
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="min-w-[220px] flex-1 max-w-md">
-          <SearchInput
-            value={filters.search ?? ""}
-            onChange={(v) => applyFilters({ search: v })}
-            placeholder="Search classes..."
-          />
-        </div>
         <Button
-          variant={filtersVisible ? "default" : "outline"}
-          onClick={() => setFiltersVisible((v) => !v)}
+          variant="outline"
+          onClick={() => push(tenantHref("academics/classes"))}
+          className="h-10 px-3.5 rounded-xl border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-[13px] font-semibold text-slate-700 dark:text-zinc-200 shadow-2xs"
         >
-          Filters
+          <Settings className="size-4 text-slate-400 dark:text-zinc-500" /> Manage
         </Button>
       </div>
 
-      {filtersVisible && (
-        <ClassesFilterPanel
-          filters={filters}
-          onChange={applyFilters}
-          options={{
-            grades: optionData?.grades ?? [],
-            sections: optionData?.sections ?? [],
-            mediums: optionData?.mediums ?? [],
-          }}
+      <div className="flex flex-wrap items-center gap-2.5">
+        <SearchInput
+          value={filters.search ?? ""}
+          onChange={(v) => applyFilters({ search: v })}
+          placeholder="Search classes..."
+          className="w-full max-w-[420px]"
+          inputClassName="rounded-xl bg-white dark:bg-zinc-900 border-slate-200/80 dark:border-zinc-800 h-10 text-sm placeholder:text-slate-400 pl-9 shadow-2xs"
         />
-      )}
+        <RosterSelect
+          value={filters.grade ?? ALL}
+          onChange={(v) => applyFilters({ grade: v })}
+          allLabel="All grades"
+          options={(optionData?.grades ?? []).map((g) => ({ value: g, label: formatGradeLabel(g) }))}
+        />
+        <RosterSelect
+          value={filters.section ?? ALL}
+          onChange={(v) => applyFilters({ section: v })}
+          allLabel="All sections"
+          options={(optionData?.sections ?? []).map((s) => ({ value: s, label: s }))}
+        />
+        <RosterSelect
+          value={filters.medium ?? ALL}
+          onChange={(v) => applyFilters({ medium: v })}
+          allLabel="All mediums"
+          options={(optionData?.mediums ?? []).map((m) => ({ value: m, label: m }))}
+        />
+      </div>
 
       {listPending || (isPlaceholderData && classes.length === 0) ? (
         <ClassesTableSkeleton columns={ROSTER_TABLE_COLUMNS} />
       ) : (
-        <Card className="shadow-sm border-0 overflow-hidden">
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 uppercase text-[10px] font-bold tracking-wider">
-                  <tr>
-                    <th className="px-6 py-4">Class</th>
-                    <th className="px-6 py-4">Grade</th>
-                    <th className="px-6 py-4">Section</th>
-                    <th className="px-6 py-4">Class teacher</th>
-                    <th className="px-6 py-4">Medium</th>
-                    <th className="px-6 py-4">Enrolled</th>
-                    <th className="px-6 py-4">Capacity</th>
-                    <th className="px-6 py-4">Capacity fill</th>
-                    <th className="px-6 py-4">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                  {classes.map((cls) => (
-                    <RosterRow
-                      key={cls.id}
-                      cls={cls}
-                      onOpenStudents={() => push(tenantHref(`students?classId=${cls.id}`))}
-                    />
-                  ))}
-                  {classes.length === 0 && (
-                    <tr>
-                      <td colSpan={9} className="px-6 py-16 text-center">
-                        <School className="size-10 mx-auto mb-3 text-zinc-300 dark:text-zinc-600" />
-                        <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                          No classes match these filters
-                        </p>
-                        <p className="text-[13px] text-zinc-500 dark:text-zinc-400">
-                          Clear the filters, or add a class from Academics &gt; Classes
-                        </p>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+        <ClassRosterTable
+          classes={classes}
+          onOpen={(cls) => push(tenantHref(`students?classId=${cls.id}`))}
+        />
       )}
 
       {totalPages > 1 && (
@@ -173,58 +172,5 @@ export function ClassRoster() {
         />
       )}
     </div>
-  );
-}
-
-function RosterRow({ cls, onOpenStudents }: { cls: ClassInfo; onOpenStudents: () => void }) {
-  const enrolled = cls.studentCount ?? 0;
-  const fill = cls.capacity > 0 ? Math.round((enrolled / cls.capacity) * 100) : 0;
-  return (
-    <tr className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
-      <td className="px-6 py-4">
-        <div className="flex items-center gap-3">
-          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-            <GraduationCap className="size-4" />
-          </span>
-          <div className="min-w-0">
-            <button
-              type="button"
-              onClick={onOpenStudents}
-              className="block truncate text-left font-semibold text-zinc-900 hover:text-emerald-600 dark:text-zinc-100"
-            >
-              {cls.name} - {cls.section}
-            </button>
-            {cls.slug && (
-              <p className="truncate text-[11px] text-zinc-400 dark:text-zinc-500">{cls.slug}</p>
-            )}
-          </div>
-        </div>
-      </td>
-      <td className="px-6 py-4"><GradeBadge grade={formatGradeLabel(cls.grade)} /></td>
-      <td className="px-6 py-4"><SectionChip section={cls.section} /></td>
-      <td className="px-6 py-4"><TeacherStack cls={cls} /></td>
-      <td className="px-6 py-4"><MediumBadge medium={cls.medium} /></td>
-      <td className="px-6 py-4">
-        <span className="inline-flex items-center gap-1.5 tabular-nums text-zinc-700 dark:text-zinc-300">
-          <Users className="size-3.5 text-zinc-400" />{enrolled}
-        </span>
-      </td>
-      <td className="px-6 py-4 tabular-nums text-zinc-700 dark:text-zinc-300">{cls.capacity}</td>
-      <td className="px-6 py-4">
-        <div className="flex items-center gap-2">
-          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100 dark:bg-zinc-800">
-            <div
-              className={cn(
-                "h-full rounded-full",
-                fill >= 100 ? "bg-rose-500" : fill >= 80 ? "bg-amber-500" : "bg-emerald-500",
-              )}
-              style={{ width: `${Math.min(fill, 100)}%` }}
-            />
-          </div>
-          <span className="text-[12px] tabular-nums text-slate-500 dark:text-zinc-400">{fill}%</span>
-        </div>
-      </td>
-      <td className="px-6 py-4"><StatusBadge isActive={cls.isActive} /></td>
-    </tr>
   );
 }

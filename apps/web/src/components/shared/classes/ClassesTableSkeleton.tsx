@@ -4,10 +4,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * How a column's body cell is built, so the placeholder has the real cells'
- * silhouettes: a badge is a short pill, the occupancy bar is a thin meter, the
- * first cell carries an icon tile over two lines of text.
+ * silhouettes: a badge is a short pill, a bar is a thin meter, the first cell
+ * carries an icon tile over two lines of text.
  */
-type CellKind = "name" | "pill" | "text" | "meter" | "actions";
+type CellKind = "name" | "pill" | "text" | "meter" | "avatars" | "chevron" | "actions";
 
 export interface SkeletonColumn {
   label: string;
@@ -29,17 +29,21 @@ export const CLASS_TABLE_COLUMNS: SkeletonColumn[] = [
   { label: "", kind: "actions" },
 ];
 
-/** Students > Classes — the read-only mirror, with the two occupancy columns. */
+/**
+ * Students > Classes — the read-only roster. It is its own column set on purpose:
+ * the screen reports how full and how complete each class is, while the Academics
+ * one edits the rows, and the two are not meant to look alike.
+ */
 export const ROSTER_TABLE_COLUMNS: SkeletonColumn[] = [
   { label: "Class", kind: "name" },
-  { label: "Grade", kind: "pill", width: "w-14" },
-  { label: "Section", kind: "pill", width: "w-9" },
-  { label: "Class teacher", kind: "text", width: "w-24" },
-  { label: "Medium", kind: "pill", width: "w-16" },
-  { label: "Enrolled", kind: "text", width: "w-12" },
-  { label: "Capacity", kind: "text", width: "w-10" },
-  { label: "Capacity fill", kind: "meter" },
+  { label: "Grade", kind: "text", width: "w-20" },
+  { label: "Section", kind: "pill", width: "w-7" },
+  { label: "Teacher", kind: "avatars" },
+  { label: "Medium", kind: "text", width: "w-16" },
+  { label: "Enrolled", kind: "text", width: "w-10" },
+  { label: "Completion", kind: "meter" },
   { label: "Status", kind: "pill", width: "w-16" },
+  { label: "", kind: "chevron" },
 ];
 
 const CELL_PAD = "px-4 py-3.5";
@@ -61,6 +65,15 @@ function Cell({ column }: { column: SkeletonColumn }) {
       return <Skeleton className={`h-5 ${width} rounded-full`} />;
     case "meter":
       return <Skeleton className="h-1.5 w-24 rounded-full" />;
+    case "avatars":
+      return (
+        <div className="flex items-center -space-x-1.5">
+          <Skeleton className="size-7 rounded-full" />
+          <Skeleton className="size-7 rounded-full" />
+        </div>
+      );
+    case "chevron":
+      return <Skeleton className="ml-auto h-3.5 w-3.5 rounded-full" />;
     case "actions":
       return (
         <div className="flex justify-end gap-1.5">

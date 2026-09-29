@@ -77,6 +77,7 @@ export const academicTypeDefs = `#graphql
     isActive: Boolean!
     capacity: Int!
     studentCount: Int!
+    profileCompletePercent: Int!
     classTeacher: String
     classTeacherId: String
     teachers: [ClassTeacherRef!]

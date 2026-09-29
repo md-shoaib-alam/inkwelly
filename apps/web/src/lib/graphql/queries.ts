@@ -176,7 +176,7 @@ export const CLASSES_FILTERED = `
     ) {
       classes {
         id name slug section grade medium isVocational isActive
-        capacity studentCount classTeacher classTeacherId
+        capacity studentCount profileCompletePercent classTeacher classTeacherId
         teachers { id name avatar isPrimary }
       }
       total page totalPages
