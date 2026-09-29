@@ -9,6 +9,7 @@ const g = (over: Partial<YearGateInput> = {}) =>
     screen: 'classes',
     maySetUp: true,
     activeYearSlug: '2026-2027',
+    currentYearSlug: '2026-2027',
     ...over,
   });
 
@@ -32,6 +33,47 @@ describe("the year gate's happy path", () => {
     expect(g({ yearSlug: null, activeYearSlug: '2025-2026' })).toEqual({
       kind: 'canonicalise',
       toYearSlug: '2025-2026',
+    });
+  });
+});
+
+describe("the year gate pins a learner to the current session", () => {
+  // A student or parent has no reason to be anywhere but the live session: their
+  // fees and results are read as "now". Staff and teachers do have one, so they
+  // browse a past session and get flagged about it instead (see `off-session.ts`).
+  test.each(['student', 'parent'])('a %s on a past year is moved to the current one', (role) => {
+    expect(g({ role, yearSlug: '2025-2026' })).toEqual({
+      kind: 'canonicalise',
+      toYearSlug: '2026-2027',
+    });
+  });
+
+  test('a learner already on the current year renders', () => {
+    expect(g({ role: 'student' })).toEqual({ kind: 'render' });
+  });
+
+  test.each(['admin', 'staff', 'teacher'])('a %s may browse a past year', (role) => {
+    expect(g({ role, yearSlug: '2025-2026' })).toEqual({ kind: 'render' });
+  });
+
+  test('a learner with no year in the URL lands on the current year', () => {
+    expect(g({ role: 'student', yearSlug: null })).toEqual({
+      kind: 'canonicalise',
+      toYearSlug: '2026-2027',
+    });
+  });
+
+  test('nothing is pinned when the tenant flags no current year', () => {
+    // Emitting `toYearSlug: ''` would land back on this branch and spin, so the
+    // gate has to stand down rather than invent a session.
+    expect(g({ role: 'student', yearSlug: '2025-2026', currentYearSlug: null })).toEqual({
+      kind: 'render',
+    });
+  });
+
+  test('the setup screen is not pinned out from under a learner', () => {
+    expect(g({ role: 'student', screen: 'academic-years', yearSlug: null })).toEqual({
+      kind: 'render',
     });
   });
 });

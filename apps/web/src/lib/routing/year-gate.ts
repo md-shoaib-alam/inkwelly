@@ -27,6 +27,12 @@ export type YearGateInput = {
   maySetUp: boolean;
   /** Non-empty when a year can actually be written into the URL. */
   activeYearSlug: string;
+  /**
+   * The tenant's own current year, independent of the URL, or null when no year
+   * is flagged. `activeYearSlug` falls back to the URL's year, so it cannot
+   * answer "is this the current one?" -- this can.
+   */
+  currentYearSlug: string | null;
 };
 
 export type YearGate =
@@ -43,6 +49,14 @@ export type YearGate =
  */
 export const YEAR_FREE_SCREENS = new Set(['academic-years']);
 
+/**
+ * A learner's fees, results and attendance are read as "this session", so an
+ * address that names another one is always a mistake rather than a choice. They
+ * are moved back instead of flagged; staff and teachers, who do compare sessions,
+ * keep the flag (see `off-session.ts`).
+ */
+export const SESSION_PINNED_ROLES = new Set(['student', 'parent']);
+
 export function decideYearGate(input: YearGateInput): YearGate {
   if (input.role === 'super_admin') return { kind: 'render' };
   if (input.status === 'loading') return { kind: 'skeleton' };
@@ -54,6 +68,18 @@ export function decideYearGate(input: YearGateInput): YearGate {
     return input.screen === 'academic-years'
       ? { kind: 'render' }
       : { kind: 'to-setup' };
+  }
+
+  // A learner is pinned before anything else renders, but never off the setup
+  // screen: that one is reached with no year at all. An empty `currentYearSlug`
+  // stands the rule down rather than emitting a year-less URL it would re-hit.
+  if (
+    SESSION_PINNED_ROLES.has(input.role) &&
+    input.currentYearSlug &&
+    !YEAR_FREE_SCREENS.has(input.screen) &&
+    input.yearSlug !== input.currentYearSlug
+  ) {
+    return { kind: 'canonicalise', toYearSlug: input.currentYearSlug };
   }
 
   if (input.yearSlug !== null || YEAR_FREE_SCREENS.has(input.screen)) return { kind: 'render' };

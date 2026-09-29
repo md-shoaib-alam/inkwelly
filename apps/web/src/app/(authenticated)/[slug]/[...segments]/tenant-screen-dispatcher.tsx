@@ -9,7 +9,7 @@ import { isAdminModuleScreen } from '@/components/layout/sidebar/module-nav-conf
 import { canonicalAdminTail } from '@/components/layout/sidebar/screen-owners';
 import { resolveAdminRoute } from '@/components/layout/sidebar/module-roots';
 import { componentKey, LEGACY_SCREEN_KEYS, parseRoute } from '@/lib/routing/module-routes';
-import { canonicalTenantUrl, yearSlugOf } from '@/lib/routing/academic-year-url';
+import { canonicalTenantUrl, swapYearUrl, yearSlugOf } from '@/lib/routing/academic-year-url';
 import { decideYearGate } from '@/lib/routing/year-gate';
 import { useActiveAcademicYear } from '@/modules/academics/hooks/use-active-academic-year';
 import dynamic from 'next/dynamic';
@@ -181,6 +181,9 @@ export default function TenantScreenDispatcherClient() {
   // `academicYearUrl` then yields the year-free path the empty branch wants.
   const activeYearSlug =
     yearSlug ?? yearSlugOf(years.find((y: any) => y.isCurrent)?.name ?? years[0]?.name ?? '');
+  // The tenant's current year on its own: `activeYearSlug` above falls back to the
+  // URL, so it cannot answer "is the URL the current one?".
+  const currentYearSlug = yearSlugOf(years.find((y: any) => y.isCurrent)?.name ?? '');
   const dashboardUrl = (tenant: string) =>
     canonicalTenantUrl({ slug: tenant, segments: ['modules'], yearSlug: activeYearSlug, search: '' });
 
@@ -246,6 +249,7 @@ export default function TenantScreenDispatcherClient() {
       currentUser.role === 'admin' ||
       hasPermission(currentUser, 'academic-years', 'view'),
     activeYearSlug,
+    currentYearSlug,
   });
 
   if (gate.kind === 'skeleton') {
@@ -258,11 +262,20 @@ export default function TenantScreenDispatcherClient() {
     redirect(`/${slug}/academic-years`);
   }
   if (gate.kind === 'canonicalise') {
-    // Bookmarks and any link not yet converted to useTenantHref land here: the
-    // tail is re-emitted under the active year, so the screen never changes.
+    // Bookmarks and any link not yet converted to useTenantHref land here, and so
+    // does a learner pointed at another session: the tail is re-emitted under the
+    // year the gate asks for, so the screen never changes. `swapYearUrl` rather
+    // than `canonicalTenantUrl` because this URL may already carry the wrong year,
+    // and re-emitting the segments whole would nest it.
     const search = searchParams?.toString() ? `?${searchParams.toString()}` : '';
     redirect(
-      canonicalTenantUrl({ slug, segments, yearSlug: gate.toYearSlug, search }),
+      swapYearUrl({
+        slug,
+        segments,
+        fromYearSlug: yearSlug,
+        toYearSlug: gate.toYearSlug,
+        search,
+      }),
     );
   }
 

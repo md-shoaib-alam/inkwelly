@@ -20,6 +20,7 @@ import { useIsFetching } from "@tanstack/react-query";
 import { getCookie } from "@/lib/cookies";
 import { NotificationProvider } from "@/components/providers/notification-provider";
 import { PlatformNoticeBar } from "./platform-notice-bar";
+import { OffSessionNotice } from "./off-session-notice";
 import { SubscriptionExpiredScreen } from "@/modules/tenancy/components/SubscriptionExpired";
 
 function LoadingProgress() {
@@ -400,6 +401,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         !isMounted ? "opacity-0" : "opacity-100"
       )}>
         <PlatformNoticeBar />
+        <OffSessionNotice />
         <div className="flex-1 flex min-h-0 overflow-hidden bg-[#06231D]">
           <LoadingProgress />
         {/* Mobile overlay */}

@@ -55,6 +55,7 @@ export default function GenericSlugDispatcherClient() {
   const { status: yearStatus, yearSlug, years } = useActiveAcademicYear();
   const activeYearSlug =
     yearSlug ?? yearSlugOf(years.find((y: any) => y.isCurrent)?.name ?? years[0]?.name ?? '');
+  const currentYearSlug = yearSlugOf(years.find((y: any) => y.isCurrent)?.name ?? '');
 
   const { data: resolvedTenant } = useTenantResolution(slug as string);
 
@@ -91,6 +92,7 @@ export default function GenericSlugDispatcherClient() {
           currentUser.role === 'admin' ||
           hasPermission(currentUser, 'academic-years', 'view'),
         activeYearSlug,
+        currentYearSlug,
       });
       if (gate.kind === 'skeleton') return <DashboardLoadingScreen />;
       if (gate.kind === 'canonicalise') {

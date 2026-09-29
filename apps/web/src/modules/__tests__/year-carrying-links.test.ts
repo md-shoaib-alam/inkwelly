@@ -119,4 +119,22 @@ describe("every tenant link carries the academic year", () => {
     ).map((a) => a.text);
     expect(dead.join("\n")).toBe("");
   });
+
+  test("the gate's canonicalise arm drops the year it is replacing", () => {
+    // `decideYearGate` can hand the dispatcher a URL that already carries a
+    // year (a learner pointed at another session). Re-emitting the raw segments
+    // through `canonicalTenantUrl` nested that year inside the new one, so the
+    // arm must go through `swapYearUrl`, whose whole job is removing it.
+    const dispatcher = readFileSync(
+      join(SRC, "app/(authenticated)/[slug]/[...segments]/tenant-screen-dispatcher.tsx"),
+      "utf8",
+    );
+    const arm = dispatcher.slice(
+      dispatcher.indexOf("gate.kind === 'canonicalise'"),
+      dispatcher.indexOf("// A module's front door has two long spellings"),
+    );
+    expect(arm).toContain("swapYearUrl(");
+    expect(arm).toContain("fromYearSlug: yearSlug");
+    expect(arm).not.toContain("canonicalTenantUrl(");
+  });
 });
