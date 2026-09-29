@@ -23,8 +23,8 @@
  * module's front door". The cross-check in `lib/__tests__/module-roots.test.ts` is
  * what stops the two from disagreeing about a landing screen.
  *
- * NOT role-blind-safe beyond the one `role` argument: `timetable`, `calendar`,
- * `leaves` and `certificates` are bare keys in the teacher, student and parent blocks
+ * NOT role-blind-safe beyond the one `role` argument: `timetable`, `calendar` and
+ * `leaves` are bare keys in the teacher, student and parent blocks
  * too, so only the admin, staff and super_admin branch may call this.
  */
 

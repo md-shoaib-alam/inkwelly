@@ -1,7 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Archive,
-  Award,
   BarChart3,
   Bell,
   Banknote,
@@ -142,10 +141,9 @@ export const moduleCatalogue: ModuleCard[] = [
   { id: "timetable", title: "Timetable", subtitle: "Periods & schedule", icon: Clock, tint: "cyan", screen: "timetable", permModule: "timetable", parent: "academics" },
   { id: "students", title: "Students", subtitle: "Admissions & records", icon: Users, tint: "emerald", screen: "students-dashboard", permModule: "students", inRail: true, rootServesOwnScreen: true },
   { id: "students-dashboard", title: "Dashboard", subtitle: "Enrolment & records at a glance", icon: LayoutDashboard, tint: "emerald", screen: "students-dashboard", permModule: "students", parent: "students" },
-  { id: "promotions", title: "Promotions", subtitle: "Class promotions", icon: School, tint: "purple", screen: "promotions", permModule: "promotions", parent: "students" },
+  { id: "promotions", title: "Promotions", subtitle: "Class promotions", icon: School, tint: "purple", screen: "promotion", permModule: "promotions", parent: "students" },
   { id: "class-change", title: "Class Change", subtitle: "Move students between classes", icon: MoveRight, tint: "emerald", screen: "class-change", permModule: "students", parent: "students" },
   { id: "archive", title: "Graduated Students", subtitle: "Alumni records", icon: Archive, tint: "slate", screen: "graduated", permModule: "students", parent: "students" },
-  { id: "certificates", title: "Certificates", subtitle: "Bonafide & transfer", icon: Award, tint: "emerald", screen: "certificates", permModule: "certificates", parent: "students" },
 
   { id: "employees", title: "Employees", subtitle: "Staff directory", icon: Briefcase, tint: "violet", screen: "staff", permModule: "staff", inRail: true },
   { id: "leaves", title: "Leaves", subtitle: "Apply & approve", icon: CalendarDays, tint: "teal", screen: "leaves", permModule: "leaves", inRail: true },
@@ -172,7 +170,7 @@ export const moduleCatalogue: ModuleCard[] = [
   { id: "health", title: "Health & Fitness", subtitle: "Health & wellness", icon: HeartPulse, tint: "rose", screen: null },
 
   { id: "lesson-plan", title: "Lesson Plan", subtitle: "Curriculum & pacing", icon: CalendarDays, tint: "emerald", screen: null },
-  { id: "letterhead", title: "Letterhead", subtitle: "Official letters & certificates", icon: FileText, tint: "green", screen: null },
+  { id: "letterhead", title: "Letterhead", subtitle: "Official letters & documents", icon: FileText, tint: "green", screen: null },
   { id: "id-cards", title: "ID Cards", subtitle: "Design & issue", icon: IdCard, tint: "blue", screen: null },
   { id: "events", title: "Events", subtitle: "Calendar & notices", icon: Calendar, tint: "blue", screen: "calendar", permModule: "calendar", inRail: true },
   { id: "library", title: "Library", subtitle: "Books & circulation", icon: Library, tint: "amber", screen: null },

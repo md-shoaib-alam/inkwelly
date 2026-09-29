@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
@@ -15,6 +15,8 @@ import { useAppStore } from "@/store/use-app-store";
 import { useClassFilterOptions, useClassStats, useClassesFiltered } from "@/lib/graphql/hooks";
 import { ALL, defaultClassFilters, filtersAreDefault, formatGradeLabel, type ClassFilters } from "@/lib/class-options";
 import type { ClassInfo } from "@/lib/types";
+import { classRefFromPathname } from "./class-ref";
+import { ClassDetail } from "./ClassDetail";
 
 const PAGE_SIZE = 25;
 
@@ -50,13 +52,25 @@ function RosterSelect({
 }
 
 /**
+ * Students -> Classes answers for two URLs: the list of every class, and one class
+ * named in the path (`/students/classes/class-1st-a`). The route parser stops at the
+ * screen key, so which of the two this is gets decided here rather than in a new
+ * dispatcher case.
+ */
+export function ClassRoster() {
+  const classRef = classRefFromPathname(usePathname());
+  if (classRef) return <ClassDetail classRef={classRef} />;
+  return <ClassList />;
+}
+
+/**
  * Students -> Classes: how full and how complete each class is. The Academics screen
  * of the same name edits these rows and is laid out for that — stat cards, a filter
  * panel, a capacity column. This one is a read-only summary, so it carries its own
  * header line, its own inline filters and its own columns, and the two are expected
  * to differ. Both ask the server to filter, sort and page.
  */
-export function ClassRoster() {
+function ClassList() {
   const { push } = useRouter();
   const tenantHref = useTenantHref();
   const { currentTenantId } = useAppStore();
@@ -158,7 +172,7 @@ export function ClassRoster() {
       ) : (
         <ClassRosterTable
           classes={classes}
-          onOpen={(cls) => push(tenantHref(`list?classId=${cls.id}`))}
+          onOpen={(cls) => push(tenantHref(`classes/${cls.slug ?? cls.id}`))}
         />
       )}
 

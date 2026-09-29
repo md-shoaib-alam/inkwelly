@@ -26,7 +26,7 @@ export const ROSTER_COLUMNS: RosterColumn[] = [
   { key: "email", label: "Email", group: "BASIC" },
   { key: "mobile", label: "Mobile", group: "BASIC", defaultOn: true },
   { key: "category", label: "Category", group: "BASIC", defaultOn: true },
-  { key: "status", label: "Status", group: "BASIC" },
+  { key: "status", label: "Status", group: "BASIC", defaultOn: true },
   { key: "bloodGroup", label: "Blood group", group: "BASIC" },
   { key: "religion", label: "Religion", group: "BASIC" },
   { key: "nationality", label: "Nationality", group: "BASIC" },
@@ -50,6 +50,9 @@ export const ROSTER_COLUMNS: RosterColumn[] = [
 export const DEFAULT_VISIBLE: Set<string> = new Set(
   ROSTER_COLUMNS.filter((c) => c.alwaysOn || c.defaultOn).map((c) => c.key),
 );
+
+/** A phone shows the identity columns first; the rest stay one tap away in the popover. */
+export const MOBILE_VISIBLE: Set<string> = new Set(["photo", "name", "class"]);
 
 export interface RosterRow {
   id: string;

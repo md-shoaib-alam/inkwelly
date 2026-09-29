@@ -121,7 +121,7 @@ export function AdminAttendance() {
   ];
 
   const handleViewProfile = (record: AttendanceRecord) => {
-    router.push(tenantHref(`list?student=${encodeURIComponent(record.studentId)}`));
+    router.push(tenantHref(`list/${encodeURIComponent(record.studentId)}`));
   };
 
   const isDatePickerDisabled = (date: Date) => {

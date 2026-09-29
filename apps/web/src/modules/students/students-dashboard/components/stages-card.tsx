@@ -27,12 +27,19 @@ export function StagesCard({
       subtitle="Foundational → Secondary"
       icon={GraduationCap}
       tint="bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300"
-      bodyClassName="px-5 pb-5 space-y-2.5"
+      bodyClassName="px-5 pb-5 flex-1 flex flex-col justify-center items-center py-6"
     >
       {loading ? (
         [0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-4 w-full rounded-md" />)
       ) : stages.length === 0 ? (
-        <p className="text-[13px] text-slate-400 dark:text-zinc-500">No students on roll yet.</p>
+        <div className="flex flex-col items-center justify-center text-center">
+          <span className="size-10 rounded-full grid place-items-center bg-slate-100 dark:bg-zinc-800 text-slate-400 mb-2">
+            <GraduationCap className="size-4" />
+          </span>
+          <p className="text-[13px] font-semibold text-slate-800 dark:text-zinc-200">
+            No stage data yet.
+          </p>
+        </div>
       ) : (
         stages.map((s) => (
           <div key={s.key} className="flex items-center gap-3">

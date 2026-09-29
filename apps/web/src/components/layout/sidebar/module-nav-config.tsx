@@ -29,7 +29,6 @@ import {
   History,
   Bus,
   Award,
-  Zap,
   ArrowRight,
   Trophy,
   UserCheck,
@@ -247,10 +246,8 @@ export const moduleNavItems: Partial<Record<UserRole, ModuleNavItem[]>> = {
         {
           label: "Operations",
           items: [
-            { key: "promotions", label: "Promotions", icon: <ArrowRight className={iconCls} /> },
-            { key: "bulk-promote", label: "Bulk Promote", icon: <Zap className={iconCls} /> },
+            { key: "promotion", label: "Promotion", icon: <ArrowRight className={iconCls} /> },
             { key: "graduated", label: "Graduated", icon: <GraduationCap className={iconCls} /> },
-            { key: "certificates", label: "Certificates", icon: <Award className={iconCls} />, permModule: "certificates" },
           ],
         },
       ],
@@ -533,12 +530,10 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
         { key: "student-documents", label: "Documents", icon: <FileText className={iconCls} />, disabled: true },
         { key: "bulk-update", label: "Bulk Update", icon: <Layers className={iconCls} />, permModule: "students" },
         { key: "class-change", label: "Class Change", icon: <RotateCcw className={iconCls} />, permModule: "students" },
-        { key: "promotions", label: "Promotion", icon: <TrendingUp className={iconCls} />, permModule: "promotions" },
+        { key: "promotion", label: "Promotion", icon: <TrendingUp className={iconCls} />, permModule: "promotions" },
         { key: "transfers", label: "Transfer", icon: <ArrowLeftRight className={iconCls} />, disabled: true },
         { key: "student-requests", label: "Requests", icon: <MessageSquare className={iconCls} />, disabled: true },
-        { key: "bulk-promote", label: "Bulk Promote", icon: <Zap className={iconCls} /> },
         { key: "graduated", label: "Graduated", icon: <GraduationCap className={iconCls} /> },
-        { key: "certificates", label: "Certificates", icon: <Award className={iconCls} />, permModule: "students" },
       ],
     },
     {
@@ -550,7 +545,7 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
     {
       label: "Admin",
       items: [
-        { key: "student-settings", label: "Settings", icon: <Settings className={iconCls} />, disabled: true },
+        { key: "settings", label: "Settings", icon: <Settings className={iconCls} />, permModule: "students" },
         { key: "student-trash", label: "Trash", icon: <Trash2 className={iconCls} /> },
       ],
     },

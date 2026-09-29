@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -11,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { GraduationCap } from "lucide-react";
+import { ArrowLeftRight, GraduationCap } from "lucide-react";
 
 export type RosterStudent = {
   id: string;
@@ -22,6 +21,8 @@ export type RosterStudent = {
   className?: string;
   gender?: string;
   status?: string;
+  avatar?: string | null;
+  photo?: string | null;
 };
 
 interface ClassChangeTableProps {
@@ -37,14 +38,14 @@ const StatusPill = ({ status }: { status?: string }) => {
   const inactive = status?.toLowerCase() === "inactive";
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[12px] font-medium ${
         inactive
           ? "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800"
-          : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+          : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800"
       }`}
     >
       <span className={`size-1.5 rounded-full ${inactive ? "bg-amber-500" : "bg-emerald-500"}`} />
-      {status ? status.charAt(0).toUpperCase() + status.slice(1) : "Active"}
+      {status ? status.charAt(0).toUpperCase() + status.slice(1).toLowerCase() : "Active"}
     </span>
   );
 };
@@ -61,11 +62,11 @@ export function ClassChangeTable({
     students.length > 0 && students.every((student) => isSelected(student.id));
 
   return (
-    <div className="overflow-x-auto px-2 sm:px-6">
+    <div className="overflow-x-auto">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead className="w-12 pl-3 sm:pl-4">
+          <TableRow className="bg-[#F8FAFC] dark:bg-zinc-800/50 hover:bg-[#F8FAFC] border-b border-slate-200/80 dark:border-zinc-800">
+            <TableHead className="w-12 pl-4 py-3.5">
               <Checkbox
                 checked={allOnPageSelected}
                 disabled={!canChange || students.length === 0}
@@ -73,13 +74,25 @@ export function ClassChangeTable({
                 aria-label="Select all students on this page"
               />
             </TableHead>
-            <TableHead className="h-12">Student</TableHead>
-            <TableHead className="hidden md:table-cell">Admission No.</TableHead>
-            <TableHead className="hidden sm:table-cell">Current class</TableHead>
-            <TableHead className="hidden lg:table-cell">Roll No.</TableHead>
-            <TableHead className="hidden lg:table-cell">Gender</TableHead>
-            <TableHead className="hidden md:table-cell">Status</TableHead>
-            <TableHead className="w-24 text-right">Change</TableHead>
+            <TableHead className="py-3.5 text-[11px] font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+              STUDENT
+            </TableHead>
+            <TableHead className="py-3.5 text-[11px] font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+              ADMISSION NO.
+            </TableHead>
+            <TableHead className="py-3.5 text-[11px] font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+              CURRENT CLASS
+            </TableHead>
+            <TableHead className="py-3.5 text-[11px] font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+              ROLL NO.
+            </TableHead>
+            <TableHead className="py-3.5 text-[11px] font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+              GENDER
+            </TableHead>
+            <TableHead className="py-3.5 text-[11px] font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+              STATUS
+            </TableHead>
+            <TableHead className="w-28 text-right pr-4 py-3.5" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -91,62 +104,80 @@ export function ClassChangeTable({
               </TableCell>
             </TableRow>
           ) : (
-            students.map((student) => (
-              <TableRow
-                key={student.id}
-                className="hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 transition-colors border-b last:border-none"
-              >
-                <TableCell className="pl-3 sm:pl-4 py-4">
-                  <Checkbox
-                    checked={isSelected(student.id)}
-                    disabled={!canChange}
-                    onCheckedChange={() => onToggle(student)}
-                    aria-label={`Select ${student.name}`}
-                  />
-                </TableCell>
-                <TableCell className="py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="size-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-xs font-semibold shrink-0">
-                      {student.name
-                        .split(" ")
-                        .map((part) => part[0])
-                        .join("")
-                        .slice(0, 2)
-                        .toUpperCase()}
+            students.map((student) => {
+              const initials = student.name
+                .split(" ")
+                .map((part) => part[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase();
+              const photoUrl = student.avatar || student.photo;
+              const admissionNo = student.username
+                ? (student.username.startsWith("STU") ? student.username.replace("STU", "ADM") : student.username)
+                : "–";
+
+              return (
+                <TableRow
+                  key={student.id}
+                  className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/30 transition-colors border-b border-slate-100 dark:border-zinc-800/60 last:border-none"
+                >
+                  <TableCell className="pl-4 py-3.5">
+                    <Checkbox
+                      checked={isSelected(student.id)}
+                      disabled={!canChange}
+                      onCheckedChange={() => onToggle(student)}
+                      aria-label={`Select ${student.name}`}
+                    />
+                  </TableCell>
+                  <TableCell className="py-3.5">
+                    <div className="flex items-center gap-3">
+                      <div className="size-8 rounded-full bg-[#F1F5F9] dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 flex items-center justify-center text-[11px] font-medium shrink-0 overflow-hidden ring-1 ring-slate-200/60 dark:ring-zinc-700/60">
+                        {photoUrl ? (
+                          <img src={photoUrl} alt={student.name} className="size-full object-cover" />
+                        ) : (
+                          initials
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-[13.5px] text-slate-900 dark:text-zinc-100 truncate leading-tight">
+                          {student.name}
+                        </p>
+                        <p className="text-[11px] text-slate-400 dark:text-zinc-500 font-normal leading-tight mt-0.5">
+                          {student.username || student.id}
+                        </p>
+                      </div>
                     </div>
-                    <p className="font-medium text-sm truncate">{student.name}</p>
-                  </div>
-                </TableCell>
-                <TableCell className="hidden md:table-cell py-4 font-mono text-[13px] text-slate-700 dark:text-zinc-300">
-                  {student.username || "–"}
-                </TableCell>
-                <TableCell className="hidden sm:table-cell py-4">
-                  <Badge variant="secondary" className="font-normal">
+                  </TableCell>
+                  <TableCell className="py-3.5 text-[13px] text-slate-600 dark:text-zinc-400 font-normal">
+                    {admissionNo}
+                  </TableCell>
+                  <TableCell className="py-3.5 text-[13px] text-slate-700 dark:text-zinc-300 font-normal">
                     {student.className || "Unassigned"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="hidden lg:table-cell py-4 font-mono text-sm">
-                  {student.rollNumber}
-                </TableCell>
-                <TableCell className="hidden lg:table-cell py-4 capitalize">
-                  {student.gender || "–"}
-                </TableCell>
-                <TableCell className="hidden md:table-cell py-4">
-                  <StatusPill status={student.status} />
-                </TableCell>
-                <TableCell className="text-right py-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                    disabled={!canChange}
-                    onClick={() => onChange(student)}
-                  >
-                    Change
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
+                  </TableCell>
+                  <TableCell className="py-3.5 text-[13px] text-slate-600 dark:text-zinc-400 font-normal">
+                    {student.rollNumber || "–"}
+                  </TableCell>
+                  <TableCell className="py-3.5 text-[13px] text-slate-600 dark:text-zinc-400 capitalize font-normal">
+                    {student.gender || "–"}
+                  </TableCell>
+                  <TableCell className="py-3.5">
+                    <StatusPill status={student.status} />
+                  </TableCell>
+                  <TableCell className="text-right py-3.5 pr-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-3 rounded-md border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 text-[12.5px] font-medium inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                      disabled={!canChange}
+                      onClick={() => onChange(student)}
+                    >
+                      <ArrowLeftRight className="size-3.5 text-slate-600 dark:text-zinc-400" />
+                      <span>Change</span>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>

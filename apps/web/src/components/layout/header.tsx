@@ -5,7 +5,7 @@ import { useAppStore } from "@/store/use-app-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Menu, ShieldCheck, School, Calendar, PanelLeftClose, PanelLeftOpen, LayoutDashboard, Crown, Settings as SettingsIcon, KeyRound, LogOut, ChevronDown, Sparkles, ChevronRight } from "lucide-react";
+import { Menu, ShieldCheck, School, Calendar, PanelLeftClose, PanelLeftOpen, LayoutDashboard, Crown, Settings as SettingsIcon, KeyRound, LogOut, ChevronDown, Sparkles, ChevronRight, Check } from "lucide-react";
 import { NotificationBell } from "./notification-bell";
 import { ThemeToggle } from "./theme-toggle";
 import { type NavItem, roleColors, roleLabels } from "./nav-config";
@@ -86,6 +86,22 @@ export function Header({
   const shouldShowDashboard = resolvedScreen !== "modules" && effectiveIsMinimal;
   const { status: yearStatus, years, year, yearSlug, setActiveYear } = useActiveAcademicYear();
   const tenantHref = useTenantHref();
+
+  const displayYearName = useMemo(() => {
+    if (year?.name) return year.name;
+    const active = years?.find((y: any) => y.is_active || y.isActive);
+    if (active?.name) return active.name;
+    if (years?.[0]?.name) return years[0].name;
+    return "2026-27";
+  }, [year, years]);
+
+  const sessionYears = useMemo(() => {
+    if (years && years.length > 0) return years;
+    return [
+      { id: "s-2027", name: "2027-2028" },
+      { id: "s-2026", name: "2026-27", is_active: true },
+    ];
+  }, [years]);
 
   const dates = useMemo(() => {
     const now = new Date();
@@ -198,37 +214,6 @@ export function Header({
             {dates.date}
           </span>
         </div>
-
-        {/* Academic Year Chip — the URL is the authority; this is its control */}
-        {yearStatus === 'ready' && year !== null && splitKey(resolvedScreen).screen !== 'academic-years' && (
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className={cn(
-                "items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl bg-slate-100/80 dark:bg-zinc-900/80 border border-slate-200/70 dark:border-zinc-800 text-xs font-medium text-slate-700 dark:text-zinc-300 shadow-2xs select-none whitespace-nowrap shrink-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
-                shouldShowDashboard ? "hidden md:flex" : "flex",
-                !effectiveIsMinimal && "hidden sm:flex"
-              )}
-              aria-label="Change academic session"
-            >
-              <Calendar className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
-              <span className="font-semibold text-slate-900 dark:text-zinc-100">
-                {year.name}
-              </span>
-              <ChevronDown className="size-3 opacity-60 shrink-0" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-40">
-              {years.map((y: any) => (
-                <DropdownMenuItem
-                  key={y.id}
-                  onClick={() => setActiveYear(yearSlugOf(y.name))}
-                  className={yearSlugOf(y.name) === yearSlug ? "font-semibold" : ""}
-                >
-                  {y.name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
@@ -240,12 +225,62 @@ export function Header({
             background: "linear-gradient(135deg, #fffdf5 0%, #fef3d6 100%)",
             borderColor: "#d69e2e80",
           }}
-          className="ink-ask-ai hidden lg:inline-flex items-center gap-[7px] h-[36px] mr-[6px] pl-[11px] pr-[15px] rounded-full border text-[#c9912f] text-[13px] font-semibold shrink-0 relative overflow-hidden transition-[transform,border-color,background-color] duration-150 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#d69e2e]/50"
+          className="ink-ask-ai hidden lg:inline-flex items-center gap-[7px] h-[36px] mr-[2px] pl-[11px] pr-[15px] rounded-full border text-[#c9912f] text-[13px] font-semibold shrink-0 relative overflow-hidden transition-[transform,border-color,background-color] duration-150 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#d69e2e]/50"
         >
           <Sparkles className="size-3.5 text-[#c9912f] shrink-0" />
           <span className="ink-ask-ai-label text-[13px] font-semibold leading-tight">Ask AI</span>
         </button>
-        <NotificationBell />
+
+        {/* Academic Session / Year Pill Selector — hidden on the sessions screen, where
+            years are managed. Admins reach it as `academics/session`; staff, the year
+            gate's no-year escape hatch and old bookmarks still use bare `academic-years`. */}
+        {splitKey(resolvedScreen).screen !== 'academic-years' &&
+          splitKey(resolvedScreen).screen !== 'session' && (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              aria-label="Change academic session"
+              className="ink-pill-btn select-none"
+            >
+              <Calendar className="size-4 text-slate-500 dark:text-slate-400 shrink-0" />
+              <span className="font-normal text-[13px] tracking-normal text-slate-700 dark:text-zinc-200">
+                {displayYearName}
+              </span>
+              <ChevronDown className="size-3.5 text-slate-400 dark:text-slate-400 shrink-0" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              sideOffset={8}
+              className="w-[185px] p-3 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-[#0c1427] shadow-xl shadow-slate-900/10 dark:shadow-2xl dark:shadow-black/70 animate-in fade-in zoom-in-95 duration-150"
+            >
+              <div className="px-2 pt-0.5 pb-2.5 text-[10.5px] font-medium tracking-[0.06em] text-slate-400 dark:text-slate-400 uppercase select-none">
+                ACADEMIC SESSION
+              </div>
+              <div className="space-y-1">
+                {sessionYears.map((y: any) => {
+                  const isSelected = year ? yearSlugOf(y.name) === yearSlug : y.name === displayYearName;
+                  return (
+                    <DropdownMenuItem
+                      key={y.id ?? y.name}
+                      onClick={() => setActiveYear(yearSlugOf(y.name))}
+                      className={cn(
+                        "flex items-center justify-between px-2.5 py-2 rounded-xl cursor-pointer text-[13.5px] font-normal transition-colors outline-none",
+                        isSelected
+                          ? "text-slate-900 dark:text-white bg-slate-50/80 dark:bg-slate-800/50"
+                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/60"
+                      )}
+                    >
+                      <span>{y.name}</span>
+                      {isSelected && (
+                        <Check className="size-4 text-slate-600 dark:text-slate-400 shrink-0 stroke-[2]" />
+                      )}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
         <ThemeToggle />
 
         {/* Subtle Divider */}

@@ -37,6 +37,7 @@ import { studentsRoutes } from './modules/students/students.routes';
 import { admissionsRoutes } from './modules/students/admissions.routes';
 import { bulkUpdateRoutes } from './modules/students/bulk-update.routes';
 import { rosterRoutes } from './modules/students/roster.routes';
+import { studentProfileRoutes } from './modules/students/profile.routes';
 import { teachersRoutes } from './modules/employees/teachers.routes';
 import { classesRoutes } from './modules/academics/classes.routes';
 import { attendanceRoutes } from './modules/student-attendance/attendance.routes';
@@ -60,7 +61,7 @@ import { superAdminsRoutes } from './modules/platform/superAdmins.routes';
 import { platformRoutes } from './modules/platform/platform.routes';
 import { tenantSettingsRoutes } from './modules/tenancy/tenantSettings.routes';
 import { promotionsRoutes } from './modules/students/promotions.routes';
-import { certificatesRoutes } from './modules/certificates/certificates.routes';
+import { studentSettingsRoutes } from './modules/students/studentSettings.routes';
 import { leavesRoutes } from './modules/leaves/leaves.routes';
 import { staffAttendanceRoutes } from './modules/employee-attendance/staffAttendance.routes';
 import { examsRoutes } from './modules/examinations/exams.routes';
@@ -301,6 +302,7 @@ const app = new Elysia()
       .use(admissionsRoutes)
       .use(bulkUpdateRoutes)
       .use(rosterRoutes)
+      .use(studentProfileRoutes)
       .use(teachersRoutes)
       .use(classesRoutes)
       .use(attendanceRoutes)
@@ -324,7 +326,7 @@ const app = new Elysia()
       .use(platformRoutes)
       .use(tenantSettingsRoutes)
       .use(promotionsRoutes)
-      .use(certificatesRoutes)
+      .use(studentSettingsRoutes)
       .use(leavesRoutes)
       .use(staffAttendanceRoutes)
       .use(examsRoutes)
@@ -348,6 +350,7 @@ const app = new Elysia()
       .use(admissionsRoutes)
       .use(bulkUpdateRoutes)
       .use(rosterRoutes)
+      .use(studentProfileRoutes)
       .use(teachersRoutes)
       .use(classesRoutes)
       .use(attendanceRoutes)
@@ -371,7 +374,7 @@ const app = new Elysia()
       .use(platformRoutes)
       .use(tenantSettingsRoutes)
       .use(promotionsRoutes)
-      .use(certificatesRoutes)
+      .use(studentSettingsRoutes)
       .use(leavesRoutes)
       .use(staffAttendanceRoutes)
       .use(examsRoutes)

@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, boolean, doublePrecision, numeric, index, uniqueIndex, foreignKey, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, boolean, doublePrecision, numeric, json, index, uniqueIndex, foreignKey, primaryKey } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
 
@@ -673,6 +673,60 @@ export const promotions = pgTable('Promotion', {
   fromClassIdIdx: index('Promotion_fromClassId_idx').on(table.fromClassId),
   toClassIdIdx: index('Promotion_toClassId_idx').on(table.toClassId),
   statusIdx: index('Promotion_status_idx').on(table.status),
+}));
+
+export const promotionRuns = pgTable('PromotionRun', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  tenantId: text('tenantId').notNull(),
+  status: text('status').default('draft').notNull(),
+  fromSession: text('fromSession').notNull(),
+  toSession: text('toSession'),
+  effectiveDate: text('effectiveDate'),
+  scope: text('scope').notNull(),
+  studentIds: json('studentIds').$type<string[]>().default([]).notNull(),
+  remarks: text('remarks'),
+  createdBy: text('createdBy'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+}, (table) => ({
+  tenantIdIdx: index('PromotionRun_tenantId_idx').on(table.tenantId),
+  statusIdx: index('PromotionRun_status_idx').on(table.status),
+}));
+
+/**
+ * How the Students module mints identifiers, one row per tenant.
+ *
+ * It is its own table rather than keys inside `Tenant.settings` because that column is
+ * a single JSON text blob that `PUT /tenant-settings` overwrites wholesale, so two
+ * screens saving at once silently erase each other's work. Here every rule is a typed
+ * column and the only writer is `/student-settings`.
+ *
+ * Widths and starts are integers even though the screen holds them in text inputs; the
+ * route converts at the boundary. `studentIdStartFrom` / `admissionNoStartFrom` stay
+ * nullable because "blank" is a real setting — it means continue the current series.
+ */
+export const studentIdSettings = pgTable('StudentIdSetting', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  tenantId: text('tenantId').notNull(),
+  schoolCode: text('schoolCode').default('').notNull(),
+  studentIdEnabled: boolean('studentIdEnabled').default(false).notNull(),
+  studentIdPrefix: text('studentIdPrefix').default('STU').notNull(),
+  studentIdNumberLength: integer('studentIdNumberLength').default(4).notNull(),
+  studentIdFormat: text('studentIdFormat').default('{PREFIX}{YEAR}{SEQ}').notNull(),
+  studentIdResetEveryYear: boolean('studentIdResetEveryYear').default(true).notNull(),
+  studentIdStartFrom: integer('studentIdStartFrom'),
+  admissionNoEnabled: boolean('admissionNoEnabled').default(false).notNull(),
+  admissionNoPrefix: text('admissionNoPrefix').default('ADM').notNull(),
+  admissionNoNumberLength: integer('admissionNoNumberLength').default(4).notNull(),
+  admissionNoFormat: text('admissionNoFormat').default('{PREFIX}{YEAR}{SEQ}').notNull(),
+  admissionNoResetEveryYear: boolean('admissionNoResetEveryYear').default(true).notNull(),
+  admissionNoStartFrom: integer('admissionNoStartFrom'),
+  rollNumberEnabled: boolean('rollNumberEnabled').default(false).notNull(),
+  rollNumberStartingNumber: integer('rollNumberStartingNumber').default(1).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+}, (table) => ({
+  tenantIdUq: uniqueIndex('StudentIdSetting_tenantId_uq').on(table.tenantId),
 }));
 
 export const certificates = pgTable('Certificate', {

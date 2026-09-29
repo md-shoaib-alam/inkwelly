@@ -9,7 +9,6 @@ import {
   CheckCircle2, 
   Activity,
   Search,
-  ArrowUpDown,
   CalendarDays,
   Check
 } from "lucide-react";
@@ -33,7 +32,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { useAcademicYears } from "@/modules/academics/hooks/use-academic-years";
+import { useAcademicYears } from "../hooks/use-academic-years";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -53,6 +52,12 @@ function getDurationMonths(startStr: string, endStr: string): string {
   if (isNaN(start.getTime()) || isNaN(end.getTime())) return "—";
   const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
   return `${Math.max(1, months)}mo`;
+}
+
+function parseTimestamp(val: any): number {
+  if (!val) return 0;
+  const t = new Date(val).getTime();
+  return isNaN(t) ? 0 : t;
 }
 
 export function AcademicYearsScreen() {
@@ -183,11 +188,30 @@ export function AcademicYearsScreen() {
         return true;
       })
       .sort((a: any, b: any) => {
-        const da = new Date(a.startDate || 0).getTime();
-        const db = new Date(b.startDate || 0).getTime();
-        return sortOrder === "desc" ? db - da : da - db;
+        let valA = 0;
+        let valB = 0;
+        if (sortBy === "endDate") {
+          valA = parseTimestamp(a.endDate);
+          valB = parseTimestamp(b.endDate);
+        } else if (sortBy === "createdAt") {
+          valA = parseTimestamp(a.createdAt);
+          valB = parseTimestamp(b.createdAt);
+        } else {
+          valA = parseTimestamp(a.startDate);
+          valB = parseTimestamp(b.startDate);
+        }
+
+        if (valA !== valB) {
+          return sortDirection === "desc" ? valB - valA : valA - valB;
+        }
+
+        const nameA = String(a.name || "");
+        const nameB = String(b.name || "");
+        return sortDirection === "desc"
+          ? nameB.localeCompare(nameA, undefined, { numeric: true })
+          : nameA.localeCompare(nameB, undefined, { numeric: true });
       });
-  }, [academicYears, searchQuery, typeFilter, statusFilter, sortOrder]);
+  }, [academicYears, searchQuery, typeFilter, statusFilter, sortBy, sortDirection]);
 
   return (
     <div className="space-y-4 sm:space-y-5">
@@ -359,28 +383,64 @@ export function AcademicYearsScreen() {
           </SelectContent>
         </Select>
 
-        {/* Start Date Sort */}
-        <Select value={sortOrder} onValueChange={(val: any) => setSortOrder(val)}>
+        {/* Sort Field */}
+        <Select value={sortBy} onValueChange={(val: any) => setSortBy(val)}>
           <SelectTrigger className="h-9 w-[125px] rounded-md text-xs sm:text-[13px] border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-[#0D1526]">
-            <SelectValue placeholder="Start date" />
+            <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent className="rounded-md">
-            <SelectItem value="desc">Start date ↓</SelectItem>
-            <SelectItem value="asc">Start date ↑</SelectItem>
+            <SelectItem value="startDate">Start date</SelectItem>
+            <SelectItem value="endDate">End date</SelectItem>
+            <SelectItem value="createdAt">Created at</SelectItem>
           </SelectContent>
         </Select>
 
-        {/* Sort Toggle */}
-        <Button
+        {/* Sort Direction Toggle */}
+        <button
           type="button"
-          variant="outline"
-          size="icon"
-          onClick={() => setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))}
-          aria-label="Toggle sort order"
-          className="size-9 rounded-md border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-[#0D1526] shrink-0"
+          onClick={() => setSortDirection((prev) => (prev === "desc" ? "asc" : "desc"))}
+          aria-label={sortDirection === "asc" ? "Sort ascending (click to sort descending)" : "Sort descending (click to sort ascending)"}
+          title={sortDirection === "asc" ? "Ascending (click for descending)" : "Descending (click for ascending)"}
+          className="size-9 rounded-md border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-[#0D1526] hover:bg-slate-50 dark:hover:bg-zinc-900 flex items-center justify-center shrink-0 cursor-pointer transition-colors"
         >
-          <ArrowUpDown className="size-4 text-slate-500" />
-        </Button>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            className="size-4 pointer-events-none"
+            aria-hidden="true"
+          >
+            {/* Up arrow (Ascending) */}
+            <path
+              d="M5 12.5V3.5M5 3.5L2.5 6M5 3.5L7.5 6"
+              stroke="currentColor"
+              strokeWidth={sortDirection === "asc" ? "2" : "1.5"}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={cn(
+                "transition-colors duration-150",
+                sortDirection === "asc"
+                  ? "text-slate-900 dark:text-zinc-100"
+                  : "text-slate-300 dark:text-zinc-600"
+              )}
+            />
+            {/* Down arrow (Descending) */}
+            <path
+              d="M11 3.5V12.5M11 12.5L8.5 10M11 12.5L13.5 10"
+              stroke="currentColor"
+              strokeWidth={sortDirection === "desc" ? "2" : "1.5"}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={cn(
+                "transition-colors duration-150",
+                sortDirection === "desc"
+                  ? "text-slate-900 dark:text-zinc-100"
+                  : "text-slate-300 dark:text-zinc-600"
+              )}
+            />
+          </svg>
+        </button>
       </div>
 
       {/* Sessions Data Table Card */}

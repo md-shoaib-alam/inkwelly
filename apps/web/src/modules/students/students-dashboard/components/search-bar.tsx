@@ -36,9 +36,9 @@ export function DashboardSearch() {
         type="search"
         value={term}
         onChange={(e) => setTerm(e.target.value)}
-        placeholder="Search a student by name, email or roll number…"
+        placeholder="Search student, parent, class, admission no. or phone..."
         aria-label="Search students"
-        className="h-12 w-full rounded-xl border border-slate-200/70 dark:border-zinc-800 bg-white dark:bg-[#0D1526] pl-11 pr-4 text-[14px] text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 shadow-2xs outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-500/20"
+        className="h-11 w-full rounded-2xl border border-slate-200/70 dark:border-zinc-800 bg-white dark:bg-[#0D1526] pl-11 pr-4 text-[13px] text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 shadow-2xs outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20"
       />
     </form>
   );

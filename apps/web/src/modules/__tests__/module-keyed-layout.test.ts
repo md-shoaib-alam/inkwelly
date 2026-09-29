@@ -37,7 +37,7 @@ describe("iam", () => {
 
 describe("students", () => {
   test("every students row lives under modules/students/", () => {
-    for (const row of ["students", "promotions", "bulk-promote", "graduated", "certificates", "classes", "students-dashboard", "class-change", "student-trash", "admissions", "bulk-update"]) {
+    for (const row of ["students", "promotion", "graduated", "classes", "students-dashboard", "class-change", "student-trash", "admissions", "bulk-update", "settings"]) {
       expect(rowHasScreen("students", row)).toBe(true);
     }
   });
@@ -122,10 +122,11 @@ const LIVE_ROWS: [string, string][] = [
   ["academics", "academic-years"], ["academics", "classes"], ["academics", "subjects"],
   ["academics", "timetable"], ["academics", "school-settings"],
   ["ai-connect", "ai-connect"],
-  ["students", "students"], ["students", "promotions"], ["students", "bulk-promote"],
-  ["students", "graduated"], ["students", "certificates"], ["students", "classes"],
+  ["students", "students"], ["students", "promotion"],
+  ["students", "graduated"], ["students", "classes"],
+  // bulk-promote left the roster on 2026-09-30: the Promotion screen absorbed its function.
   ["students", "students-dashboard"], ["students", "class-change"], ["students", "student-trash"],
-  ["students", "admissions"], ["students", "bulk-update"],
+  ["students", "admissions"], ["students", "bulk-update"], ["students", "settings"],
   ["employees", "teachers"], ["employees", "staff"], ["employees", "parents"],
   ["student-attendance", "attendance"],
   ["employee-attendance", "teacher-attendance"], ["employee-attendance", "staff-attendance"],
@@ -138,9 +139,9 @@ const LIVE_ROWS: [string, string][] = [
 ];
 
 describe("the module-keyed convention", () => {
-  test("38 of the 59 live rows have their own folder", () => {
-    expect(LIVE_ROWS_PANES.length).toBe(59);
-    expect(FOLDERED.length).toBe(38);
+  test("37 of the 58 live rows have their own folder", () => {
+    expect(LIVE_ROWS_PANES.length).toBe(58);
+    expect(FOLDERED.length).toBe(37);
     for (const [module, row] of LIVE_ROWS) expect(rowHasScreen(module, row)).toBe(true);
     // LIVE_ROWS is the foldered set plus the two folders named after a retired key:
     // students/students (the bare root's alias, next to the panel row's own `list`) and
@@ -152,7 +153,7 @@ describe("the module-keyed convention", () => {
     expect(FOLDERED.filter((k) => !listed.includes(k))).toEqual([]);
   });
 
-  test("the other 21 of the 59 live rows share a folder or await routing Task 3", () => {
+  test("the other 21 of the 58 live rows share a folder or await routing Task 3", () => {
     const EXPECTED_UNFOLDERED = [
       // Collapsed onto a sibling folder in the same module, because their cases are stacked
       // fall-throughs with identical props (9): fee-categories, fee-concessions,
@@ -180,15 +181,15 @@ describe("the module-keyed convention", () => {
     ];
     expect(UNFOLDERED).toEqual([...EXPECTED_UNFOLDERED].sort());
 
-    // 38 folders + 9 collapses + 2 override-named + 9 deferrals + 1 moved panel = 59 live rows.
-    expect(38 + 9 + 2 + 9 + 1).toBe(UNFOLDERED.length + FOLDERED.length);
+    // 37 folders + 9 collapses + 2 override-named + 9 deferrals + 1 moved panel = 58 live rows.
+    expect(37 + 9 + 2 + 9 + 1).toBe(UNFOLDERED.length + FOLDERED.length);
   });
 
   test("no admin screen is still filed by domain", () => {
     for (const bare of [
       "AdminClasses", "AdminSubjects", "AdminStudents", "AdminTeachers", "AdminStaff",
       "AdminParents", "AdminFees", "AdminExpenses", "AdminExams", "AdminLeaves",
-      "AdminAttendance", "AdminReports", "AdminCertificates", "AdminAdmitCards",
+      "AdminAttendance", "AdminReports", "AdminAdmitCards",
     ]) {
       const hits = ["people", "finance", "assessment", "attendance", "certificates", "data-io", "access-control"]
         .filter((d) => existsSync(join(MOD_ROOT, d, "components", `${bare}.tsx`)));

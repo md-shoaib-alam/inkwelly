@@ -42,7 +42,6 @@ import {
   IdCard,
   Briefcase,
   ArrowRight,
-  Zap,
   Wallet,
   Send,
   Smartphone,
@@ -255,8 +254,7 @@ export const navItems: Record<UserRole, NavItem[]> = {
       label: "Class Promotion",
       icon: <GraduationCap className="size-4" />,
       children: [
-        { key: "promotions", label: "Promotions", icon: <ArrowRight className="size-4" /> },
-        { key: "bulk-promote", label: "Bulk Promote", icon: <Zap className="size-4" /> },
+        { key: "promotion", label: "Promotion", icon: <ArrowRight className="size-4" /> },
         { key: "graduated", label: "Graduated", icon: <GraduationCap className="size-4" /> },
       ]
     },
@@ -270,7 +268,6 @@ export const navItems: Record<UserRole, NavItem[]> = {
         { key: "staff-leaves", label: "Staff Leaves", icon: <Users className="size-4" /> },
       ]
     },
-    { key: "certificates", label: "Certificates", icon: <Award className="size-4" />, permModule: "students" },
 
     // Finance
     {
@@ -594,8 +591,7 @@ export const navItems: Record<UserRole, NavItem[]> = {
       icon: <GraduationCap className="size-4" />,
       permModule: "promotions",
       children: [
-        { key: "promotions", label: "Promotions", icon: <ArrowRight className="size-4" /> },
-        { key: "bulk-promote", label: "Bulk Promote", icon: <Zap className="size-4" /> },
+        { key: "promotion", label: "Promotion", icon: <ArrowRight className="size-4" /> },
         { key: "graduated", label: "Graduated", icon: <GraduationCap className="size-4" /> },
       ]
     },
@@ -609,12 +605,6 @@ export const navItems: Record<UserRole, NavItem[]> = {
         { key: "teacher-leaves", label: "Teacher Leaves", icon: <Briefcase className="size-4" /> },
         { key: "staff-leaves", label: "Staff Leaves", icon: <Users className="size-4" /> },
       ]
-    },
-    {
-      key: "certificates",
-      label: "Certificates",
-      icon: <Award className="size-4" />,
-      permModule: "certificates",
     },
 
     // Finance

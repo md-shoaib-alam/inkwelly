@@ -1,8 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -11,34 +8,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogTrigger,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { GraduationCap, Pencil, Trash2, Eye, MoreVertical } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 import type { RosterColumn, RosterRow } from "./columns";
 import type { StudentInfo } from "./types";
 
 interface RosterTableProps {
   rows: RosterRow[];
   columns: RosterColumn[];
-  canEdit: boolean;
-  canDelete: boolean;
-  onEdit: (student: StudentInfo) => void;
-  onDelete: (id: string, reason?: string) => void;
   onView: (student: StudentInfo) => void;
 }
 
@@ -106,7 +82,11 @@ function Cell({ col, row }: { col: RosterColumn; row: RosterRow }) {
     case "profile":
       return <ProfileRing pct={row.profileScore} />;
     case "studentId":
-      return <span className="text-[13px] text-slate-600 dark:text-zinc-300 whitespace-nowrap">{row.username || "—"}</span>;
+      return (
+        <span className="text-[12.5px] font-[family-name:var(--font-mono,monospace)] text-[#64748B] dark:text-zinc-400 whitespace-nowrap">
+          {row.username || "—"}
+        </span>
+      );
     case "class":
       return <span className="text-[13px] text-slate-600 dark:text-zinc-300 whitespace-nowrap">{row.className || dash}</span>;
     case "rollNumber":
@@ -151,74 +131,7 @@ function Cell({ col, row }: { col: RosterColumn; row: RosterRow }) {
   }
 }
 
-function DeleteStudentDialog({
-  student,
-  onDelete,
-  trigger,
-}: {
-  student: RosterRow;
-  onDelete: (id: string, reason?: string) => void;
-  trigger: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(false);
-  const [reason, setReason] = useState("");
-
-  return (
-    <AlertDialog
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) setReason("");
-      }}
-    >
-      <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
-      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete Student</AlertDialogTitle>
-          <AlertDialogDescription>
-            <strong>{student.name}</strong> will be moved to Trash. You can
-            restore them later, or delete them permanently from Trash.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <div className="space-y-1.5">
-          <label htmlFor={`delete-reason-${student.id}`} className="text-sm font-medium">
-            Reason <span className="text-muted-foreground font-normal">(optional)</span>
-          </label>
-          <Textarea
-            id={`delete-reason-${student.id}`}
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="Why is this student being deleted?"
-            rows={2}
-            maxLength={500}
-          />
-        </div>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            className="bg-red-600 hover:bg-red-700 text-white"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(student.id, reason.trim() || undefined);
-            }}
-          >
-            Delete
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-}
-
-export function RosterTable({
-  rows,
-  columns,
-  canEdit,
-  canDelete,
-  onEdit,
-  onDelete,
-  onView,
-}: RosterTableProps) {
+export function RosterTable({ rows, columns, onView }: RosterTableProps) {
   return (
     <div className="overflow-x-auto px-2 sm:px-6">
       <Table>
@@ -234,13 +147,12 @@ export function RosterTable({
                 {col.label}
               </TableHead>
             ))}
-            <TableHead className="w-16 sm:w-24 text-right" />
           </TableRow>
         </TableHeader>
         <TableBody>
           {rows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={columns.length + 1} className="text-center py-12 text-muted-foreground">
+              <TableCell colSpan={columns.length} className="text-center py-12 text-muted-foreground">
                 <GraduationCap className="size-10 mx-auto mb-2 opacity-30" />
                 <p>No students found</p>
               </TableCell>
@@ -257,79 +169,6 @@ export function RosterTable({
                     <Cell col={col} row={row} />
                   </TableCell>
                 ))}
-                <TableCell className="text-right py-3.5">
-                  <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                    <div className="hidden xl:flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 text-muted-foreground hover:text-emerald-600"
-                        onClick={() => onView(row as unknown as StudentInfo)}
-                      >
-                        <Eye className="size-4" />
-                      </Button>
-                      {canEdit && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-8 text-muted-foreground hover:text-emerald-600"
-                          onClick={() => onEdit(row as unknown as StudentInfo)}
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
-                      )}
-                      {canDelete && (
-                        <DeleteStudentDialog
-                          student={row}
-                          onDelete={onDelete}
-                          trigger={
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8 text-muted-foreground hover:text-red-600"
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          }
-                        />
-                      )}
-                    </div>
-                    <div className="xl:hidden">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="size-8">
-                            <MoreVertical className="size-4" />
-                            <span className="sr-only">Open menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[160px]">
-                          <DropdownMenuItem onClick={() => onView(row as unknown as StudentInfo)} className="cursor-pointer">
-                            <Eye className="mr-2 h-4 w-4" />
-                            <span>View Details</span>
-                          </DropdownMenuItem>
-                          {canEdit && (
-                            <DropdownMenuItem onClick={() => onEdit(row as unknown as StudentInfo)} className="cursor-pointer">
-                              <Pencil className="mr-2 h-4 w-4" />
-                              <span>Edit Student</span>
-                            </DropdownMenuItem>
-                          )}
-                          {canDelete && (
-                            <DeleteStudentDialog
-                              student={row}
-                              onDelete={onDelete}
-                              trigger={
-                                <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20 dark:hover:text-red-400 data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  <span>Delete Record</span>
-                                </div>
-                              }
-                            />
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                </TableCell>
               </TableRow>
             ))
           )}

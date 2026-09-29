@@ -14,10 +14,9 @@ import { parseRoute } from "@/lib/routing/module-routes";
 // top-level URL. This map is the other half, and it is derived from the same
 // `parent` field, so the two cannot drift apart.
 const EXPECTED = [
-  ["certificates", "students"],
   ["class-change", "students"],
   ["graduated", "students"],
-  ["promotions", "students"],
+  ["promotion", "students"],
   ["school-settings", "academics"],
   ["students-dashboard", "students"],
   ["timetable", "academics"],

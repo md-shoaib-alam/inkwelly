@@ -15,7 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Eye, ArrowUpDown } from "lucide-react";
+import { Eye, ArrowUp, ArrowDown, SlidersHorizontal } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
@@ -31,11 +31,18 @@ import { ColumnsPopover } from "./adminStudents/ColumnsPopover";
 import { StudentDialog } from "./adminStudents/StudentDialog";
 import { StudentSkeleton } from "./adminStudents/StudentSkeleton";
 import { Pagination } from "./adminStudents/Pagination";
-import { StudentProfileView } from "./adminStudents/StudentProfileView";
+import { StudentProfileView } from "./adminStudents/profile/StudentProfileView";
+import { DEFAULT_TAB, tabFromParam, tabParamOf, type ProfileTabId } from "./adminStudents/profile/tabs";
 
 // Types
-import { DEFAULT_VISIBLE, ROSTER_COLUMNS, type RosterRow } from "./adminStudents/columns";
+import { DEFAULT_VISIBLE, MOBILE_VISIBLE, ROSTER_COLUMNS, type RosterRow } from "./adminStudents/columns";
 import type { StudentInfo, StudentFormData } from "./adminStudents/types";
+import {
+  profilePathOf,
+  rosterPathOf,
+  studentRefFromPathname,
+  studentRefOf,
+} from "./student-ref";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
 const CATEGORIES = [
@@ -206,6 +213,17 @@ function AdminStudentsContent() {
 
   const queryClient = useQueryClient();
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // The ref lives in the path, so `/students/list/STU2026120` is one student and
+  // `/students/list` is the roster: the same screen answering two URLs. Nothing is
+  // mirrored into state, which is why a refresh lands on the student it says.
+  const profileRef = studentRefFromPathname(pathname);
+  const rosterPath = rosterPathOf(pathname, Boolean(profileRef));
+  const activeTab = tabFromParam(searchParams.get("tab"));
+
   const [rows, setRows] = useState<RosterRow[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -214,6 +232,9 @@ function AdminStudentsContent() {
 
   useEffect(() => {
     if (!currentTenantId) return;
+    // While a profile is open the roster is not on screen, so its page of 25 rows is
+    // not fetched. This is the request the user asked to stop paying for.
+    if (profileRef) return;
     const controller = new AbortController();
     setLoading(true);
 
@@ -252,17 +273,13 @@ function AdminStudentsContent() {
 
     return () => controller.abort();
   }, [
-    currentTenantId, search, classFilter, genderFilter, statusFilter,
+    currentTenantId, profileRef,
+    search, classFilter, genderFilter, statusFilter,
     categoryFilter, bloodGroupFilter, rteFilter, sort, sortDir,
     currentPage, itemsPerPage, reloadTick,
   ]);
 
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-  const studentUrlParam = searchParams.get("student") || searchParams.get("studentId");
 
   // Sync initial URL search params into state (run once on mount)
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -324,84 +341,68 @@ function AdminStudentsContent() {
 
   const handleOpenEdit = (student: StudentInfo) => dispatch({ type: 'OPEN_EDIT', payload: student });
 
-  const [viewingStudentSnapshot, setViewingStudentSnapshot] = useState<StudentInfo | null>(null);
+  // The roster's own filters travel with a profile link, so Back lands where the user
+  // left the list. `tab` is the profile's key and never belongs to the roster.
+  const rosterQuery = useCallback(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("tab");
+    return params;
+  }, [searchParams]);
+
+  const profileUrl = useCallback(
+    (ref: string, tab: ProfileTabId) => {
+      const params = rosterQuery();
+      const tabParam = tabParamOf(tab);
+      if (tabParam) params.set("tab", tabParam);
+      const query = params.toString();
+      return `${profilePathOf(rosterPath, ref)}${query ? `?${query}` : ""}`;
+    },
+    [rosterQuery, rosterPath],
+  );
+
+  const openProfile = useCallback(
+    (ref: string, tab: ProfileTabId) => router.push(profileUrl(ref, tab), { scroll: false }),
+    [profileUrl, router],
+  );
+
+  const handleOpenView = (student: StudentInfo) => openProfile(studentRefOf(student), DEFAULT_TAB);
 
   const handleCloseView = useCallback(() => {
-    setViewingStudentSnapshot(null);
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("student");
-    params.delete("studentId");
-    const newQuery = params.toString();
-    router.replace(newQuery ? `${pathname}?${newQuery}` : pathname, { scroll: false });
-  }, [pathname, router, searchParams]);
+    const query = rosterQuery().toString();
+    router.replace(query ? `${rosterPath}?${query}` : rosterPath, { scroll: false });
+  }, [rosterPath, rosterQuery, router]);
 
-  // Synchronize URL ?student= query parameter into viewingStudent on initial load, refresh, or URL change
-  useEffect(() => {
-    if (!studentUrlParam) {
-      if (viewingStudentSnapshot) {
-        setViewingStudentSnapshot(null);
-      }
+  // Writing the tab into the address bar is the whole of tab state: a refresh, a Back,
+  // and a pasted link all open the same tab, and the previous tab's request is not sent.
+  const handleTabChange = (next: ProfileTabId) => {
+    if (!profileRef) return;
+    router.replace(profileUrl(profileRef, next), { scroll: false });
+  };
+
+  // The edit form reads roster-row fields the profile payload doesn't carry (classId,
+  // house, transport), so it is fetched from the roster on the click that needs it.
+  const handleEditFromProfile = async () => {
+    if (!profileRef) return;
+    const fromCache = rows.find((r) => studentRefOf(r) === profileRef || r.id === profileRef);
+    if (fromCache) {
+      handleOpenEdit(fromCache as unknown as StudentInfo);
       return;
     }
-
-    // 1. Check if student is already on the current roster page
-    const found = rows.find(
-      (s) => s.id === studentUrlParam || s.rollNumber === studentUrlParam || s.username === studentUrlParam
-    );
-    if (found) {
-      if (viewingStudentSnapshot?.id !== found.id) {
-        setViewingStudentSnapshot(found as unknown as StudentInfo);
+    try {
+      const res = await apiFetch(
+        `/api/student-roster?limit=1&search=${encodeURIComponent(profileRef)}`,
+      );
+      const data = await res.json().catch(() => ({}));
+      const items: RosterRow[] = data.items ?? [];
+      const match = items.find((r) => studentRefOf(r) === profileRef || r.id === profileRef);
+      if (!match) {
+        toast.error("This student isn't in the roster, so there's nothing to edit.");
+        return;
       }
-      return;
+      handleOpenEdit(match as unknown as StudentInfo);
+    } catch {
+      toast.error("Couldn't open the edit form.");
     }
-
-    // 2. If not on the current page, fetch this specific student by search
-    let isMounted = true;
-    (async () => {
-      try {
-        const res = await apiFetch(
-          `/api/student-roster?limit=1&search=${encodeURIComponent(studentUrlParam)}`,
-        );
-        if (res.ok) {
-          const data = await res.json();
-          const items: RosterRow[] = data.items || [];
-          const match = items.find(
-            (s) => s.id === studentUrlParam || s.rollNumber === studentUrlParam || s.username === studentUrlParam
-          );
-          if (match && isMounted) {
-            setViewingStudentSnapshot(match as unknown as StudentInfo);
-          } else if (!match && isMounted) {
-            toast.error("Student not found");
-            handleCloseView();
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load student from URL:", err);
-        if (isMounted) {
-          toast.error("Failed to load student");
-          handleCloseView();
-        }
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [studentUrlParam, rows, currentTenantId]);
-
-  // Derive viewing student dynamically from the latest roster rows
-  const viewingStudent = useMemo(() => {
-    if (!viewingStudentSnapshot) return null;
-    return (rows.find((s) => s.id === viewingStudentSnapshot.id) as unknown as StudentInfo) || viewingStudentSnapshot;
-  }, [rows, viewingStudentSnapshot]);
-
-  const handleOpenView = (student: StudentInfo) => {
-    setViewingStudentSnapshot(student);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("student", student.rollNumber || student.username || student.id);
-    const newQuery = params.toString();
-    router.push(newQuery ? `${pathname}?${newQuery}` : pathname, { scroll: false });
   };
 
   const handleSubmit = async () => {
@@ -472,8 +473,8 @@ function AdminStudentsContent() {
           queryClient.invalidateQueries({
             queryKey: ["admin-dashboard", currentTenantId],
           });
-          // The profile view caches by id, so a write has to clear that too.
-          queryClient.invalidateQueries({ queryKey: ["student-detail", editingStudent.id] });
+          // The profile caches a header and one tab per student, so a write clears them.
+          queryClient.invalidateQueries({ queryKey: ["student-profile"] });
           return "Student details updated";
         } finally {
           dispatch({ type: 'SET_SUBMITTING', payload: false });
@@ -487,56 +488,32 @@ function AdminStudentsContent() {
     );
   };
 
-  const handleDelete = async (id: string, reason?: string) => {
-    toast.promise(
-      (async () => {
-        const params = new URLSearchParams({ id });
-        if (reason) params.set("reason", reason);
-        const res = await apiFetch(`/api/students?${params.toString()}`, {
-          method: "DELETE",
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.error || "Failed to delete student");
-        }
-
-        reload();
-        queryClient.invalidateQueries({
-          queryKey: ["admin-dashboard", currentTenantId],
-        });
-        queryClient.invalidateQueries({ queryKey: ["student-trash"] });
-
-        // Force a RED morphing pill for deletion
-        throw new Error("Student moved to Trash");
-      })(),
-      {
-        loading: "Deleting student record...",
-        success: () => "", // Not reached
-        error: (err: any) => err.message, // Shows the red pill
-      },
-    );
-  };
-
-  const [visibleCols, setVisibleCols] = useState<Set<string>>(() => DEFAULT_VISIBLE);
+  const [visibleCols, setVisibleCols] = useState<Set<string>>(() =>
+    // A phone gets the three identity columns; the rest stay one tap away.
+    typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches
+      ? DEFAULT_VISIBLE
+      : MOBILE_VISIBLE,
+  );
   const activeColumns = useMemo(
     () => ROSTER_COLUMNS.filter((c) => visibleCols.has(c.key)),
     [visibleCols],
   );
 
-  if (loading || (studentUrlParam && !viewingStudent)) return <StudentSkeleton />;
-
   // --- Profile view (full page replace, like teachers) ---
-  if (viewingStudent) {
+  // Checked before the roster's loading gate: opening a profile must not wait on a
+  // page of rows nobody is looking at.
+  if (profileRef) {
     return (
       <div className="space-y-6">
         <StudentProfileView
-          student={viewingStudent}
+          studentRef={profileRef}
+          tab={activeTab}
+          onTabChange={handleTabChange}
           onBack={handleCloseView}
+          onSwitch={(ref) => openProfile(ref, activeTab)}
           canEdit={canEdit}
-          onEdit={(s) => {
-            handleCloseView();
-            handleOpenEdit(s);
-          }}
+          canDelete={canDelete}
+          onEdit={handleEditFromProfile}
         />
 
         <StudentDialog
@@ -553,12 +530,18 @@ function AdminStudentsContent() {
     );
   }
 
+  if (loading) return <StudentSkeleton />;
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">All students</h1>
-        <p className="text-sm text-muted-foreground">{totalItems} enrolled</p>
+        <h1 className="text-[22px] font-medium tracking-tight font-[family-name:var(--font-lexend)] text-[#0F172A] dark:text-zinc-50">
+          All students
+        </h1>
+        <p className="mt-1 text-[13px] text-[#64748B] dark:text-zinc-400">
+          {totalItems} enrolled
+        </p>
       </div>
 
       {/* Toolbar */}
@@ -570,10 +553,10 @@ function AdminStudentsContent() {
             dispatch({ type: 'SET_SEARCH', payload: val });
             syncUrl({ search: val });
           }}
-          placeholder="Search by name..."
+          placeholder="Search students..."
           delay={400}
-          className="w-full sm:w-64"
-          inputClassName="h-9 sm:h-10"
+          className="w-full sm:w-60 md:w-64"
+          inputClassName="h-9 rounded-md border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[12.5px] placeholder:text-slate-400 dark:placeholder:text-zinc-500 shadow-2xs"
         />
 
         <Select
@@ -583,11 +566,11 @@ function AdminStudentsContent() {
             syncUrl({ genderFilter: v });
           }}
         >
-          <SelectTrigger className="w-[calc(50%-4px)] sm:w-36 h-9 sm:h-10">
-            <SelectValue placeholder="All Genders" />
+          <SelectTrigger className="w-auto h-9 px-3 rounded-md border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-200 text-[12.5px] font-normal shadow-2xs gap-1.5 hover:bg-slate-50 dark:hover:bg-zinc-800">
+            <SelectValue placeholder="All genders" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Genders</SelectItem>
+            <SelectItem value="all">All genders</SelectItem>
             <SelectItem value="male">Male</SelectItem>
             <SelectItem value="female">Female</SelectItem>
           </SelectContent>
@@ -600,11 +583,11 @@ function AdminStudentsContent() {
             syncUrl({ statusFilter: v });
           }}
         >
-          <SelectTrigger className="w-[calc(50%-4px)] sm:w-36 h-9 sm:h-10">
-            <SelectValue placeholder="All Statuses" />
+          <SelectTrigger className="w-auto h-9 px-3 rounded-md border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-200 text-[12.5px] font-normal shadow-2xs gap-1.5 hover:bg-slate-50 dark:hover:bg-zinc-800">
+            <SelectValue placeholder="All status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="all">All status</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="inactive">Inactive</SelectItem>
           </SelectContent>
@@ -617,11 +600,11 @@ function AdminStudentsContent() {
             syncUrl({ categoryFilter: v });
           }}
         >
-          <SelectTrigger className="w-[calc(50%-4px)] sm:w-36 h-9 sm:h-10">
-            <SelectValue placeholder="All Categories" />
+          <SelectTrigger className="w-auto h-9 px-3 rounded-md border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-200 text-[12.5px] font-normal shadow-2xs gap-1.5 hover:bg-slate-50 dark:hover:bg-zinc-800">
+            <SelectValue placeholder="All categories" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">All categories</SelectItem>
             {CATEGORIES.map((c) => (
               <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
             ))}
@@ -633,12 +616,13 @@ function AdminStudentsContent() {
             <Button
               type="button"
               variant="outline"
-              className="h-10 rounded-xl border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-[13px] font-medium shadow-2xs"
+              className="h-9 px-3 rounded-md border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-200 text-[12.5px] font-normal shadow-2xs hover:bg-slate-50 dark:hover:bg-zinc-800 inline-flex items-center gap-1.5 cursor-pointer"
             >
-              More filters
+              <SlidersHorizontal className="size-3.5 text-slate-500 dark:text-zinc-400" />
+              <span>More</span>
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-[280px] rounded-xl space-y-3">
+          <PopoverContent align="start" className="w-[280px] rounded-lg p-3 space-y-3">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Class</label>
               <ClassSelect
@@ -648,7 +632,7 @@ function AdminStudentsContent() {
                   syncUrl({ classFilter: v });
                 }}
                 showAllOption
-                className="w-full h-9"
+                className="w-full h-9 rounded-md text-[12.5px]"
                 placeholder="All classes"
               />
             </div>
@@ -661,7 +645,7 @@ function AdminStudentsContent() {
                   syncUrl({ bloodGroupFilter: v });
                 }}
               >
-                <SelectTrigger className="w-full h-9">
+                <SelectTrigger className="w-full h-9 rounded-md text-[12.5px]">
                   <SelectValue placeholder="All" />
                 </SelectTrigger>
                 <SelectContent>
@@ -681,7 +665,7 @@ function AdminStudentsContent() {
                   syncUrl({ rteFilter: v });
                 }}
               >
-                <SelectTrigger className="w-full h-9">
+                <SelectTrigger className="w-full h-9 rounded-md text-[12.5px]">
                   <SelectValue placeholder="All" />
                 </SelectTrigger>
                 <SelectContent>
@@ -694,37 +678,42 @@ function AdminStudentsContent() {
           </PopoverContent>
         </Popover>
 
-        <div className="flex items-center gap-1 sm:ml-auto">
-          <Select
-            value={sort}
-            onValueChange={(v) => {
-              dispatch({ type: 'SET_SORT', payload: v });
-              syncUrl({ sort: v });
-            }}
-          >
-            <SelectTrigger className="w-36 sm:w-40 h-10">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              {SORT_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="size-10 rounded-xl"
-            onClick={() => {
-              const dir = sortDir === "asc" ? "desc" : "asc";
-              dispatch({ type: 'SET_SORT_DIR', payload: dir });
-              syncUrl({ sortDir: dir });
-            }}
-            title={sortDir === "asc" ? "Sorted A→Z — click for Z→A" : "Sorted Z→A — click for A→Z"}
-          >
-            <ArrowUpDown className="size-4 text-slate-500" />
-          </Button>
+        {/* Unified Sort & Columns on the right */}
+        <div className="flex items-center gap-2 sm:ml-auto">
+          <div className="inline-flex items-center rounded-md border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-2xs divide-x divide-slate-200 dark:divide-zinc-700 h-9">
+            <Select
+              value={sort}
+              onValueChange={(v) => {
+                dispatch({ type: 'SET_SORT', payload: v });
+                syncUrl({ sort: v });
+              }}
+            >
+              <SelectTrigger className="h-9 border-0 rounded-none rounded-l-md px-3 text-slate-700 dark:text-zinc-200 text-[12.5px] font-normal shadow-none bg-transparent hover:bg-slate-50 dark:hover:bg-zinc-800 gap-1.5">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                {SORT_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <button
+              type="button"
+              className="h-9 px-2.5 inline-flex items-center justify-center text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors rounded-r-md cursor-pointer"
+              onClick={() => {
+                const dir = sortDir === "asc" ? "desc" : "asc";
+                dispatch({ type: 'SET_SORT_DIR', payload: dir });
+                syncUrl({ sortDir: dir });
+              }}
+              title={sortDir === "asc" ? "Sorted Ascending (click for Descending)" : "Sorted Descending (click for Ascending)"}
+            >
+              {sortDir === "asc" ? (
+                <ArrowUp className="size-3.5 stroke-[2]" />
+              ) : (
+                <ArrowDown className="size-3.5 stroke-[2]" />
+              )}
+            </button>
+          </div>
           <ColumnsPopover visible={visibleCols} onChange={setVisibleCols} />
         </div>
       </div>
@@ -742,15 +731,7 @@ function AdminStudentsContent() {
       {/* Table Content */}
       <Card className="border-none shadow-sm overflow-hidden">
         <CardContent className="p-0">
-          <RosterTable
-            rows={rows}
-            columns={activeColumns}
-            canEdit={canEdit}
-            canDelete={canDelete}
-            onEdit={handleOpenEdit}
-            onDelete={handleDelete}
-            onView={handleOpenView}
-          />
+          <RosterTable rows={rows} columns={activeColumns} onView={handleOpenView} />
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

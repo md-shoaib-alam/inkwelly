@@ -48,7 +48,7 @@ const defaultFeatures: UpgradeFeatureItem[] = [
   {
     icon: <Settings className="size-4" />,
     iconBg: 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/40',
-    text: 'Custom certificate generators',
+    text: 'Custom document generators',
   },
   {
     icon: <Users className="size-4" />,
@@ -70,7 +70,7 @@ const defaultFeatures: UpgradeFeatureItem[] = [
 export function PremiumUpgradeCard({
   title = 'Upgrade Your School Plan',
   description,
-  subCaption = 'Unlock professional A4 grade report templates, custom certificate generators, library trackers, and advanced fee management tools.',
+  subCaption = 'Unlock professional A4 grade report templates, custom document generators, library trackers, and advanced fee management tools.',
   imageSrc = '/assets/admin/marksheet.avif',
   badgeText = 'Premium Feature',
   features = defaultFeatures,

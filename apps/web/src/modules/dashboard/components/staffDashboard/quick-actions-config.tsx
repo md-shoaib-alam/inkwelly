@@ -23,7 +23,6 @@ import {
   IdCard,
   Award,
   ArrowRight,
-  Zap,
   BarChart3,
   TicketCheck,
   CalendarDays,
@@ -180,17 +179,9 @@ export const allQuickActions: QuickActionItem[] = [
   {
     label: "Promotions",
     icon: <ArrowRight className="size-5" />,
-    screen: "promotions",
+    screen: "promotion",
     permModule: "students",
     color: "bg-emerald-500 hover:bg-emerald-600",
-    category: "Operations",
-  },
-  {
-    label: "Bulk Promote",
-    icon: <Zap className="size-5" />,
-    screen: "bulk-promote",
-    permModule: "students",
-    color: "bg-yellow-500 hover:bg-yellow-600",
     category: "Operations",
   },
   {
@@ -225,16 +216,6 @@ export const allQuickActions: QuickActionItem[] = [
     screen: "staff-leaves",
     permModule: "attendance",
     color: "bg-slate-500 hover:bg-slate-600",
-    category: "Operations",
-  },
-
-  // --- Certificates ---
-  {
-    label: "Certificates",
-    icon: <Award className="size-5" />,
-    screen: "certificates",
-    permModule: "students",
-    color: "bg-teal-600 hover:bg-teal-700",
     category: "Operations",
   },
 

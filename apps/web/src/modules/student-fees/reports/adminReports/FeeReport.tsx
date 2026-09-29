@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/api";
 import { useAppStore } from "@/store/use-app-store";
+import { academicYearUrl } from "@/lib/routing/academic-year-url";
+import { qualifyAdminTail } from "@/components/layout/sidebar/screen-owners";
+import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,7 +44,18 @@ const OVERDUE_PAGE_SIZE = 10;
 
 export function FeeReport() {
   const router = useRouter();
-  const { currentTenantSlug } = useAppStore();
+  const { currentUser, currentTenantSlug } = useAppStore();
+  const { yearSlug, routeModule } = useActiveAcademicYear();
+  // An overdue row opens the student's profile on the Students screen. The link is built
+  // with the session in it, the way that screen builds its own, so it resolves in one
+  // hop instead of landing on a year-less URL that has to be redirected.
+  const studentProfileUrl = (ref: string) => {
+    const slug =
+      currentTenantSlug || currentUser?.tenantSlug || currentUser?.tenantId || "";
+    const tail = `list/${encodeURIComponent(ref)}`;
+    const isAdmin = currentUser?.role === "admin" || currentUser?.role === "super_admin";
+    return academicYearUrl(slug, yearSlug, isAdmin ? qualifyAdminTail(tail, routeModule) : tail);
+  };
   const [recharts, setRecharts] = useState<typeof import("recharts") | null>(null);
   const [summary, setSummary] = useState<FeeSummary>({ totalFees: 0, collected: 0, pending: 0 });
   const [recordCount, setRecordCount] = useState(0);
@@ -337,11 +351,7 @@ export function FeeReport() {
                             size="icon"
                             className="size-8 p-0"
                             aria-label={`View ${f.studentName}'s profile`}
-                            onClick={() =>
-                              router.push(
-                                `/${currentTenantSlug}/students?student=${encodeURIComponent(f.studentId)}`
-                              )
-                            }
+                            onClick={() => router.push(studentProfileUrl(f.studentId))}
                           >
                             <Eye className="size-4 opacity-50" />
                           </Button>

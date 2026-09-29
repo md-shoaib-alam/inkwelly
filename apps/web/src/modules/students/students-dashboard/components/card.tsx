@@ -49,8 +49,14 @@ export function Card({
 }) {
   return (
     <section
+      style={{
+        borderRadius: "20px",
+        background: "var(--c-surface)",
+        border: "1px solid var(--c-border)",
+        boxShadow: "var(--c-shadow)",
+      }}
       className={
-        "rounded-2xl border border-slate-200/70 dark:border-zinc-800 bg-white dark:bg-[#0D1526] shadow-2xs " +
+        "h-full flex flex-col " +
         className
       }
     >

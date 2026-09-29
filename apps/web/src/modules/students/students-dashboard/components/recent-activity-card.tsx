@@ -55,7 +55,7 @@ export function RecentActivityCard({
             <li key={a.id}>
               <button
                 type="button"
-                onClick={() => router.push(tenantHref(`list?student=${a.id}`))}
+                onClick={() => router.push(tenantHref(`list/${encodeURIComponent(a.id)}`))}
                 className="w-full text-left flex items-center gap-2.5 rounded-lg px-1 py-2 hover:bg-slate-50 dark:hover:bg-zinc-900/50 transition-colors"
               >
                 <span className="size-1.5 shrink-0 rounded-full bg-blue-500" />

@@ -13,7 +13,7 @@ import type { StudentsStats } from "../../hooks/use-students-command-center";
  * expressed against the roll, so it needs no second query to be true.
  */
 function Tile({
-  icon,
+  icon: Icon,
   tint,
   label,
   value,
@@ -30,13 +30,26 @@ function Tile({
   return (
     <div
       title={title}
-      className="flex items-center gap-3.5 rounded-2xl border border-slate-200/70 dark:border-zinc-800 bg-white dark:bg-[#0D1526] shadow-2xs px-5 py-4"
+      style={{
+        borderRadius: "20px",
+        padding: "12px 14px",
+        background: "var(--c-surface)",
+        border: "1px solid var(--c-border)",
+        boxShadow: "var(--c-shadow)",
+      }}
+      className="flex items-center gap-3 min-w-0"
     >
-      <IconTile icon={icon} tint={tint} />
-      <div className="min-w-0">
-        <p className="truncate text-[13px] text-slate-500 dark:text-zinc-400">{label}</p>
-        <div className="mt-0.5 flex items-center gap-2">
-          <span className="text-[24px] leading-7 font-semibold tracking-tight tabular-nums text-slate-900 dark:text-zinc-50">
+      <span
+        className={`size-10 shrink-0 grid place-items-center rounded-2xl ${tint}`}
+      >
+        <Icon className="size-5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[12px] font-medium text-slate-500 dark:text-zinc-400 leading-none">
+          {label}
+        </p>
+        <div className="mt-1 flex items-center gap-1.5">
+          <span className="text-[20px] font-bold tracking-tight tabular-nums text-slate-900 dark:text-zinc-50 leading-tight">
             {value}
           </span>
           {trailing}
@@ -59,12 +72,19 @@ export function StatTiles({
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
-            className="flex items-center gap-3.5 rounded-2xl border border-slate-200/70 dark:border-zinc-800 bg-white dark:bg-[#0D1526] px-5 py-4"
+            style={{
+              borderRadius: "20px",
+              padding: "12px 14px",
+              background: "var(--c-surface)",
+              border: "1px solid var(--c-border)",
+              boxShadow: "var(--c-shadow)",
+            }}
+            className="flex items-center gap-3 min-w-0"
           >
-            <Skeleton className="size-10 rounded-xl shrink-0" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-3 w-24 rounded-md" />
-              <Skeleton className="h-6 w-14 rounded-md" />
+            <Skeleton className="size-10 rounded-2xl shrink-0" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-3 w-20 rounded-md" />
+              <Skeleton className="h-5 w-12 rounded-md" />
             </div>
           </div>
         ))}

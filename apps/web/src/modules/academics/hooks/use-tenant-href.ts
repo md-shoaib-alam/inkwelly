@@ -8,7 +8,7 @@ import { qualifyAdminTail } from '@/components/layout/sidebar/screen-owners';
 
 /**
  * Turns a screen tail (`'manage-plan'`, `'academics/classes'`,
- * `'students?student=S-1'`) into an absolute tenant URL that carries the year,
+ * `'students/list/STU2026120'`) into an absolute tenant URL that carries the year,
  * and for an admin also the module (`'timetable'` becomes
  * `'academics/timetable'`). One adapter so the hand-written `push()` sites can
  * each change to a single call and never re-derive slug, year or module

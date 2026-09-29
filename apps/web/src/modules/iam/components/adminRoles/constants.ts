@@ -12,7 +12,6 @@ import {
   Award,
   FileSpreadsheet,
   TrendingUp,
-  FileCheck,
   Bell,
   Clock,
   Calendar,
@@ -109,13 +108,6 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     icon: React.createElement(TrendingUp, { className: "size-4" }),
   },
   {
-    key: "certificates",
-    label: "Certificates",
-    desc: "Transfer certificates, bonafide & merit documents",
-    iconBg: "bg-yellow-50 text-yellow-600 dark:bg-yellow-950/50 dark:text-yellow-400 border border-yellow-100 dark:border-yellow-900/40",
-    icon: React.createElement(FileCheck, { className: "size-4" }),
-  },
-  {
     key: "notices",
     label: "Notices",
     desc: "School announcements, circulars & notifications",
@@ -207,7 +199,6 @@ export const ROLE_TEMPLATES: RoleTemplate[] = [
       subjects: ["view", "create", "edit", "delete"],
       exams: ["view", "create", "edit", "delete"],
       grades: ["view", "create", "edit", "delete"],
-      certificates: ["view", "create", "edit", "delete"],
       timetable: ["view", "create", "edit", "delete"],
       promotions: ["view", "create", "edit", "delete"],
       notices: ["view", "create", "edit", "delete"],
@@ -245,7 +236,6 @@ export const ROLE_TEMPLATES: RoleTemplate[] = [
     permissions: {
       exams: ["view", "create", "edit", "delete"],
       grades: ["view", "create", "edit", "delete"],
-      certificates: ["view", "create", "edit", "delete"],
       "academic-years": ["view"],
       reports: ["view", "create"],
       students: ["view"],

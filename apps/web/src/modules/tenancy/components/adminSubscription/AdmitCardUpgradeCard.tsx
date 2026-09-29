@@ -84,7 +84,7 @@ export function AdmitCardUpgradeCard({
           </p>
 
           <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed max-w-md">
-            Unlock professional hall ticket templates, multi-student batch card printing, custom certificate generators, and advanced academic tools.
+            Unlock professional hall ticket templates, multi-student batch card printing, custom document generators, and advanced academic tools.
           </p>
 
           {/* 6 Feature Grid */}

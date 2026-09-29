@@ -38,6 +38,13 @@ function AdminBulkUpdateContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_PAGE_SIZE);
 
+  // Arriving from one class page carries that class in the URL, so the list opens
+  // already filtered to it.
+  useEffect(() => {
+    const classId = new URLSearchParams(window.location.search).get("classId");
+    if (classId) setClassFilter(classId);
+  }, []);
+
   const [students, setStudents] = useState<BulkStudent[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [isLoading, setIsLoading] = useState(true);

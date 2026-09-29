@@ -9,7 +9,7 @@ export type PermissionAction = 'view' | 'create' | 'edit' | 'delete';
 
 /** Mirrors PERMISSION_MODULES in school-web/.../admin/roles/constants.ts */
 export type PermissionModule =
-  | 'academic-years' | 'attendance' | 'calendar' | 'certificates' | 'classes'
+  | 'academic-years' | 'attendance' | 'calendar' | 'classes'
   | 'exams' | 'expenses' | 'fees' | 'grades' | 'leaves' | 'notices' | 'parents'
   | 'promotions' | 'reports' | 'staff' | 'students' | 'subjects' | 'teachers'
   | 'tickets' | 'timetable';
@@ -70,7 +70,7 @@ function parsePermissionMap<T extends string>(blob: string | null | undefined, k
 }
 
 const SCHOOL_MODULE_LIST = [
-  'academic-years', 'attendance', 'calendar', 'certificates', 'classes', 'exams',
+  'academic-years', 'attendance', 'calendar', 'classes', 'exams',
   'expenses', 'fees', 'grades', 'leaves', 'notices', 'parents', 'promotions',
   'reports', 'staff', 'students', 'subjects', 'teachers', 'tickets', 'timetable',
 ] as const satisfies readonly PermissionModule[];

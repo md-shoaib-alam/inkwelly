@@ -58,10 +58,8 @@ const AdminRoleAssignments = dynamic(() => import('@/modules/iam/role-assignment
 const AdminStaff = dynamic(() => import('@/modules/employees/staff').then(m => m.AdminStaff), { loading: LoadingScreen });
 const AdminTickets = dynamic(() => import('@/modules/support/components/AdminTickets').then(m => m.AdminTickets), { loading: LoadingScreen });
 const AdminSchoolSettings = dynamic(() => import('@/modules/academics/school-settings').then(m => m.AdminSchoolSettings), { loading: LoadingScreen });
-const AdminPromotions = dynamic(() => import('@/modules/students/promotions').then(m => m.AdminPromotions), { loading: LoadingScreen });
-const StudentsBulkPromote = dynamic(() => import('@/modules/students/bulk-promote').then(m => m.StudentsBulkPromote), { loading: LoadingScreen });
+const StudentsPromotions = dynamic(() => import('@/modules/students/promotion').then(m => m.StudentsPromotions), { loading: LoadingScreen });
 const StudentsGraduated = dynamic(() => import('@/modules/students/graduated').then(m => m.StudentsGraduated), { loading: LoadingScreen });
-const AdminCertificates = dynamic(() => import('@/modules/students/certificates').then(m => m.AdminCertificates), { loading: LoadingScreen });
 const ClassRoster = dynamic(() => import('@/modules/students/classes').then(m => m.ClassRoster), { loading: LoadingScreen });
 const AdminLeaves = dynamic(() => import('@/modules/leaves/student-leaves').then(m => m.AdminLeaves), { loading: LoadingScreen });
 const StaffAttendance = dynamic(() => import('@/modules/employee-attendance/teacher-attendance').then(m => m.StaffAttendance), { loading: LoadingScreen });
@@ -80,6 +78,7 @@ const AdminClassChange = dynamic(() => import('@/modules/students/class-change')
 const AdminStudentTrash = dynamic(() => import('@/modules/students/student-trash').then(m => m.AdminStudentTrash), { loading: LoadingScreen });
 const AdminAdmissions = dynamic(() => import('@/modules/students/admissions').then(m => m.AdminAdmissions), { loading: LoadingScreen });
 const AdminBulkUpdate = dynamic(() => import('@/modules/students/bulk-update').then(m => m.AdminBulkUpdate), { loading: LoadingScreen });
+const AdminStudentsSettings = dynamic(() => import('@/modules/students/settings').then(m => m.AdminStudentsSettings), { loading: LoadingScreen });
 const ExpensesScreen = dynamic(() => import('@/modules/money-book/expenses').then(m => m.ExpensesScreen), { loading: LoadingScreen });
 const AdminSubscription = dynamic(() => import('@/modules/tenancy/components/AdminSubscription').then(m => m.SchoolSubscriptionScreen), { loading: LoadingScreen });
 const ManagePlanScreen = dynamic(() => import('@/modules/tenancy/components/AdminManagePlan').then(m => m.ManagePlanScreen), { loading: LoadingScreen });
@@ -174,6 +173,10 @@ const STAFF_FORBIDDEN_SCREENS = new Set([
   'iam-dashboard',
   'permissions-catalog',
   'school-settings',
+  // The Students panel's Settings row edits how IDs are minted for the whole school.
+  // It is unmapped in the staff nav, and an unmapped key passes the guard below, so
+  // it has to be named here rather than left to the derived map.
+  'settings',
   'academics-dashboard',
   'students-dashboard',
   'ai-connect',
@@ -373,6 +376,10 @@ export default function TenantScreenDispatcherClient() {
       case 'student-trash': return <AdminStudentTrash />;
       case 'admissions': return <AdminAdmissions />;
       case 'bulk-update': return <AdminBulkUpdate />;
+      // The Students panel's own Settings row. `settings` is also the super-admin
+      // platform screen, but that lives at `/slug/settings` in the one-segment
+      // dispatcher, so the two spellings never reach the same switch.
+      case 'settings': return <AdminStudentsSettings />;
       case 'teachers': return <AdminTeachers />;
       case 'parents': return <AdminParents />;
       case 'classes': return <AdminClasses />;
@@ -411,10 +418,8 @@ export default function TenantScreenDispatcherClient() {
       case 'tickets': return <AdminTickets />;
       case 'school-subscription': return <AdminSubscription />;
       case 'manage-plan': return <ManagePlanScreen />;
-      case 'promotions': return <AdminPromotions key="individual-prom" initialTab="individual" />;
-      case 'bulk-promote': return <StudentsBulkPromote key="bulk-prom" />;
+      case 'promotion': return <StudentsPromotions key="promotion" />;
       case 'graduated': return <StudentsGraduated key="graduated-prom" />;
-      case 'certificates': return <AdminCertificates />;
       case 'leaves': return <LeavesTeacherLeaves key="teacher-leaves-main" />;
       case 'student-leaves': return <AdminLeaves key="student-leaves" initialTab="student" />;
       case 'teacher-leaves': return <LeavesTeacherLeaves key="teacher-leaves" />;

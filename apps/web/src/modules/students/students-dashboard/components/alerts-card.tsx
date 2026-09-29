@@ -99,9 +99,9 @@ export function AlertsCard({
           return (
             <div
               key={a.code}
-              className="flex items-center gap-3 rounded-xl bg-slate-50/80 dark:bg-zinc-900/40 px-3 py-2.5"
+              className="flex items-center gap-3 rounded-2xl bg-slate-50/80 dark:bg-zinc-900/40 px-3.5 py-2.5"
             >
-              <span className={`size-9 shrink-0 grid place-items-center rounded-lg ${style?.icon ?? ""}`}>
+              <span className={`size-9 shrink-0 grid place-items-center rounded-xl ${style?.icon ?? ""}`}>
                 <Icon className="size-4" />
               </span>
               <button
@@ -120,7 +120,7 @@ export function AlertsCard({
               <button
                 type="button"
                 onClick={() => router.push(target)}
-                className="shrink-0 inline-flex items-center gap-0.5 rounded-lg bg-white dark:bg-zinc-800 px-2.5 py-1.5 text-[12px] font-semibold text-slate-600 dark:text-zinc-300 shadow-2xs ring-1 ring-slate-200/80 dark:ring-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors"
+                className="shrink-0 inline-flex items-center gap-0.5 rounded-xl bg-white dark:bg-zinc-800 px-2.5 py-1.5 text-[12px] font-semibold text-slate-600 dark:text-zinc-300 shadow-2xs ring-1 ring-slate-200/80 dark:ring-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors"
               >
                 View
                 <ChevronRight className="size-3.5" />

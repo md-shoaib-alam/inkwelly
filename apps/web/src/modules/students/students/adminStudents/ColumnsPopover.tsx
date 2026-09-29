@@ -15,7 +15,6 @@ interface ColumnsPopoverProps {
 export function ColumnsPopover({ visible, onChange }: ColumnsPopoverProps) {
   const toggleable = ROSTER_COLUMNS.filter((c) => !c.alwaysOn).map((c) => c.key);
   const allOn = toggleable.every((k) => visible.has(k));
-  const someOn = toggleable.some((k) => visible.has(k));
 
   const toggle = (key: string) => {
     const next = new Set(visible);
@@ -39,10 +38,10 @@ export function ColumnsPopover({ visible, onChange }: ColumnsPopoverProps) {
         <Button
           type="button"
           variant="outline"
-          className="h-10 rounded-xl border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-[13px] font-medium shadow-2xs"
+          className="h-9 px-3 rounded-md border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-200 text-[12.5px] font-medium inline-flex items-center gap-1.5 shadow-2xs hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
         >
-          <Columns3 className="size-4 mr-2 text-slate-500" />
-          Columns
+          <Columns3 className="size-3.5 text-slate-500 dark:text-zinc-400" />
+          <span>Columns</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[300px] p-0 rounded-xl">
@@ -51,10 +50,11 @@ export function ColumnsPopover({ visible, onChange }: ColumnsPopoverProps) {
           <div className="text-xs text-slate-400 dark:text-zinc-500 mt-0.5">Show or hide table columns</div>
         </div>
         <div className="border-t border-slate-100 dark:border-zinc-800" />
-        <ScrollArea className="max-h-[420px] px-2 py-2">
+        {/* Radix needs a definite height: a max-h here left the viewport unscrollable. */}
+        <ScrollArea className="h-[420px] px-2 py-2">
           <label className="flex items-center gap-2.5 rounded-md px-2 py-2 mb-1 cursor-pointer text-[13px] font-medium text-slate-800 dark:text-zinc-100 hover:bg-slate-50 dark:hover:bg-zinc-800/60">
             <Checkbox
-              checked={allOn ? true : someOn ? "indeterminate" : false}
+              checked={allOn}
               onCheckedChange={toggleAll}
               className="size-[15px]"
             />

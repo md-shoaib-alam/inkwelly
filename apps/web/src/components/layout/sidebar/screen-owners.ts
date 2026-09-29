@@ -11,7 +11,7 @@
  * both files there import nothing from the app on purpose, and this map is built
  * from app data.
  *
- * NOT a role-blind helper. `timetable`, `calendar` and `certificates` are also bare
+ * NOT a role-blind helper. `timetable` and `calendar` are also bare
  * keys in the teacher, student and parent dispatcher blocks, and staff keeps the
  * legacy accordion with bare keys, so only the admin and super_admin branches may
  * consult what this file returns — a teacher at `/slug/timetable` must stay on

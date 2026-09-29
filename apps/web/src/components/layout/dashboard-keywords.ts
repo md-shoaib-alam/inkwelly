@@ -26,17 +26,13 @@ export const actionKeywords: Record<string, string[]> = {
   "print-marksheet": ["report card print", "grade sheet", "marksheet print"],
 
   // --- Promotions Group ---
-  "promotions": ["class upgrade", "pass student", "promote"],
-  "bulk-promote": ["mass promotion", "bulk class upgrade", "promote all"],
+  "promotion": ["class upgrade", "pass student", "promote"],
   "graduated": ["alumni", "passout"],
 
   // --- Leave Management ---
   "student-leaves": ["leave request", "sick leave", "holiday application", "time off"],
   "teacher-leaves": ["staff leave", "time off", "vacation request"],
   "staff-leaves": ["employee leave", "time off", "vacation application"],
-
-  // --- Certificates ---
-  "certificates": ["tc", "transfer certificate", "bonafide", "diploma"],
 
   // --- Fees Group ---
   "fees": ["fee setup", "fee structure", "pricing", "fees cost"],

@@ -269,6 +269,7 @@ export const StudentService = {
             userId: s.userId,
             name: s.user?.name || 'Unknown',
             rollNumber: s.rollNumber || '',
+            admissionNo: s.admissionNo || '',
             className: s.class ? `${s.class.name}-${s.class.section}` : '',
             classId: s.classId,
             parentId: s.parentId,

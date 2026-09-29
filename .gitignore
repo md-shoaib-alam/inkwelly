@@ -30,6 +30,7 @@ web-build/
 # local tool state and local-only backups
 .qoder/
 locks-premonorepo/
+.backup/
 
 # os / logs
 .DS_Store
@@ -37,3 +38,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 bun-debug.log*
+
+# fodlers
+scratch/

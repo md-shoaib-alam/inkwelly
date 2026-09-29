@@ -7,7 +7,7 @@ import { academicYearUrl } from '@/lib/routing/academic-year-url';
 import { qualifyAdminTail } from '@/components/layout/sidebar/screen-owners';
 
 /**
- * Turns a screen tail (`'classes'`, `'students?student=S-1'`) into an absolute tenant
+ * Turns a screen tail (`'classes'`, `'students/list/1A001'`) into an absolute tenant
  * URL that carries the year, and for an admin the module too.
  *
  * This is the Students copy. The Academics screen of the same name builds links to

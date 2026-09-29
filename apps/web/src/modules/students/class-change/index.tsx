@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
@@ -53,6 +53,13 @@ function AdminClassChangeContent() {
   const [statusFilter, setStatusFilter] = useState("active");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_PAGE_SIZE);
+
+  // Arriving from one class page carries that class in the URL, so the list opens
+  // already filtered to it.
+  useEffect(() => {
+    const classId = new URLSearchParams(window.location.search).get("classId");
+    if (classId) setClassFilter(classId);
+  }, []);
 
   // Keyed by student id and held as the full row, so a selection survives a page
   // turn or a filter change and the dialog can still name everyone in it.
@@ -172,11 +179,11 @@ function AdminClassChangeContent() {
           Class change
         </h1>
         <p className="mt-1 text-[12px] sm:text-[13px] text-slate-500 dark:text-zinc-400">
-          {totalItems} students · move between classes within this school
+          {totalItems} students · move between classes within this session
         </p>
       </div>
 
-      <div className="flex flex-col xl:flex-row gap-3 xl:items-center">
+      <div className="flex flex-wrap items-center gap-2.5">
         <SearchInput
           id="search_class_change"
           value={search}
@@ -184,10 +191,10 @@ function AdminClassChangeContent() {
             setSearch(val);
             resetPage();
           }}
-          placeholder="Search by name..."
+          placeholder="Search students..."
           delay={400}
-          className="flex-1 max-w-sm"
-          inputClassName="h-9 sm:h-10"
+          className="w-full max-w-[280px]"
+          inputClassName="rounded-xl bg-white dark:bg-zinc-900 border-slate-200/80 dark:border-zinc-800 h-10 text-sm placeholder:text-slate-400 pl-9 shadow-2xs"
         />
         <ClassSelect
           value={classFilter}
@@ -196,43 +203,41 @@ function AdminClassChangeContent() {
             resetPage();
           }}
           showAllOption
-          className="w-full sm:w-44 h-9 sm:h-10"
+          className="w-[150px] h-10 rounded-xl bg-white dark:bg-zinc-900 border-slate-200/80 dark:border-zinc-800 shadow-2xs text-xs sm:text-sm text-slate-700 dark:text-zinc-200"
           placeholder="All classes"
         />
-        <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-3">
-          <Select
-            value={genderFilter}
-            onValueChange={(v) => {
-              setGenderFilter(v);
-              resetPage();
-            }}
-          >
-            <SelectTrigger className="w-full sm:w-36 h-9 sm:h-10">
-              <SelectValue placeholder="All genders" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Genders</SelectItem>
-              <SelectItem value="male">Male</SelectItem>
-              <SelectItem value="female">Female</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
-            value={statusFilter}
-            onValueChange={(v) => {
-              setStatusFilter(v);
-              resetPage();
-            }}
-          >
-            <SelectTrigger className="w-full sm:w-36 h-9 sm:h-10">
-              <SelectValue placeholder="All statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Select
+          value={genderFilter}
+          onValueChange={(v) => {
+            setGenderFilter(v);
+            resetPage();
+          }}
+        >
+          <SelectTrigger className="w-[140px] h-10 rounded-xl bg-white dark:bg-zinc-900 border-slate-200/80 dark:border-zinc-800 shadow-2xs text-xs sm:text-sm text-slate-700 dark:text-zinc-200">
+            <SelectValue placeholder="All genders" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All genders</SelectItem>
+            <SelectItem value="male">Male</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={statusFilter}
+          onValueChange={(v) => {
+            setStatusFilter(v);
+            resetPage();
+          }}
+        >
+          <SelectTrigger className="w-[140px] h-10 rounded-xl bg-white dark:bg-zinc-900 border-slate-200/80 dark:border-zinc-800 shadow-2xs text-xs sm:text-sm text-slate-700 dark:text-zinc-200">
+            <SelectValue placeholder="All statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {!canEdit && (
@@ -268,35 +273,33 @@ function AdminClassChangeContent() {
         </div>
       )}
 
-      <Card className="border-none shadow-sm overflow-hidden">
-        <CardContent className="p-0">
-          {isLoading ? (
-            <StudentSkeleton />
-          ) : (
-            <>
-              <ClassChangeTable
-                students={students}
-                isSelected={(id) => selected.has(id)}
-                onToggle={toggleStudent}
-                onToggleAll={toggleAllOnPage}
-                onChange={openForOne}
-                canChange={canEdit}
-              />
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={totalItems}
-                itemsPerPage={itemsPerPage}
-                onPageChange={setCurrentPage}
-                onLimitChange={(limit) => {
-                  setItemsPerPage(limit);
-                  resetPage();
-                }}
-              />
-            </>
-          )}
-        </CardContent>
-      </Card>
+      <div className="rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xs overflow-hidden">
+        {isLoading ? (
+          <StudentSkeleton />
+        ) : (
+          <>
+            <ClassChangeTable
+              students={students}
+              isSelected={(id) => selected.has(id)}
+              onToggle={toggleStudent}
+              onToggleAll={toggleAllOnPage}
+              onChange={openForOne}
+              canChange={canEdit}
+            />
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onLimitChange={(limit) => {
+                setItemsPerPage(limit);
+                resetPage();
+              }}
+            />
+          </>
+        )}
+      </div>
 
       <ChangeClassDialog
         open={dialogOpen}

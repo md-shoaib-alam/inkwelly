@@ -23,8 +23,16 @@ export function CategoryCard({ reasons }: { reasons: Record<string, string> }) {
       subtitle="Reservation mix"
       icon={Layers}
       tint="bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
+      bodyClassName="px-5 pb-5 flex-1 flex flex-col justify-center items-center py-6"
     >
-      <SoonNote reason={reasonFor(reasons, "category")} />
+      <div className="flex flex-col items-center justify-center text-center">
+        <span className="size-10 rounded-full grid place-items-center bg-slate-100 dark:bg-zinc-800 text-slate-400 mb-2">
+          <Layers className="size-4" />
+        </span>
+        <p className="text-[13px] font-semibold text-slate-800 dark:text-zinc-200">
+          No category data yet.
+        </p>
+      </div>
     </Card>
   );
 }

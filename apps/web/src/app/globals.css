@@ -66,7 +66,7 @@
      pill that always holds white content does not. */
   --brand: #155DFC;
   --brand-solid: #155DFC;
-  --background: #F8F8F6;
+  --background: #F8FAFC;
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -89,7 +89,7 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: #F8F8F6;
+  --sidebar: #F8FAFC;
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -97,6 +97,11 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: #DFDDD5;
   --sidebar-ring: oklch(0.708 0 0);
+  --c-border: #e2e8f0;
+  --c-surface: #ffffff;
+  --c-text2: #0f172a;
+  --c-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --c-pink: #ec4899;
 }
 
 .dark {
@@ -133,6 +138,33 @@
   --sidebar-ring: oklch(0.556 0 0);
   --brand: #60A5FA;
   --brand-solid: #155DFC;
+  --c-border: #27272a;
+  --c-surface: #121212;
+  --c-text2: #f8fafc;
+  --c-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --c-pink: #ec4899;
+}
+
+/* Reference UI pill button */
+.ink-pill-btn {
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  height: 36px;
+  color: var(--c-text2);
+  cursor: pointer;
+  border-radius: 9999px;
+  outline: none;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px 0 12px;
+  font-family: inherit;
+  transition: background-color .15s, color .15s;
+  display: inline-flex;
+}
+
+.ink-pill-btn:hover {
+  background: color-mix(in srgb, var(--c-surface) 90%, var(--c-text2) 10%);
 }
 
 /* Sonner Toast Customizations - Full Soft Pastel Palette */
