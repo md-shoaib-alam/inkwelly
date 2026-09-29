@@ -5,6 +5,7 @@ import { useReactToPrint } from 'react-to-print';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRouter, useParams } from 'next/navigation';
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { useAppStore } from "@/store/use-app-store";
 import { useTenantMetadata } from "@/lib/graphql/hooks/platform.hooks";
 import { FullPageSkeleton } from "@/components/ui/full-page-skeleton";
@@ -195,6 +196,7 @@ function getAvailableCycles(exams: any[], todayDateString: string) {
 
 export function AdminAdmitCards() {
   const { push } = useRouter();
+  const tenantHref = useTenantHref();
   const { slug } = useParams();
   const { currentTenantId } = useAppStore();
   const { data: detailData, isLoading: isDetailLoading } = useTenantMetadata(currentTenantId || "");
@@ -465,8 +467,8 @@ export function AdminAdmitCards() {
       <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center py-4 sm:py-8 w-full animate-in fade-in duration-300">
         <AdmitCardUpgradeCard
           className="w-full"
-          onUpgrade={() => push(`/${slug}/manage-plan`)}
-          onViewPlan={() => push(`/${slug}/manage-plan`)}
+          onUpgrade={() => push(tenantHref("manage-plan"))}
+          onViewPlan={() => push(tenantHref("manage-plan"))}
         />
       </div>
     );

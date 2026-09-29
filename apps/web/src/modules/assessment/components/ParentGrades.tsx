@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { apiFetch } from "@/lib/api";
 import { useAppStore } from "@/store/use-app-store";
 import { useParentDashboard } from "@/lib/graphql/hooks";
@@ -42,6 +43,7 @@ export function ParentGrades({ initialTab = "exams" }: { initialTab?: "exams" | 
   const { currentUser } = useAppStore();
   const params = useParams();
   const { push } = useRouter();
+  const tenantHref = useTenantHref();
   const slug = typeof params?.slug === 'string' ? params.slug : '';
   const topLevelTab = initialTab;
   const [grades, setGrades] = useState<GradeRecord[]>([]);
@@ -76,7 +78,7 @@ export function ParentGrades({ initialTab = "exams" }: { initialTab?: "exams" | 
 
   const handleViewMarksheet = () => {
     if (activeTab && slug) {
-      push(`/${slug}/view-marksheet?studentId=${activeTab}`);
+      push(tenantHref(`view-marksheet?studentId=${activeTab}`));
     }
   };
 

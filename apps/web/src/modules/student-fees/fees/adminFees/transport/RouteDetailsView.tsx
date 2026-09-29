@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,7 @@ interface RouteDetailsViewProps {
 
 export function RouteDetailsView({ route, assignments, onEditRoute }: RouteDetailsViewProps) {
   const router = useRouter();
+  const tenantHref = useTenantHref();
   const { slug } = useParams();
   const queryClient = useQueryClient();
 
@@ -86,7 +88,7 @@ export function RouteDetailsView({ route, assignments, onEditRoute }: RouteDetai
         <Button
           variant="outline"
           size="icon"
-          onClick={() => router.push(`/${slug}/transport-fee`)}
+          onClick={() => router.push(tenantHref("transport-fee"))}
           className="size-9 rounded-full border-zinc-200 dark:border-zinc-800"
         >
           <ArrowLeft className="size-4" />

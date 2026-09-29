@@ -3,6 +3,7 @@
 import React from "react";
 import { Crown, AlertCircle, Lock, CreditCard, Mail, ShieldAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 
 interface SubscriptionExpiredProps {
   tenantName: string;
@@ -14,6 +15,7 @@ interface SubscriptionExpiredProps {
 
 export function SubscriptionExpiredScreen({ tenantName, tenantSlug, role, endDate, status }: SubscriptionExpiredProps) {
   const { push } = useRouter();
+  const tenantHref = useTenantHref();
   const isAdmin = role === "admin";
   const isSuspended = status === "suspended";
 
@@ -91,7 +93,7 @@ export function SubscriptionExpiredScreen({ tenantName, tenantSlug, role, endDat
             ) : isAdmin ? (
               <button 
                 type="button"
-                onClick={() => push(`/${tenantSlug}/school-subscription`)}
+                onClick={() => push(tenantHref("school-subscription"))}
                 className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold py-3 px-4 rounded-xl shadow-md group transition-colors"
               >
                 <CreditCard className="size-5" />

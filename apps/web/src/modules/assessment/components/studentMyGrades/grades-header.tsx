@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select";
 import { FileText } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 
 interface GradesHeaderProps {
   topLevelTab: "exams" | "assessments";
@@ -24,6 +25,7 @@ export function GradesHeader({
 }: GradesHeaderProps) {
   const params = useParams();
   const { push } = useRouter();
+  const tenantHref = useTenantHref();
   const slug = typeof params?.slug === "string" ? params.slug : "";
 
   return (
@@ -40,7 +42,7 @@ export function GradesHeader({
             size="sm"
             variant="outline"
             className="h-8 gap-1.5 text-xs font-semibold border-violet-200 text-violet-700 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-400 dark:hover:bg-violet-950/30 shadow-sm"
-            onClick={() => push(`/${slug}/view-marksheet`)}
+            onClick={() => push(tenantHref("view-marksheet"))}
           >
             <FileText className="size-3.5" />
             View Marksheet

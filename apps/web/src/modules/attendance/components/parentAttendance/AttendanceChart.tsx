@@ -3,6 +3,7 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { useState, useEffect } from "react";
 
 interface AttendanceChartProps {
@@ -12,6 +13,7 @@ interface AttendanceChartProps {
 
 export function AttendanceChart({ data, isPremium }: AttendanceChartProps) {
   const { push } = useRouter();
+  const tenantHref = useTenantHref();
   const params = useParams();
   const slug = params?.slug as string;
 
@@ -131,7 +133,7 @@ export function AttendanceChart({ data, isPremium }: AttendanceChartProps) {
               </p>
               <button 
                 type="button"
-                onClick={() => push(`/${slug}/subscription`)}
+                onClick={() => push(tenantHref("subscription"))}
                 className="w-full bg-amber-600 hover:bg-amber-700 text-white text-[10px] sm:text-xs font-bold py-2 sm:py-2.5 px-4 rounded-xl transition-all shadow-md shadow-amber-600/20 active:scale-95 uppercase tracking-wider"
               >
                 Buy Premium

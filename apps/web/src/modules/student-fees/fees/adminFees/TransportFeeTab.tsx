@@ -12,6 +12,7 @@ import { StudentAssignmentsView } from './transport/StudentAssignmentsView';
 import { TransportDialogs } from './transport/TransportDialogs';
 import { RouteDetailsView } from './transport/RouteDetailsView';
 import { useParams } from 'next/navigation';
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { Skeleton } from '@/components/ui/skeleton';
 
 type State = {
@@ -108,6 +109,7 @@ function reducer(state: State, action: Action): State {
 
 export function TransportFeeTab() {
   const { slug, detail } = useParams();
+  const tenantHref = useTenantHref();
   const decodedRouteName = detail ? decodeURIComponent(detail as string) : null;
   const queryClient = useQueryClient();
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
@@ -252,7 +254,7 @@ export function TransportFeeTab() {
               <p className="text-zinc-500 text-sm mt-1">
                 The transport route &ldquo;{decodedRouteName}&rdquo; does not exist or has been deleted.
               </p>
-              <Button className="mt-4" onClick={() => window.location.href = `/${slug}/transport-fee`}>
+              <Button className="mt-4" onClick={() => { window.location.href = tenantHref("transport-fee"); }}>
                 Go Back
               </Button>
             </div>

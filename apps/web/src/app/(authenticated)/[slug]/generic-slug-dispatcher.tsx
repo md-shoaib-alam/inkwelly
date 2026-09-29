@@ -100,8 +100,14 @@ export default function GenericSlugDispatcherClient() {
       }
       // A school with no session belongs on its setup screen; a non-admin lands
       // there too and the tenant dispatcher answers them with the notice, so
-      // this file never has to render one.
-      redirect(gate.kind === 'to-setup' || gate.kind === 'notice' ? `/${slug}/academic-years` : `/${slug}/dashboard`);
+      // this file never has to render one. The setup screen is the one tenant
+      // screen that carries no year, so its literal stays bare.
+      if (gate.kind === 'to-setup' || gate.kind === 'notice') {
+        redirect(`/${slug}/academic-years`);
+      }
+      redirect(
+        canonicalTenantUrl({ slug, segments: ['dashboard'], yearSlug: activeYearSlug, search: '' }),
+      );
     }
   }
 
@@ -143,7 +149,9 @@ export default function GenericSlugDispatcherClient() {
   // they are at an unknown slug. Redirect them home.
   if (mounted && currentUser) {
     const fallback = currentUser.tenantSlug || currentUser.tenantId || "";
-    redirect(fallback ? `/${fallback}/dashboard` : "/dashboard");
+    // The tenant root again, for the same reason as arm 1: this file cannot
+    // know the year of a school it has not resolved.
+    redirect(fallback ? `/${fallback}` : "/dashboard");
   }
 
   return <NotFoundScreen />;

@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { api, apiFetch, fetchAllStudents } from '@/lib/api';
 import { toast } from "sonner";
 import { useAcademicYears } from '@/modules/academics/hooks/use-academic-years';
@@ -15,6 +16,7 @@ import { emptyExamForm } from './utils';
 export function useExamsState(initialTab = 'exams') {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const tenantHref = useTenantHref();
   const { slug } = useParams();
   const searchParams = useSearchParams();
 
@@ -317,7 +319,7 @@ export function useExamsState(initialTab = 'exams') {
     }
     setResultsClassId(exam.classId);
     if (activeTab !== 'results' || searchParams.get('examId') !== exam.id) {
-      router.push(`/${slug}/results-entry?examId=${exam.id}&classId=${exam.classId}`);
+      router.push(tenantHref(`results-entry?examId=${exam.id}&classId=${exam.classId}`));
     }
     setActiveTab('results');
     setLoadingStudents(true);
@@ -482,7 +484,7 @@ export function useExamsState(initialTab = 'exams') {
 
         // Immediately strip examId from URL so query params don't revive it
         if (searchParams.get('examId')) {
-          router.replace(`/${slug}/results-entry${selectedExam.classId ? `?classId=${selectedExam.classId}` : ''}`, { scroll: false });
+          router.replace(tenantHref(`results-entry${selectedExam.classId ? `?classId=${selectedExam.classId}` : ''}`), { scroll: false });
         }
 
         setSelectedExam(null);
@@ -503,7 +505,7 @@ export function useExamsState(initialTab = 'exams') {
   const backToExams = () => { 
     setSelectedExam(null); 
     if (activeTab !== 'exams') {
-      router.push(`/${slug}/exams`);
+      router.push(tenantHref("exams"));
     }
     setActiveTab('exams'); 
   };

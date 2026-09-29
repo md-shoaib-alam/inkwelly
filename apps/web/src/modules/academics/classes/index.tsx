@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { School } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { toast } from "sonner";
 import type { ClassInfo } from "@/lib/types";
 import { useModulePermissions } from "@/modules/access-control/hooks/use-permissions";
@@ -116,6 +117,7 @@ export function AdminClasses() {
   const { canCreate, canEdit, canDelete } = useModulePermissions("classes");
   const queryClient = useQueryClient();
   const { push } = useRouter();
+  const tenantHref = useTenantHref();
   const params = useParams();
   const slug = params.slug as string;
 
@@ -295,7 +297,7 @@ export function AdminClasses() {
     return "[&>div]:bg-emerald-400";
   };
 
-  const handleViewStudents = (cls: ClassInfo) => push(`/${slug}/students?classId=${cls.id}`);
+  const handleViewStudents = (cls: ClassInfo) => push(tenantHref(`students?classId=${cls.id}`));
   const openEditDialog = (cls: ClassInfo) => dispatch({ type: "OPEN_EDIT", payload: cls });
   const openDeleteDialog = (cls: ClassInfo) => dispatch({ type: "OPEN_DELETE", payload: cls });
 

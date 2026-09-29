@@ -9,12 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Crown, ShieldCheck } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
 export function ManagePlanScreen() {
   const { push, back } = useRouter();
+  const tenantHref = useTenantHref();
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const { currentTenantId } = useAppStore();
@@ -58,7 +60,7 @@ export function ManagePlanScreen() {
             
             // Invalidate cache to reflect new limits immediately
             queryClient.invalidateQueries({ queryKey: ["tenant-detail", currentTenantId] });
-            push(`/${slug}/school-subscription`);
+            push(tenantHref("school-subscription"));
           } catch (verifyErr: any) {
             toast.error("Verification Failed", {
               description: "Please contact support if your payment was debited."

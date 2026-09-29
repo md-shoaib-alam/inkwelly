@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { api, apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -25,6 +26,7 @@ const LoadingScreen = () => <FullPageSkeleton />;
 
 export function AdminPrintMarksheetContent() {
   const { push } = useRouter();
+  const tenantHref = useTenantHref();
   const { slug } = useParams();
   const searchParams = useSearchParams();
   const classIdParam = searchParams.get('classId') || '';
@@ -128,8 +130,8 @@ export function AdminPrintMarksheetContent() {
       <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center py-4 sm:py-8 w-full animate-in fade-in duration-300">
         <PremiumUpgradeCard
           className="w-full"
-          onUpgrade={() => push(`/${slug}/manage-plan`)}
-          onViewPlan={() => push(`/${slug}/manage-plan`)}
+          onUpgrade={() => push(tenantHref("manage-plan"))}
+          onViewPlan={() => push(tenantHref("manage-plan"))}
         />
       </div>
     );
@@ -144,7 +146,7 @@ export function AdminPrintMarksheetContent() {
         classSection={activeClass?.section || ''}
         academicYear={publishedAcademicYearFilter || currentAcademicYear}
         examName={examNameParam}
-        onBack={() => push(`/${slug}/print-marksheet`)}
+        onBack={() => push(tenantHref("print-marksheet"))}
       />
     );
   }
@@ -318,7 +320,7 @@ export function AdminPrintMarksheetContent() {
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         if (enableModalMarksheetPreview) {
-                                          push(`/${slug}/print-marksheet?classId=${c.id}&examName=${encodeURIComponent(group.cycleName)}`);
+                                          push(tenantHref(`print-marksheet?classId=${c.id}&examName=${encodeURIComponent(group.cycleName)}`));
                                         } else {
                                           toast.promise(
                                             (async () => {

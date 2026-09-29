@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRouter, useParams } from "next/navigation";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { useState, useRef } from "react";
 import { useReactToPrint } from "react-to-print";
 import {
@@ -43,6 +44,7 @@ const formatDate = (dateStr: string) => {
 
 export function FeeTable({ studentName, fees, onPay, isPremium }: FeeTableProps) {
   const { push } = useRouter();
+  const tenantHref = useTenantHref();
   const params = useParams();
   const slug = params?.slug as string;
 
@@ -56,7 +58,7 @@ export function FeeTable({ studentName, fees, onPay, isPremium }: FeeTableProps)
 
   const onPrintClick = (fee: FeeRecord) => {
     if (!isPremium) {
-      push(`/${slug}/subscription`);
+      push(tenantHref("subscription"));
       return;
     }
     setSelectedFee(fee);

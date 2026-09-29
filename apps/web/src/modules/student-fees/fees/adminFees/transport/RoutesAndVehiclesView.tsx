@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Map, Truck, Bus, Pencil, Eye } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import Link from "next/link";
 import { formatVehicleType } from "./TransportDialogs";
 
@@ -32,6 +33,7 @@ import { formatVehicleType } from "./TransportDialogs";
    onViewStudents,
  }: RoutesAndVehiclesViewProps) {
    const router = useRouter();
+  const tenantHref = useTenantHref();
    const { slug } = useParams();
 
    const getRouteFeeDisplay = (r: any) => {
@@ -86,7 +88,7 @@ import { formatVehicleType } from "./TransportDialogs";
                      <TableRow key={r.id}>
                        <TableCell className="pl-6 py-4 font-semibold text-sm">
                           <Link
-                            href={`/${slug}/transport-fee/${encodeURIComponent(r.name)}`}
+                            href={tenantHref(`transport-fee/${encodeURIComponent(r.name)}`)}
                             className="hover:underline hover:text-emerald-600 dark:hover:text-emerald-400 text-left transition-colors cursor-pointer block w-full"
                           >
                             {r.name}
@@ -109,7 +111,7 @@ import { formatVehicleType } from "./TransportDialogs";
                             variant="ghost"
                             size="icon"
                             className="size-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
-                            onClick={() => router.push(`/${slug}/transport-fee/${encodeURIComponent(r.name)}`)}
+                            onClick={() => router.push(tenantHref(`transport-fee/${encodeURIComponent(r.name)}`))}
                             title="View Route Details"
                           >
                             <Eye className="size-4" />

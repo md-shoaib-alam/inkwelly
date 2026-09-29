@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { toast } from "sonner";
 import { useRouter, useParams } from 'next/navigation';
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { apiFetch } from '@/lib/api';
 import { Pagination } from '@/components/shared/pagination';
 import { useAppStore } from '@/store/use-app-store';
@@ -117,6 +118,7 @@ export function AdminLeaves({ initialTab = 'teacher' }: { initialTab?: string })
 
 function AdminManagerView({ initialTab }: { initialTab: string }) {
   const router = useRouter();
+  const tenantHref = useTenantHref();
   const { slug } = useParams();
   const activeTab = initialTab;
   const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
@@ -554,7 +556,7 @@ function AdminManagerView({ initialTab }: { initialTab: string }) {
             </p>
           </div>
           <Button
-            onClick={() => router.push(`/${slug}/manage-plan`)}
+            onClick={() => router.push(tenantHref("manage-plan"))}
             className="rounded-xl h-9 px-3.5 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white gap-1.5 shadow-xs shadow-amber-600/20 shrink-0"
           >
             <Sparkles className="size-3.5" />

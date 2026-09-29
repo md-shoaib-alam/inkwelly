@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 import { useRouter, useParams } from "next/navigation";
+import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import React from "react";
 import { SchoolPlan } from "@/modules/finance/data/billing-constants";
 
@@ -43,6 +44,7 @@ export function SchoolSubscriptionScreen() {
   const { data: detailData, isLoading } = useTenantMetadata(currentTenantId || "");
 
   const { push } = useRouter();
+  const tenantHref = useTenantHref();
   const { slug } = useParams();
   const [isAutoPay, setIsAutoPay] = useState(true);
 
@@ -151,7 +153,7 @@ export function SchoolSubscriptionScreen() {
           <Button 
             size="sm"
             className="w-full sm:w-auto gap-2 bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-200 dark:shadow-none transition-all hover:scale-105 rounded-xl h-10 px-6"
-            onClick={() => push(`/${slug}/manage-plan`)}
+            onClick={() => push(tenantHref("manage-plan"))}
           >
             <ArrowUpCircle className="size-4" />
             Manage Plan
