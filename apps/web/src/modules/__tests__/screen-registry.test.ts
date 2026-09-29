@@ -19,13 +19,14 @@ function resolvesToAFile(specifier: string): boolean {
 // 69/60 and 25/19 when the profile screen was removed; raised to 62 on 2026-09-29 for the two
 // dispatcher cases 67bc4ab added without a test update; raised to 71 on 2026-09-29 by folder-layout
 // Task 5, which gave bulk-promote and graduated their own entries, and to 74 by Task 7, which gave
-// staff-attendance and the two remaining leave tabs their own. Changing one of these numbers
+// staff-attendance and the two remaining leave tabs their own, and to 75 by Task 8, which gave transport-fee a
+// thin entry over the shared fee screen. Changing one of these numbers
 // must be a deliberate act in a task step, never a side effect of a rewrite.
 const REGISTRIES = [
   {
     name: "tenant-screen-dispatcher",
     path: "src/app/(authenticated)/[slug]/[screen]/tenant-screen-dispatcher.tsx",
-    specifiers: 74,
+    specifiers: 75,
     keys: 62,
   },
   {

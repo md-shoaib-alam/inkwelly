@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2, Coins, Calendar, NotebookPen, CreditCard } from "lucide-react";
-import { useFeeCategories } from "@/modules/finance/hooks/use-fees";
+import { useFeeCategories } from "@/modules/student-fees/fees/hooks/use-fees";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import type { StudentOption } from "../types";

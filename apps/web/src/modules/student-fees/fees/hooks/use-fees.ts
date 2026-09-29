@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import { toast } from "sonner";
-import type { FeeCategory, FeeStructure, FeeConcession, FeeReceipt, FeeItem } from '@/modules/finance/components/adminFees/types';
+import type { FeeCategory, FeeStructure, FeeConcession, FeeReceipt, FeeItem } from '@/modules/student-fees/fees/adminFees/types';
 
 // ── Categories ─────────────────────────────────────────────────────────────
 

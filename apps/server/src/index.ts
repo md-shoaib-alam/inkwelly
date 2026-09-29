@@ -39,7 +39,7 @@ import { classesRoutes } from './modules/academics/classes.routes';
 import { attendanceRoutes } from './modules/student-attendance/attendance.routes';
 import { homeworkRoutes } from './modules/assessment/homework.routes';
 import { gradesRoutes } from './modules/assessment/grades.routes';
-import { feesRoutes } from './modules/finance/fees.routes';
+import { feesRoutes } from './modules/student-fees/fees.routes';
 import { reportsRoutes } from './modules/data-io/reports.routes';
 import { transportRoutes } from './modules/transport/transport.routes';
 import { eventsRoutes } from './modules/communication/events.routes';

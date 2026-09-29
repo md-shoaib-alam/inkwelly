@@ -23,7 +23,7 @@ import { Percent, DollarSign, Plus, ThumbsUp, Ban, Trash2 } from 'lucide-react';
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, fetchAllStudents } from '@/lib/api';
-import { useFeeConcessions, useCreateFeeConcession, useFeeCategories } from '@/modules/finance/hooks/use-fees';
+import { useFeeConcessions, useCreateFeeConcession, useFeeCategories } from '@/modules/student-fees/fees/hooks/use-fees';
 import { concessionStatusConfig } from './config';
 import type { FeeConcession, FeeCategory, StudentOption, ClassOption } from './types';
 

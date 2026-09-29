@@ -23,7 +23,7 @@ import { Search, Plus, Tag, CheckCircle2, Ban, Pencil, Trash2 } from 'lucide-rea
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
-import { useFeeCategories, useCreateFeeCategory } from '@/modules/finance/hooks/use-fees';
+import { useFeeCategories, useCreateFeeCategory } from '@/modules/student-fees/fees/hooks/use-fees';
 import { frequencyConfig } from './config';
 import type { FeeCategory } from './types';
 

@@ -22,7 +22,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { Search, CircleDollarSign, TrendingUp, Percent, DollarSign, Eye, Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { useFeeReceipts } from '@/modules/finance/hooks/use-fees';
+import { useFeeReceipts } from '@/modules/student-fees/fees/hooks/use-fees';
 import { paymentMethodConfig, receiptStatusConfig } from './config';
 import type { FeeReceipt } from './types';
 

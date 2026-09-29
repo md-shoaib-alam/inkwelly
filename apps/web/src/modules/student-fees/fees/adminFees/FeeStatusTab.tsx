@@ -16,7 +16,7 @@ import {
 import { UserCheck, Search, ChevronRight, DollarSign, CheckCircle2, Loader2 } from 'lucide-react';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
-import { useFeeConcessions, useFeeReceipts } from '@/modules/finance/hooks/use-fees';
+import { useFeeConcessions, useFeeReceipts } from '@/modules/student-fees/fees/hooks/use-fees';
 import { feeStatusConfig, receiptStatusConfig, paymentMethodIcons } from './config';
 import type { StudentOption, ClassOption, FeeItem, FeeReceipt, FeeConcession } from './types';
 import { ScrollArea } from "@/components/ui/scroll-area";

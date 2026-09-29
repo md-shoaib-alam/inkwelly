@@ -6,7 +6,7 @@ import { Tag, Layers, CircleDollarSign, Plus } from 'lucide-react';
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
-import { useFeeCategories, useFeeStructures, useCreateFeeStructure, useFeeAssignment } from '@/modules/finance/hooks/use-fees';
+import { useFeeCategories, useFeeStructures, useCreateFeeStructure, useFeeAssignment } from '@/modules/student-fees/fees/hooks/use-fees';
 import { useAcademicYears } from '@/modules/academics/hooks/use-academic-years';
 import { useDebounce } from '@/hooks/use-debounce';
 import type { FeeStructure, FeeCategory, ClassOption } from './types';

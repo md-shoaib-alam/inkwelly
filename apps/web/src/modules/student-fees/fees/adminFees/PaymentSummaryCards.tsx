@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Receipt, Wallet, CreditCard, Coins } from 'lucide-react';
-import { useFeeReceipts } from '@/modules/finance/hooks/use-fees';
+import { useFeeReceipts } from '@/modules/student-fees/fees/hooks/use-fees';
 
 export function PaymentSummaryCards() {
   const thisMonthFromDate = useMemo(() => {

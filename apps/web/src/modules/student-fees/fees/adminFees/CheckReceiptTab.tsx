@@ -22,7 +22,7 @@ import { Search, Receipt, Banknote, Eye, Trash2, Printer, CheckCircle2, Calendar
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
-import { useFeeReceipts } from '@/modules/finance/hooks/use-fees';
+import { useFeeReceipts } from '@/modules/student-fees/fees/hooks/use-fees';
 import { receiptStatusConfig, paymentMethodIcons } from './config';
 import type { FeeReceipt, StudentOption } from './types';
 import { format } from 'date-fns';

@@ -48,3 +48,14 @@ describe("attendance and leaves", () => {
     }
   });
 });
+
+describe("student-fees and transport", () => {
+  test("the fee rows share one folder and reports has its own", () => {
+    expect(rowHasScreen("student-fees", "fees")).toBe(true);
+    expect(rowHasScreen("student-fees", "reports")).toBe(true);
+    expect(rowHasScreen("transport", "transport-fee")).toBe(true);
+  });
+  test("student-fees/classes is NOT created until a case can reach it", () => {
+    expect(rowHasScreen("student-fees", "classes")).toBe(false);
+  });
+});

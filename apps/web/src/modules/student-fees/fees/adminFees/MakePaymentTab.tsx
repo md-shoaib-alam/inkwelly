@@ -6,7 +6,7 @@ import { CreditCard } from 'lucide-react';
 import { toast } from "sonner";
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
-import { useCreateFeeReceipt, useFeeConcessions } from '@/modules/finance/hooks/use-fees';
+import { useCreateFeeReceipt, useFeeConcessions } from '@/modules/student-fees/fees/hooks/use-fees';
 import type { StudentOption, ClassOption, FeeItem } from './types';
 
 // Sub-components

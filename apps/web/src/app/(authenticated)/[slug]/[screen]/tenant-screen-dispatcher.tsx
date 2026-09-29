@@ -27,11 +27,12 @@ const AdminParents = dynamic(() => import('@/modules/employees/parents').then(m 
 const AdminClasses = dynamic(() => import('@/modules/academics/components/AdminClasses').then(m => m.AdminClasses), { loading: LoadingScreen });
 const AdminSubjects = dynamic(() => import('@/modules/academics/components/AdminSubjects').then(m => m.AdminSubjects), { loading: LoadingScreen });
 const AdminAttendance = dynamic(() => import('@/modules/student-attendance/attendance').then(m => m.AdminAttendance), { loading: LoadingScreen });
-const AdminFees = dynamic(() => import('@/modules/finance/components/AdminFees').then(m => m.AdminFees), { loading: LoadingScreen });
+const AdminFees = dynamic(() => import('@/modules/student-fees/fees').then(m => m.AdminFees), { loading: LoadingScreen });
 const AdminNotices = dynamic(() => import('@/modules/communication/components/AdminNotices').then(m => m.AdminNotices), { loading: LoadingScreen });
 const AdminTimetable = dynamic(() => import('@/modules/timetable/components/AdminTimetable').then(m => m.AdminTimetable), { loading: LoadingScreen });
 const AdminCalendar = dynamic(() => import('@/modules/timetable/components/AdminCalendar').then(m => m.AdminCalendar), { loading: LoadingScreen });
-const AdminReports = dynamic(() => import('@/modules/data-io/components/AdminReports').then(m => m.AdminReports), { loading: LoadingScreen });
+const AdminReports = dynamic(() => import('@/modules/student-fees/reports').then(m => m.AdminReports), { loading: LoadingScreen });
+const TransportTransportFee = dynamic(() => import('@/modules/transport/transport-fee').then(m => m.TransportTransportFee), { loading: LoadingScreen });
 const AdminRoles = dynamic(() => import('@/modules/iam/roles').then(m => m.AdminRoles), { loading: LoadingScreen });
 const AdminIamDashboard = dynamic(() => import('@/modules/iam/iam-dashboard').then(m => m.AdminIamDashboard), { loading: LoadingScreen });
 const AdminPermissionsCatalog = dynamic(() => import('@/modules/iam/permissions-catalog').then(m => m.AdminPermissionsCatalog), { loading: LoadingScreen });
@@ -218,8 +219,8 @@ export default function TenantScreenDispatcherClient() {
       case 'check-receipt':
       case 'fee-status':
       case 'check-payments':
-      case 'transport-fee':
         return <AdminFees />;
+      case 'transport-fee': return <TransportTransportFee />;
       case 'notices': return <AdminNotices />;
       case 'timetable': return <AdminTimetable />;
       case 'calendar': return <AdminCalendar />;
