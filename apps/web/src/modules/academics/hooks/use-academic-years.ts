@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { graphqlQuery, graphqlMutate } from '@/lib/graphql/core';
+import { useAppStore } from '@/store/use-app-store';
 
 const GET_ACADEMIC_YEARS = `
   query GetAcademicYears {
@@ -50,31 +51,40 @@ const SET_CURRENT_ACADEMIC_YEAR = `
 
 export function useAcademicYears() {
   const queryClient = useQueryClient();
+  const { currentUser, currentTenantSlug, currentTenantId } = useAppStore();
+  // A super admin moving between schools must not see the previous school's
+  // years while the new query is in flight; the chip would offer the wrong list.
+  const tenantScope =
+    currentTenantSlug || currentTenantId || currentUser?.tenantSlug || currentUser?.tenantId || '';
+  const cacheKey = ['academic-years', tenantScope];
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['academic-years'],
+    queryKey: cacheKey,
     queryFn: () => graphqlQuery<{ academicYears: any[] }>(GET_ACADEMIC_YEARS),
+    // `academicYears` throws 'Tenant context required' for a user with no
+    // school, and the app layout mounts this hook on platform screens too.
+    enabled: tenantScope !== '',
   });
 
   const createMutation = useMutation({
     mutationFn: (input: any) => graphqlMutate(CREATE_ACADEMIC_YEAR, { input }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['academic-years'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: cacheKey }),
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: any }) =>
       graphqlMutate(UPDATE_ACADEMIC_YEAR, { id, input }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['academic-years'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: cacheKey }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => graphqlMutate(DELETE_ACADEMIC_YEAR, { id }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['academic-years'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: cacheKey }),
   });
 
   const setCurrentMutation = useMutation({
     mutationFn: (id: string) => graphqlMutate(SET_CURRENT_ACADEMIC_YEAR, { id }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['academic-years'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: cacheKey }),
   });
 
   return {

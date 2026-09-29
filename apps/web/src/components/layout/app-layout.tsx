@@ -11,6 +11,7 @@ import { Sidebar } from "./sidebar";
 import { ModuleSidebar } from "./sidebar/module-sidebar";
 import { getAdminRail, isAdminModuleScreen } from "./sidebar/module-nav-config";
 import { parseRoute, qualifiedKey } from "@/lib/routing/module-routes";
+import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";
 import { Header } from "./header";
 import { navItems } from "./nav-config";
 import { useIsFetching } from "@tanstack/react-query";
@@ -68,11 +69,13 @@ function tenantRootPredicate(currentUser: any, currentTenantSlug: string | null)
 function resolveScreenFromPathname(
   pathname: string,
   currentUser: any,
-  currentTenantSlug: string | null
+  currentTenantSlug: string | null,
+  yearSlugs: string[] = []
 ): string {
   const { module, screen } = parseRoute(pathname, {
     isModuleScreen: isAdminModuleScreen,
     isTenantRoot: tenantRootPredicate(currentUser, currentTenantSlug),
+    yearSlugs,
   });
   return module ? qualifiedKey(module, screen) : screen;
 }
@@ -324,9 +327,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, [refreshPermissions]);
 
   // Determine current screen from pathname
+  const { yearSlugs } = useActiveAcademicYear();
+
   const resolvedScreen = useMemo(() => {
-    return resolveScreenFromPathname(pathname, currentUser, currentTenantSlug);
-  }, [pathname, currentUser, currentTenantSlug]);
+    return resolveScreenFromPathname(pathname, currentUser, currentTenantSlug, yearSlugs);
+  }, [pathname, currentUser, currentTenantSlug, yearSlugs]);
 
   // Sync store screen with URL resolved screen to prevent navigation locks
   useEffect(() => {
