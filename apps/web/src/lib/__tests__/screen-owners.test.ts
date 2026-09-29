@@ -18,6 +18,7 @@ const EXPECTED = [
   ["graduated", "students"],
   ["promotions", "students"],
   ["school-settings", "academics"],
+  ["students-dashboard", "students"],
   ["timetable", "academics"],
 ];
 

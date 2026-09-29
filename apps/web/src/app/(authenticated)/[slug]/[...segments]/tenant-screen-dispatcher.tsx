@@ -75,6 +75,7 @@ const AdminPrintMarksheet = dynamic(() => import('@/modules/examinations/print-m
 const AdminAdmitCards = dynamic(() => import('@/modules/examinations/admit-cards').then(m => m.AdminAdmitCards), { loading: LoadingScreen });
 const AcademicYearsScreen = dynamic(() => import('@/modules/academics/academic-years').then(m => m.AcademicYearsScreen), { loading: LoadingScreen });
 const AdminAcademicsDashboard = dynamic(() => import('@/modules/academics/academics-dashboard').then(m => m.AdminAcademicsDashboard), { loading: LoadingScreen });
+const AdminStudentsDashboard = dynamic(() => import('@/modules/students/students-dashboard').then(m => m.AdminStudentsDashboard), { loading: LoadingScreen });
 const ExpensesScreen = dynamic(() => import('@/modules/money-book/expenses').then(m => m.ExpensesScreen), { loading: LoadingScreen });
 const AdminSubscription = dynamic(() => import('@/modules/tenancy/components/AdminSubscription').then(m => m.SchoolSubscriptionScreen), { loading: LoadingScreen });
 const ManagePlanScreen = dynamic(() => import('@/modules/tenancy/components/AdminManagePlan').then(m => m.ManagePlanScreen), { loading: LoadingScreen });
@@ -161,6 +162,7 @@ const STAFF_FORBIDDEN_SCREENS = new Set([
   'permissions-catalog',
   'school-settings',
   'academics-dashboard',
+  'students-dashboard',
   'ai-connect',
 ]);
 
@@ -353,6 +355,7 @@ export default function TenantScreenDispatcherClient() {
       // the shape `session` and `academic-years` already use in this switch.
       case 'list':
       case 'students': return <AdminStudents />;
+      case 'students-dashboard': return <AdminStudentsDashboard />;
       case 'teachers': return <AdminTeachers />;
       case 'parents': return <AdminParents />;
       case 'classes': return <AdminClasses />;

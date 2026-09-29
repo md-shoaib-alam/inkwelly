@@ -68,14 +68,16 @@ describe("admin module catalogue", () => {
 
   test("a card is drawn as coming soon exactly when it has no screen", () => {
     // The grid derives the dashed, colourless, inert card from `screen === null`, so this
-    // split is the whole of the dashboard's coming-soon styling. 27 of 48 measured 2026-09-29,
-    // after Tests and Homework were reclassified: they have no admin case in the tenant
-    // dispatcher (both bare keys route only for teacher/student/parent), so an admin who
-    // clicked either card was redirected back to the dashboard. That is "announced but not
-    // built", which is what `screen: null` means everywhere else in this file.
+    // split is the whole of the dashboard's coming-soon styling. 27 unbuilt of 49 measured
+    // 2026-09-29, after Tests and Homework were reclassified: they have no admin case in the
+    // tenant dispatcher (both bare keys route only for teacher/student/parent), so an admin
+    // who clicked either card was redirected back to the dashboard. That is "announced but
+    // not built", which is what `screen: null` means everywhere else in this file. A card
+    // added with a `parent` and a real screen — the Students dashboard — joins the built
+    // half without joining the grid.
     const unbuilt = moduleCatalogue.filter((c) => c.screen === null);
     expect(unbuilt.length).toBe(27);
-    expect(moduleCatalogue.length - unbuilt.length).toBe(21);
+    expect(moduleCatalogue.length - unbuilt.length).toBe(22);
     // A dashed card must never be reachable from the rail or the favourites strip.
     const dashedButRoutable = unbuilt.filter((c) => c.inRail).map((c) => c.id);
     expect(dashedButRoutable).toEqual([]);

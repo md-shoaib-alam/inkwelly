@@ -4,6 +4,7 @@ import { eq, and, desc, inArray, count, sum } from 'drizzle-orm'
 import { platformResolvers as platformQueries } from '../../modules/platform/platform.resolvers'
 import { dashboardResolvers as dashboardQueries } from '../../modules/dashboard/dashboard.resolvers'
 import { academicQueries, academicMutations } from '../../modules/academics/academic.resolvers'
+import { studentsDashboardQueries } from '../../modules/students/students-dashboard.resolvers'
 import { financeQueries, financeMutations } from '../../modules/money-book/finance.resolvers'
 import { commonQueries, commonMutations } from '../../modules/support/common.resolvers'
 import { authResolvers as authMutations } from '../../modules/auth/auth.resolvers'
@@ -22,6 +23,7 @@ export const resolvers = {
     ...platformQueries,
     ...dashboardQueries,
     ...academicQueries,
+    ...studentsDashboardQueries,
     ...financeQueries,
     ...commonQueries,
     ...notificationResolvers.Query,

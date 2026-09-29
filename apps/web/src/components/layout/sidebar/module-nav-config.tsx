@@ -517,7 +517,7 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
     {
       label: "Overview",
       items: [
-        { key: "students-dashboard", label: "Dashboard", icon: <LayoutDashboard className={iconCls} />, disabled: true },
+        { key: "students-dashboard", label: "Dashboard", icon: <LayoutDashboard className={iconCls} /> },
         { key: "list", label: "All Students", icon: <Users className={iconCls} /> },
         { key: "classes", label: "Classes", icon: <School className={iconCls} />, permModule: "classes" },
       ],

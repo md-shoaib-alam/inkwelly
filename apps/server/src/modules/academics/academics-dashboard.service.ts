@@ -2,6 +2,7 @@ import { db } from '../../lib/db';
 import * as schema from '../../db/schema';
 import { and, count, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import { formatDate } from '../../lib/date-utils';
+import { pickCurrentSession, sessionProgress } from '../../lib/academic-session';
 
 /**
  * The Academics command center. Every number is a SELECT over rows that already
@@ -27,56 +28,12 @@ function ratioBand(ratio: number): 'Healthy' | 'Watch' | 'Strained' {
   return 'Strained';
 }
 
-function dayEpoch(iso: string): number | null {
-  const t = Date.parse(`${iso}T00:00:00Z`);
-  return Number.isNaN(t) ? null : t;
-}
-
-/** Inclusive calendar days, so the reference's "Day 106 of 304 · 35%" reads the same way. */
-function sessionProgress(startDate: string, endDate: string, today: string) {
-  const start = dayEpoch(startDate);
-  const end = dayEpoch(endDate);
-  const now = dayEpoch(today);
-  if (start === null || end === null || now === null || end < start) return null;
-  const totalDays = Math.floor((end - start) / 86400000) + 1;
-  const dayNumber = Math.min(Math.max(Math.floor((now - start) / 86400000) + 1, 0), totalDays);
-  return { totalDays, dayNumber, percentComplete: Math.round((dayNumber / totalDays) * 100) };
-}
-
 function pct(part: number, whole: number): number {
   return whole ? Math.round((part / whole) * 100) : 0;
 }
 
 function plural(count: number, one: string, many: string) {
   return `${count} ${count === 1 ? one : many}`;
-}
-
-type YearRow = {
-  name: string;
-  startDate: string;
-  endDate: string;
-  isCurrent: boolean;
-  status: string;
-};
-
-function pickYear(years: YearRow[], requested: string | null | undefined, today: string): YearRow | null {
-  if (requested) {
-    const named = years.find((y) => y.name === requested);
-    if (named) return named;
-  }
-  const flagged = years.find((y) => y.isCurrent);
-  if (flagged) return flagged;
-  const active = years.find((y) => y.status === 'active');
-  if (active) return active;
-  const now = dayEpoch(today);
-  const spanning = years
-    .filter((y) => {
-      const s = dayEpoch(y.startDate);
-      const e = dayEpoch(y.endDate);
-      return s !== null && e !== null && now !== null && now >= s && now <= e;
-    })
-    .sort((a, b) => b.startDate.localeCompare(a.startDate));
-  return spanning[0] ?? null;
 }
 
 export const AcademicsDashboardService = {
@@ -224,7 +181,7 @@ export const AcademicsDashboardService = {
     const offerings = Number(offeringCount?.count ?? 0);
     const taught = Number(taughtCount?.count ?? 0);
 
-    const session = pickYear(yearRows as YearRow[], requestedYear, today);
+    const session = pickCurrentSession(yearRows, requestedYear, today);
     const yearName = session?.name ?? null;
     const progress = session ? sessionProgress(session.startDate, session.endDate, today) : null;
 

@@ -28,14 +28,16 @@ function resolvesToAFile(specifier: string): boolean {
 // case purely to redirect the retired URL), and 79/65 -> 80/66 the same day for the Students
 // class roster, the first screen to use a `students/classes` key that COMPONENT_OVERRIDES had
 // been reserving since it was written. 66 -> 67 on 2026-09-29 for `list`, the Students panel
-// row's own key stacked on the root's `students`. Changing one of these numbers
+// row's own key stacked on the root's `students`. 80/67 -> 81/68 on 2026-09-29 for
+// `students-dashboard`, the Students panel's command center — its own specifier and its own
+// key. Changing one of these numbers
 // must be a deliberate act in a task step, never a side effect of a rewrite.
 const REGISTRIES = [
   {
     name: "tenant-screen-dispatcher",
     path: "src/app/(authenticated)/[slug]/[...segments]/tenant-screen-dispatcher.tsx",
-    specifiers: 80,
-    keys: 67,
+    specifiers: 81,
+    keys: 68,
   },
   {
     name: "generic-slug-dispatcher",
