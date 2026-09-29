@@ -3,7 +3,7 @@
 import { apiFetch } from "@/lib/api";
 import { useEffect, useReducer, useCallback, useMemo } from "react";
 import { useAppStore } from "@/store/use-app-store";
-import { useAcademicYears } from "@/modules/academics/hooks/use-academic-years";
+import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";
 import type { GradeRecord, StudentInfo } from "@/lib/types";
 
 // Import types and sub-components
@@ -86,15 +86,15 @@ export function StudentGrades({ initialTab }: { initialTab?: "exams" | "assessme
     import("recharts").then((mod) => dispatch({ type: 'SET_RECHARTS', payload: mod }));
   }, []);
 
-  const { academicYears } = useAcademicYears();
+  const { year, years: academicYears } = useActiveAcademicYear();
 
-  // Set default selected year to current once loaded
+  // The screen's year is the URL's year; the in-screen list stays so the
+  // student can look back at an earlier session's grades.
   useEffect(() => {
-    if (academicYears.length > 0 && !selectedYear) {
-      const current = academicYears.find((y: any) => y.isCurrent) || academicYears[0];
-      if (current) dispatch({ type: 'SET_SELECTED_YEAR', payload: current.name });
+    if (year?.name && !selectedYear) {
+      dispatch({ type: 'SET_SELECTED_YEAR', payload: year.name });
     }
-  }, [academicYears, selectedYear]);
+  }, [year, selectedYear]);
 
   const fetchData = useCallback(async () => {
     dispatch({ type: 'SET_LOADING', payload: true });

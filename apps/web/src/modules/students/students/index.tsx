@@ -17,6 +17,7 @@ import { apiFetch } from "@/lib/api";
 import { useModulePermissions } from "@/modules/access-control/hooks/use-permissions";
 import { useAppStore } from "@/store/use-app-store";
 import { useStudents } from "@/lib/graphql/hooks/academic.hooks";
+import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";
 import { ClassSelect } from "@/components/ui/class-select";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/graphql/keys";
@@ -191,6 +192,7 @@ function AdminStudentsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { year } = useActiveAcademicYear();
   const classIdParam = searchParams.get("classId");
   const pageParam = searchParams.get("page");
   const limitParam = searchParams.get("limit");
@@ -358,6 +360,10 @@ function AdminStudentsContent() {
             gender: formData.gender || "male",
             transportEnabled: Boolean(formData.transportEnabled),
           };
+
+          if (isCreate && year?.name) {
+            payload.academicYear = year.name;
+          }
 
           if (!isCreate && editingStudent) {
             payload.id = editingStudent.id;
@@ -561,6 +567,8 @@ function AdminStudentsContent() {
               <Button
                 className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white h-9 sm:h-10"
                 onClick={handleOpenCreate}
+                disabled={!year?.name}
+                title={!year?.name ? "Choose an academic session first" : undefined}
               >
                 <Plus className="size-4 mr-2" />
                 Add Student

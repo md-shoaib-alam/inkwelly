@@ -75,13 +75,9 @@ function AdminExamsContent({ initialTab = 'exams' }: { initialTab?: string }) {
 
   return (
     <div className="space-y-6">
-      <ExamsHeader 
-        activeTab={state.activeTab} 
+      <ExamsHeader
+        activeTab={state.activeTab}
         onNewExamClick={() => state.setAddOpen(true)}
-        academicYears={state.academicYears}
-        currentAcademicYear={state.currentAcademicYear}
-        selectedAcademicYear={state.publishedAcademicYearFilter || state.currentAcademicYear}
-        onAcademicYearChange={state.setPublishedAcademicYearFilter}
       />
 
       <Tabs value={state.activeTab} onValueChange={(v) => v === 'exams' ? state.backToExams() : state.setActiveTab(v)}>

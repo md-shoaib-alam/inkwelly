@@ -16,7 +16,6 @@ interface AddFeeStructureDialogProps {
   classes: ClassOption[];
   onAdd: () => void;
   adding: boolean;
-  academicYears: any[];
 }
 
 export function AddFeeStructureDialog({
@@ -28,7 +27,6 @@ export function AddFeeStructureDialog({
   classes,
   onAdd,
   adding,
-  academicYears,
 }: AddFeeStructureDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -63,17 +61,8 @@ export function AddFeeStructureDialog({
             </div>
           </div>
           <div className="grid gap-2">
-            <Label>Academic Year *</Label>
-            <Select value={form.academicYear} onValueChange={v => setForm((p: any) => ({ ...p, academicYear: v }))}>
-              <SelectTrigger className="bg-background"><SelectValue placeholder="Select academic year" /></SelectTrigger>
-              <SelectContent>
-                {academicYears.map(y => (
-                  <SelectItem key={y.id} value={y.name}>
-                    {y.name} {y.isCurrent && "(Current)"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Academic Year</Label>
+            <p className="text-sm font-medium text-foreground">{form.academicYear || '—'}</p>
           </div>
         </div>
         <DialogFooter>

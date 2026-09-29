@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { apiFetch, fetchAllStudents } from "@/lib/api";
-import { useAcademicYears } from "@/modules/academics/hooks/use-academic-years";
+import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";
 
 import {
   PromotionRecord,
@@ -32,7 +32,7 @@ import {
   getInitialState,
   promotionsReducer,
 } from "./adminPromotions/types";
-import { getCurrentAcademicYear, getNextClass } from "./adminPromotions/utils";
+import { getNextClass } from "./adminPromotions/utils";
 import { PromotionsTable } from "./adminPromotions/PromotionsTable";
 import { BulkPromoteTab } from "./adminPromotions/BulkPromoteTab";
 import { GraduatedTab } from "./adminPromotions/GraduatedTab";
@@ -41,18 +41,13 @@ import { BulkPromotionDialog } from "./adminPromotions/BulkPromotionDialog";
 import { RejectPromotionDialog } from "./adminPromotions/RejectPromotionDialog";
 
 export function AdminPromotions({ initialTab: propTab }: { initialTab?: "individual" | "bulk" | "graduated" }) {
-  const { academicYears: dbAcademicYears = [] } = useAcademicYears();
+  const { year, years: dbAcademicYears = [] } = useActiveAcademicYear();
 
-  const currentAcademicYear = useMemo(() => {
-    const currentObj = dbAcademicYears.find((ay: any) => ay.isCurrent);
-    if (currentObj?.name) return currentObj.name;
-    if (dbAcademicYears.length > 0) return dbAcademicYears[0].name;
-    return getCurrentAcademicYear();
-  }, [dbAcademicYears]);
+  const currentAcademicYear = year?.name ?? '';
 
   const [state, dispatch] = useReducer(
     promotionsReducer,
-    getInitialState(propTab, getCurrentAcademicYear()),
+    getInitialState(propTab, currentAcademicYear),
   );
 
   const {
@@ -291,7 +286,7 @@ export function AdminPromotions({ initialTab: propTab }: { initialTab?: "individ
 
   // Bulk promote preview
   const openBulkDialog = () => {
-    dispatch({ type: "OPEN_BULK_DIALOG", academicYear: getCurrentAcademicYear() });
+    dispatch({ type: "OPEN_BULK_DIALOG", academicYear: currentAcademicYear });
   };
 
   // Compute bulk preview as derived state
@@ -360,7 +355,7 @@ export function AdminPromotions({ initialTab: propTab }: { initialTab?: "individ
 
   // Graduation
   const openGradDialog = () => {
-    dispatch({ type: "OPEN_GRAD_DIALOG", academicYear: getCurrentAcademicYear() });
+    dispatch({ type: "OPEN_GRAD_DIALOG", academicYear: currentAcademicYear });
   };
 
   // Compute grad preview as derived state

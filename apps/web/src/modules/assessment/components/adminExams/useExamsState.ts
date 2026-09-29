@@ -6,7 +6,7 @@ import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { api, apiFetch, fetchAllStudents } from '@/lib/api';
 import { toast } from "sonner";
-import { useAcademicYears } from '@/modules/academics/hooks/use-academic-years';
+import { useActiveAcademicYear } from '@/modules/academics/hooks/use-active-academic-year';
 import { 
   ExamRecord, ExamFormData, StudentResultRow, 
   ClassOption, SubjectOption 
@@ -20,12 +20,9 @@ export function useExamsState(initialTab = 'exams') {
   const { slug } = useParams();
   const searchParams = useSearchParams();
 
-  // Academic Years
-  const { academicYears } = useAcademicYears();
-  const currentAcademicYear = useMemo(() => {
-    const y = new Date().getFullYear();
-    return academicYears.find((ay: any) => ay.isCurrent)?.name || `${y}-${y + 1}`;
-  }, [academicYears]);
+  // Academic Years — the URL segment is the authority, not a guessed range
+  const { year, years: academicYears } = useActiveAcademicYear();
+  const currentAcademicYear = year?.name ?? '';
 
   // Filters & Tabs
   const [classFilter, setClassFilter] = useState('all');
@@ -42,7 +39,7 @@ export function useExamsState(initialTab = 'exams') {
     if (currentAcademicYear) {
       queueMicrotask(() => {
         setAddForm(prev => ({ ...prev, academicYear: prev.academicYear || currentAcademicYear }));
-        setPublishedAcademicYearFilter(prev => prev === 'all' ? currentAcademicYear : prev);
+        setPublishedAcademicYearFilter(prev => (!prev || prev === 'all') ? currentAcademicYear : prev);
       });
     }
   }, [currentAcademicYear]);

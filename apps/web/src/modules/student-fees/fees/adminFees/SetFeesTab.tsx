@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import { useFeeCategories, useFeeStructures, useCreateFeeStructure, useFeeAssignment } from '@/modules/student-fees/fees/hooks/use-fees';
-import { useAcademicYears } from '@/modules/academics/hooks/use-academic-years';
+import { useActiveAcademicYear } from '@/modules/academics/hooks/use-active-academic-year';
 import { useDebounce } from '@/hooks/use-debounce';
 import type { FeeStructure, FeeCategory, ClassOption } from './types';
 
@@ -121,23 +121,24 @@ export function SetFeesTab({ canCreate, canEdit, canDelete }: SetFeesTabProps) {
 
   const debouncedSearch = useDebounce(searchStudent, 300);
 
-  const { academicYears: dbAcademicYears = [] } = useAcademicYears();
+  const { year, years: dbAcademicYears = [] } = useActiveAcademicYear();
   const [isYearFilterInitialized, setIsYearFilterInitialized] = useState(false);
   const [isAddFormInitialized, setIsAddFormInitialized] = useState(false);
 
+  // The URL's session is what this screen shows; switching the header chip
+  // re-filters the table. 'All Years' remains a choice the admin can make.
   useEffect(() => {
-    const current = dbAcademicYears.find((y: any) => y.isCurrent || y.status === 'active')?.name;
-    if (current) {
-      if (!isYearFilterInitialized) {
-        dispatch({ type: 'SET_YEAR_FILTER', payload: current });
-        setIsYearFilterInitialized(true);
-      }
-      if (!isAddFormInitialized) {
-        dispatch({ type: 'SET_ADD_FORM', payload: { academicYear: current } });
-        setIsAddFormInitialized(true);
-      }
+    const current = year?.name;
+    if (!current) return;
+    if (!isYearFilterInitialized || yearFilter !== current) {
+      dispatch({ type: 'SET_YEAR_FILTER', payload: current });
+      setIsYearFilterInitialized(true);
     }
-  }, [dbAcademicYears, isYearFilterInitialized, isAddFormInitialized]);
+    if (!isAddFormInitialized) {
+      dispatch({ type: 'SET_ADD_FORM', payload: { academicYear: current } });
+      setIsAddFormInitialized(true);
+    }
+  }, [year, isYearFilterInitialized, isAddFormInitialized]);
 
   const { data: structures = [], isLoading: loadingStructures } = useFeeStructures();
   const { data: categories = [], isLoading: loadingCategories } = useFeeCategories();
@@ -403,7 +404,6 @@ export function SetFeesTab({ canCreate, canEdit, canDelete }: SetFeesTabProps) {
         classes={classes}
         onAdd={handleAdd}
         adding={adding}
-        academicYears={dbAcademicYears}
       />
 
       <EditFeeStructureDialog 

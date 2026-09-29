@@ -30,7 +30,7 @@ import { useAppStore } from '@/store/use-app-store';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GraduationCap, FileText, AlertCircle, Download, Loader2 } from 'lucide-react';
-import { useAcademicYears } from '@/modules/academics/hooks/use-academic-years';
+import { useActiveAcademicYear } from '@/modules/academics/hooks/use-active-academic-year';
 import type { ExamRecord } from '@/modules/assessment/components/adminExams/types';
 import { MARKSHEET_TEMPLATES } from '@/modules/assessment/components/adminExams/marksheet-templates/index';
 import { Button } from '@/components/ui/button';
@@ -97,7 +97,7 @@ const initialState: State = {
 };
 
 export function StudentMarksheet() {
-  const { academicYears } = useAcademicYears();
+  const { year, years: academicYears } = useActiveAcademicYear();
   const searchParams = useSearchParams();
   const studentIdParam = searchParams.get('studentId');
   const examTypeParam = searchParams.get('examType'); // e.g. 'midterm' or 'final' passed from banner
@@ -119,14 +119,15 @@ export function StudentMarksheet() {
 
   useEffect(() => {
     if (academicYears.length > 0 && !selectedYear) {
-      // If the banner passed an academic year, use that; otherwise pick current
-      const targetYear = examYearParam
-        ? academicYears.find((y: any) => y.name === examYearParam)
+      // A `?academicYear=` from the result banner wins, but only when the
+      // tenant actually owns that name; otherwise the URL's own session does.
+      const fromQuery = examYearParam
+        ? academicYears.find((y: any) => y.name === examYearParam)?.name
         : null;
-      const current = targetYear || academicYears.find((y: any) => y.isCurrent) || academicYears[0];
-      if (current) dispatch({ type: 'SET_SELECTED_YEAR', payload: current.name });
+      const chosen = fromQuery ?? year?.name ?? null;
+      if (chosen) dispatch({ type: 'SET_SELECTED_YEAR', payload: chosen });
     }
-  }, [academicYears, selectedYear, examYearParam]);
+  }, [academicYears, selectedYear, examYearParam, year]);
 
   // Auto-select exam type from URL param (set by result banner click)
   useEffect(() => {

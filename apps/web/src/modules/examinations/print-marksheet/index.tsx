@@ -11,7 +11,7 @@ import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { api, apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYears } from '@/modules/academics/hooks/use-academic-years';
+import { useActiveAcademicYear } from '@/modules/academics/hooks/use-active-academic-year';
 import { MarksheetPreviewPage } from '@/modules/assessment/components/adminExams/MarksheetPreviewPage';
 import { Badge } from '@/components/ui/badge';
 import { getGroupedExams } from '@/modules/assessment/components/adminExams/utils';
@@ -36,11 +36,9 @@ export function AdminPrintMarksheetContent() {
   const { data: detailData, isLoading: isDetailLoading } = useTenantMetadata(currentTenantId || "");
   const tenant = detailData?.tenant;
 
-  // Academic Years
-  const { academicYears } = useAcademicYears();
-  const currentAcademicYear = useMemo(() => {
-    return academicYears.find((ay: any) => ay.isCurrent)?.name || '2024-2025';
-  }, [academicYears]);
+  // Academic Years — the URL segment is the authority, not the tenant's flag
+  const { year, years: academicYears } = useActiveAcademicYear();
+  const currentAcademicYear = year?.name ?? '';
 
   // Settings for inline vs tab preview
   const [enableModalMarksheetPreview, setEnableModalMarksheetPreview] = useState<boolean>(false);
