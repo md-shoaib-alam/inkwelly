@@ -1,18 +1,33 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from 'react';
-import { useParams, redirect } from 'next/navigation';
+import { useParams, useSearchParams, redirect } from 'next/navigation';
 import { useAppStore } from '@/store/use-app-store';
 import { hasPermission } from '@/lib/permissions';
 import { navItems } from '@/components/layout/nav-config';
 import { isAdminModuleScreen } from '@/components/layout/sidebar/module-nav-config';
 import { componentKey, parseRoute } from '@/lib/routing/module-routes';
+import { canonicalTenantUrl, yearSlugOf } from '@/lib/routing/academic-year-url';
+import { decideYearGate } from '@/lib/routing/year-gate';
+import { useActiveAcademicYear } from '@/modules/academics/hooks/use-active-academic-year';
 import dynamic from 'next/dynamic';
 import { FullPageSkeleton } from "@/components/ui/full-page-skeleton";
 import { AdminDashboardSkeleton } from "@/modules/dashboard/components/adminDashboard/DashboardSkeleton";
 
 const LoadingScreen = () => <FullPageSkeleton />;
 const DashboardLoadingScreen = () => <AdminDashboardSkeleton />;
+
+// The dispatcher is the only mount point every tenant screen passes through, so
+// this one return is the whole non-admin empty-year surface.
+const NoAcademicYearNotice = ({ tenant }: { tenant: string }) => (
+  <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 px-4 text-center">
+    <p className="text-lg font-semibold">No academic session is set up yet</p>
+    <p className="max-w-md text-sm text-muted-foreground">
+      {tenant} has no academic year, so its records cannot be opened. Ask a school
+      admin to add one under Academics → Sessions.
+    </p>
+  </div>
+);
 
 const ParentHomework = dynamic(() => import('@/modules/assessment/components/ParentHomework').then(m => m.ParentHomework), { loading: LoadingScreen });
 const TeacherDashboard = dynamic(() => import('@/modules/dashboard/components/teacherDashboard/index').then(m => m.TeacherDashboard), { loading: LoadingScreen });
@@ -151,17 +166,29 @@ export default function TenantScreenDispatcherClient() {
   const segments = (rawSegments ?? []) as string[];
   const mounted = useHydrated();
   const { currentUser } = useAppStore();
+  const searchParams = useSearchParams();
+  const {
+    status: yearStatus,
+    yearSlug,
+    yearSlugs,
+    years,
+  } = useActiveAcademicYear();
+
+  // A school with no years yet has no active year to put in the URL, and
+  // `academicYearUrl` then yields the year-free path the empty branch wants.
+  const activeYearSlug =
+    yearSlug ?? yearSlugOf(years.find((y: any) => y.isCurrent)?.name ?? years[0]?.name ?? '');
+  const dashboardUrl = (tenant: string) =>
+    canonicalTenantUrl({ slug: tenant, segments: ['dashboard'], yearSlug: activeYearSlug, search: '' });
 
   // This route always puts the tenant in the first segment, so parts[0] is the
   // root by construction and can never be a module name.
   // A module-scoped admin URL arrives as two trailing segments; a year, when
   // the tenant has one, arrives as the first of them.
-  // Task 4 replaces the empty list below with the tenant's own years. Until
-  // then nothing is read as a year, so this matches the old behaviour.
   const route = parseRoute(`/${slug}/${segments.join('/')}`, {
     isModuleScreen: isAdminModuleScreen,
     isTenantRoot: (first) => first === slug,
-    yearSlugs: [],
+    yearSlugs,
   });
   const screenKey = componentKey(route.module, route.screen);
   const screen = route.screen;
@@ -199,7 +226,38 @@ export default function TenantScreenDispatcherClient() {
     }
     return <LoadingScreen />;
   }
-  
+
+  // No tenant screen paints without a year. The why of each arm lives in
+  // `decideYearGate`; this file only maps an outcome to a screen.
+  const gate = decideYearGate({
+    role: currentUser.role,
+    status: yearStatus,
+    yearSlug,
+    screen,
+    maySetUp:
+      currentUser.role === 'admin' ||
+      hasPermission(currentUser, 'academic-years', 'view'),
+    activeYearSlug,
+  });
+
+  if (gate.kind === 'skeleton') {
+    return screen === 'dashboard' ? <DashboardLoadingScreen /> : <LoadingScreen />;
+  }
+  if (gate.kind === 'notice') {
+    return <NoAcademicYearNotice tenant={String(slug)} />;
+  }
+  if (gate.kind === 'to-setup') {
+    redirect(`/${slug}/academic-years`);
+  }
+  if (gate.kind === 'canonicalise') {
+    // Bookmarks and any link not yet converted to useTenantHref land here: the
+    // tail is re-emitted under the active year, so the screen never changes.
+    const search = searchParams?.toString() ? `?${searchParams.toString()}` : '';
+    redirect(
+      canonicalTenantUrl({ slug, segments, yearSlug: gate.toYearSlug, search }),
+    );
+  }
+
   if (currentUser.role === 'super_admin' || currentUser.role === 'admin' || currentUser.role === 'staff') {
     // Permission guard for staff users
     if (currentUser.role === 'staff') {
@@ -210,7 +268,7 @@ export default function TenantScreenDispatcherClient() {
 
       if (denied) {
         const tid = currentUser.tenantSlug || currentUser.tenantId || slug;
-        redirect(`/${tid}/dashboard`);
+        redirect(dashboardUrl(tid));
       }
     }
 
@@ -265,7 +323,7 @@ export default function TenantScreenDispatcherClient() {
       case 'staff-attendance': return <EmployeeStaffAttendance key="staff-att" />;
       case 'my-attendance':
         if (currentUser.role === 'staff') return <TeacherMyAttendance />;
-        redirect(`/${currentUser.tenantSlug || currentUser.tenantId || slug}/dashboard`);
+        redirect(dashboardUrl(currentUser.tenantSlug || currentUser.tenantId || slug));
       case 'exams': return <AdminExams key="exams" initialTab="exams" />;
       case 'results-entry': return <ExaminationsResultsEntry key="results" />;
       case 'published-results': return <ExaminationsPublishedResults key="published" />;
@@ -274,7 +332,7 @@ export default function TenantScreenDispatcherClient() {
       default: {
         const tid = currentUser.tenantSlug || currentUser.tenantId || slug;
         if (screen !== 'dashboard') {
-          redirect(`/${tid}/dashboard`);
+          redirect(dashboardUrl(tid));
         }
       }
     }
@@ -302,7 +360,7 @@ export default function TenantScreenDispatcherClient() {
       default: {
         const tid = currentUser.tenantSlug || currentUser.tenantId || slug;
         if (screen !== 'dashboard') {
-          redirect(`/${tid}/dashboard`);
+          redirect(dashboardUrl(tid));
         }
       }
     }
@@ -329,7 +387,7 @@ export default function TenantScreenDispatcherClient() {
       default: {
         const tid = currentUser.tenantSlug || currentUser.tenantId || slug;
         if (screen !== 'dashboard') {
-          redirect(`/${tid}/dashboard`);
+          redirect(dashboardUrl(tid));
         }
       }
     }
@@ -354,7 +412,7 @@ export default function TenantScreenDispatcherClient() {
       default: {
         const tid = currentUser.tenantSlug || currentUser.tenantId || slug;
         if (screen !== 'dashboard') {
-          redirect(`/${tid}/dashboard`);
+          redirect(dashboardUrl(tid));
         }
       }
     }
@@ -364,7 +422,7 @@ export default function TenantScreenDispatcherClient() {
   // they are at an invalid screen. Redirect them to their dashboard.
   if (mounted && currentUser) {
     const fallback = currentUser.tenantSlug || currentUser.tenantId || slug || "";
-    redirect(fallback ? `/${fallback}/dashboard` : "/dashboard");
+    redirect(fallback ? dashboardUrl(fallback) : "/dashboard");
   }
 
   return <NotFoundScreen />;

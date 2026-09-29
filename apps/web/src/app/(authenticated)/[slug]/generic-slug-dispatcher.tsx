@@ -3,7 +3,11 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { useParams, redirect } from "next/navigation";
 import { useAppStore } from "@/store/use-app-store";
+import { hasPermission } from "@/lib/permissions";
 import { useTenantResolution } from "@/lib/graphql/hooks/platform.hooks";
+import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";
+import { canonicalTenantUrl, yearSlugOf } from "@/lib/routing/academic-year-url";
+import { decideYearGate } from "@/lib/routing/year-gate";
 import dynamic from "next/dynamic";
 
 import { FullPageSkeleton } from "@/components/ui/full-page-skeleton";
@@ -48,6 +52,9 @@ export default function GenericSlugDispatcherClient() {
   const { slug } = useParams();
   const mounted = useHydrated();
   const { currentUser, currentTenantSlug, currentTenantId, setCurrentTenant } = useAppStore();
+  const { status: yearStatus, yearSlug, years } = useActiveAcademicYear();
+  const activeYearSlug =
+    yearSlug ?? yearSlugOf(years.find((y: any) => y.isCurrent)?.name ?? years[0]?.name ?? '');
 
   const { data: resolvedTenant } = useTenantResolution(slug as string);
 
@@ -66,15 +73,35 @@ export default function GenericSlugDispatcherClient() {
     const isTenantContext = isTenantMatch || (currentUser?.role === "super_admin" && !!resolvedTenant);
 
     const correctSlug = currentUser.role !== "super_admin" ? (currentUser.tenantSlug || currentUser.tenantId) : null;
-    
-    // 1. Wrong Slug? Auto-correct
+
+    // 1. Wrong Slug? Auto-correct. The year is not known for the right school
+    // yet, so the bare root is emitted and resolved on the next pass.
     if (correctSlug && slug !== correctSlug) {
       redirect(`/${correctSlug}`);
     }
-    
-    // 2. Base Slug? Go to Dashboard
+
+    // 2. Base Slug? Go to the dashboard, under a year where the school has one.
     if (isTenantContext) {
-      redirect(`/${slug}/dashboard`);
+      const gate = decideYearGate({
+        role: currentUser.role,
+        status: yearStatus,
+        yearSlug: null,
+        screen: 'dashboard',
+        maySetUp:
+          currentUser.role === 'admin' ||
+          hasPermission(currentUser, 'academic-years', 'view'),
+        activeYearSlug,
+      });
+      if (gate.kind === 'skeleton') return <DashboardLoadingScreen />;
+      if (gate.kind === 'canonicalise') {
+        redirect(
+          canonicalTenantUrl({ slug, segments: ['dashboard'], yearSlug: gate.toYearSlug, search: '' }),
+        );
+      }
+      // A school with no session belongs on its setup screen; a non-admin lands
+      // there too and the tenant dispatcher answers them with the notice, so
+      // this file never has to render one.
+      redirect(gate.kind === 'to-setup' || gate.kind === 'notice' ? `/${slug}/academic-years` : `/${slug}/dashboard`);
     }
   }
 
