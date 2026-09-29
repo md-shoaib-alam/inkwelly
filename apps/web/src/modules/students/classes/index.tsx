@@ -10,6 +10,7 @@ import { SearchInput } from "@/components/ui/search-input";
 import { Pagination } from "@/components/shared/pagination";
 import { ClassesStatsRow } from "@/components/shared/classes/ClassesStatsRow";
 import { ClassesFilterPanel } from "@/components/shared/classes/ClassesFilterPanel";
+import { ROSTER_TABLE_COLUMNS, ClassesTableSkeleton } from "@/components/shared/classes/ClassesTableSkeleton";
 import {
   GradeBadge,
   MediumBadge,
@@ -60,25 +61,31 @@ export function ClassRoster() {
   const totalPages = data?.totalPages ?? 0;
 
   // `enabled: !!tenantId` keeps `isLoading` false while the tenant is still resolving,
-  // so the first paint would otherwise read an empty table as "no classes".
-  if (isLoading || (!currentTenantId && classes.length === 0)) return <ClassRosterSkeleton />;
+  // so the first paint would otherwise read an empty table as "no classes". The list
+  // area holds the skeleton instead of the old whole-page return, which painted a
+  // different screen from the one the admin is about to land on.
+  const listPending = isLoading || (!currentTenantId && classes.length === 0);
 
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-[16px] leading-6 font-semibold text-slate-900 dark:text-zinc-50">Classes</h1>
-          <p className="text-[13px] text-slate-500 dark:text-zinc-400">
-            {total} {total === 1 ? "class" : "classes"} match these filters
-            {!filtersAreDefault(filters) && " · clear the filters to see all of them"}
-          </p>
+          {listPending ? (
+            <Skeleton className="mt-1 h-3.5 w-48" />
+          ) : (
+            <p className="text-[13px] text-slate-500 dark:text-zinc-400">
+              {total} {total === 1 ? "class" : "classes"} match these filters
+              {!filtersAreDefault(filters) && " · clear the filters to see all of them"}
+            </p>
+          )}
         </div>
         <Button variant="outline" onClick={() => push(tenantHref("academics/classes"))}>
           <Settings className="size-4" /> Manage
         </Button>
       </div>
 
-      <ClassesStatsRow stats={stats} loading={isLoading && !stats} />
+      <ClassesStatsRow stats={stats} loading={listPending && !stats} />
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="min-w-[220px] flex-1 max-w-md">
@@ -108,8 +115,8 @@ export function ClassRoster() {
         />
       )}
 
-      {isPlaceholderData && classes.length === 0 ? (
-        <ClassRosterSkeleton />
+      {listPending || (isPlaceholderData && classes.length === 0) ? (
+        <ClassesTableSkeleton columns={ROSTER_TABLE_COLUMNS} />
       ) : (
         <Card className="shadow-sm border-0 overflow-hidden">
           <CardContent className="p-0">
@@ -219,20 +226,5 @@ function RosterRow({ cls, onOpenStudents }: { cls: ClassInfo; onOpenStudents: ()
       </td>
       <td className="px-6 py-4"><StatusBadge isActive={cls.isActive} /></td>
     </tr>
-  );
-}
-
-function ClassRosterSkeleton() {
-  return (
-    <div className="space-y-4">
-      <Skeleton className="h-8 w-56" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[...Array(3)].map((_, i) => (
-          <Skeleton key={i} className="h-24 w-full rounded-xl" />
-        ))}
-      </div>
-      <Skeleton className="h-10 w-full" />
-      <Skeleton className="h-72 w-full" />
-    </div>
   );
 }

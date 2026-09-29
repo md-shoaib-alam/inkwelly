@@ -8,12 +8,13 @@ import { School, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { SearchInput } from "@/components/ui/search-input";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/shared/pagination";
 import { ClassesStatsRow } from "@/components/shared/classes/ClassesStatsRow";
 import { ClassesFilterPanel } from "@/components/shared/classes/ClassesFilterPanel";
+import { ClassesGridSkeleton } from "@/components/shared/classes/ClassesGridSkeleton";
+import { CLASS_TABLE_COLUMNS, ClassesTableSkeleton } from "@/components/shared/classes/ClassesTableSkeleton";
 import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { useModulePermissions } from "@/modules/access-control/hooks/use-permissions";
 import { useClassFilterOptions, useClassStats, useClassesFiltered, useTeachers } from "@/lib/graphql/hooks";
@@ -238,20 +239,11 @@ export function AdminClasses() {
       )}
 
       {showSkeleton ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[...Array(8)].map((_, i) => (
-            <Card key={i} className="border-0 shadow-sm">
-              <CardContent className="p-6">
-                <Skeleton className="h-6 w-24 mb-4" />
-                <div className="space-y-3">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-2 w-full mt-4" />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        viewMode === "table" ? (
+          <ClassesTableSkeleton columns={CLASS_TABLE_COLUMNS} />
+        ) : (
+          <ClassesGridSkeleton />
+        )
       ) : classes.length === 0 ? (
         <Card className="border-dashed border-2 bg-transparent">
           <CardContent className="py-20 text-center text-muted-foreground">
