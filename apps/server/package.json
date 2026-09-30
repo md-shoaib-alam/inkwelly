@@ -46,6 +46,7 @@
     "graphql-yoga": "^5.22.0",
     "ioredis": "^5.11.1",
     "jose": "^6.2.10",
+    "playwright": "^1.63.0",
     "postgres": "^3.4.9",
     "posthog-node": "^5.51.4",
     "razorpay": "^2.9.8",
