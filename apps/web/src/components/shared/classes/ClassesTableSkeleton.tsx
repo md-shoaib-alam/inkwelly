@@ -19,7 +19,7 @@ export interface SkeletonColumn {
 /** Academics > Classes — the editable roster, ending in the action buttons. */
 export const CLASS_TABLE_COLUMNS: SkeletonColumn[] = [
   { label: "Class", kind: "name" },
-  { label: "Grade", kind: "pill", width: "w-14" },
+  { label: "Class Level", kind: "pill", width: "w-14" },
   { label: "Section", kind: "pill", width: "w-9" },
   { label: "Class teacher", kind: "text", width: "w-24" },
   { label: "Medium", kind: "pill", width: "w-16" },

@@ -74,7 +74,7 @@ const capacity = z
 export const CreateClassSchema = z.object({
   name: z.string({ required_error: 'Class name is required' }).trim().min(1, 'Class name is required').max(80),
   section,
-  grade: z.string({ required_error: 'Grade is required' }).trim().min(1, 'Grade is required').max(40),
+  grade: z.string({ required_error: 'Class level is required' }).trim().min(1, 'Class level is required').max(40),
   slug: z.string().trim().max(120).optional().or(z.literal('')),
   medium: medium.default('English'),
   capacity: capacity.default(40),

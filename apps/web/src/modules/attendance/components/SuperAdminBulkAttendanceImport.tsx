@@ -331,7 +331,7 @@ export function SuperAdminBulkAttendance() {
             "Student Name": "John Doe",
             "Student Email": "johndoe@school.com",
             "Roll Number": "10",
-            "Class Name": "Grade 5-A",
+            "Class Name": "Class 5-A",
             "Date (YYYY-MM-DD)": new Date().toISOString().split('T')[0],
             "Status (PRESENT/ABSENT)": "PRESENT",
             "Remarks": "Regular entry"

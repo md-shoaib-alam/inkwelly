@@ -28,7 +28,7 @@ test("the roster renders no column the payload cannot return", () => {
 test("the roster's column set is the eight the class payload backs", () => {
   expect(columns()).toEqual([
     "Class",
-    "Grade",
+    "Class Level",
     "Section",
     "Teacher",
     "Medium",

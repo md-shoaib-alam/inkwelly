@@ -470,8 +470,8 @@ export const StudentsDashboardService = {
         code: 'STUDENTS_YOUNGER_THAN_GRADE',
         severity: 'medium',
         count: tooYoung,
-        title: `${plural(tooYoung, 'student is', 'students are')} younger than their grade usually expects`,
-        detail: 'Below the NEP age floor of one year per grade, measured at the start of the session.',
+        title: `${plural(tooYoung, 'student is', 'students are')} younger than their class usually expects`,
+        detail: 'Below the NEP age floor of one year per class level, measured at the start of the session.',
         screen: 'list',
       },
       noDob > 0 && {

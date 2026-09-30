@@ -150,7 +150,7 @@ function ClassList() {
         <RosterSelect
           value={filters.grade ?? ALL}
           onChange={(v) => applyFilters({ grade: v })}
-          allLabel="All grades"
+          allLabel="All classes"
           options={(optionData?.grades ?? []).map((g) => ({ value: g, label: formatGradeLabel(g) }))}
         />
         <RosterSelect

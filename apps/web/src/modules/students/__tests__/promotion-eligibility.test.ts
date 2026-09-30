@@ -3,7 +3,7 @@ import { evaluateEligibility } from "../promotion/eligibility";
 
 const base = {
   classId: "cls-1",
-  className: "Grade-5",
+  className: "Class-5",
   admissionNo: "ADM-100",
   rollNumber: "12",
   status: "active",

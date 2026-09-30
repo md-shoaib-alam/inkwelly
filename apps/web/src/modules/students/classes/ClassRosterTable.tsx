@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
  * the teachers read as faces, and occupancy gives way to profile completion.
  */
 
-const COLUMNS = ["Class", "Grade", "Section", "Teacher", "Medium", "Enrolled", "Completion", "Status", ""];
+const COLUMNS = ["Class", "Class Level", "Section", "Teacher", "Medium", "Enrolled", "Completion", "Status", ""];
 
 /** Amber until the class is mostly filled in, green once it is, red at the bottom. */
 function completionTone(percent: number) {

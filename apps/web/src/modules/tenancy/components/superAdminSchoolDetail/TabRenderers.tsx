@@ -71,7 +71,7 @@ export function TableHeaders({ activeTab }: { activeTab: TabType }) {
           </TableHead>
           <TableHead className="w-12 text-xs font-semibold text-slate-500 dark:text-slate-400 py-3.5">#</TableHead>
           <TableHead className={commonClasses}>Class Name</TableHead>
-          <TableHead className={commonClasses}>Grade / Section</TableHead>
+          <TableHead className={commonClasses}>Class Level / Section</TableHead>
           <TableHead className={`${commonClasses} text-center`}>Students</TableHead>
           <TableHead className={`${commonClasses} text-center`}>Capacity</TableHead>
           <TableHead className={`${commonClasses} text-right pr-4`}>Actions</TableHead>
@@ -295,7 +295,7 @@ export function TableCells({ activeTab, item, index = 0 }: { activeTab: TabType;
           </TableCell>
           <TableCell className={cellClasses}>
             <div className="flex items-center gap-1.5">
-              <Badge variant="outline" className="text-[11px] font-medium border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300">Grade {c.grade}</Badge>
+              <Badge variant="outline" className="text-[11px] font-medium border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300">Class {c.grade}</Badge>
               <Badge variant="outline" className="text-[11px] font-medium border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300">Sec {c.section}</Badge>
             </div>
           </TableCell>

@@ -76,7 +76,7 @@ export function TeacherDetailDialog({
     experience: "2 years",
     status: "active",
     subjects: ["Science"],
-    classes: ["Grade 1-B"],
+    classes: ["Class 1-B"],
     teacherId: "TCH002",
     address: "Bangalore, Karnataka",
     role: "Faculty Member",

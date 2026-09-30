@@ -42,7 +42,7 @@ export function ClassesTableView({
           <thead className="bg-[#F8FAFC] dark:bg-zinc-800/40 border-b border-slate-200/70 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 uppercase text-[11px] font-bold tracking-wider">
             <tr>
               <th className="pl-6 pr-4 py-3.5">Class</th>
-              <th className="px-4 py-3.5">Grade</th>
+              <th className="px-4 py-3.5">Class Level</th>
               <th className="px-4 py-3.5">Section</th>
               <th className="px-4 py-3.5">Class teacher</th>
               <th className="px-4 py-3.5">Medium</th>

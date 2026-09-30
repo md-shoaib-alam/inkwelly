@@ -58,7 +58,7 @@ const MOCK_PREVIEW_SHEET = {
     color: "#1e3a8a",
     status: "pass" as const,
   },
-  classNameStr: "Grade X",
+  classNameStr: "Class X",
   classSection: "A",
   academicYear: "2025–2026",
   marksheetType: "midterm" as const,

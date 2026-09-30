@@ -21,7 +21,7 @@ interface RosterColumn {
 
 const COLUMNS: RosterColumn[] = [
   { label: "Class", kind: "name" },
-  { label: "Grade", kind: "text", width: "w-20" },
+  { label: "Class Level", kind: "text", width: "w-20" },
   { label: "Section", kind: "pill", width: "w-7" },
   { label: "Teacher", kind: "avatars" },
   { label: "Medium", kind: "text", width: "w-16" },

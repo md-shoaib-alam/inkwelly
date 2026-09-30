@@ -15,7 +15,7 @@ import { MarksheetPrintContainer } from './marksheet-preview/MarksheetPrintConta
 
 interface MarksheetPreviewPageProps {
   classId: string;
-  classNameStr: string; // e.g. "Grade 10"
+  classNameStr: string; // e.g. "Class 10"
   classSection: string; // e.g. "A"
   academicYear: string;
   onBack: () => void;

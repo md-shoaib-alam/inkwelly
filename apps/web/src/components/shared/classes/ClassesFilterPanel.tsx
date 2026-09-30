@@ -63,19 +63,19 @@ function FilterSelect({
 }
 
 /**
- * Grade, section and medium come from the tenant's own rows rather than the
+ * Class level, section and medium come from the tenant's own rows rather than the
  * static pickers, so the panel can never offer a value that returns nothing.
  */
 export function ClassesFilterPanel({ filters, onChange, options }: ClassesFilterPanelProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4 rounded-lg border border-slate-200/80 bg-[#F1F5F9] dark:bg-zinc-900/60 dark:border-zinc-800 mb-4">
-      <FilterField label="Grade Level">
+      <FilterField label="Class Level">
         <FilterSelect
           value={filters.grade ?? ALL}
           onValueChange={(v) => onChange({ grade: v })}
-          placeholder="All Grades"
+          placeholder="All Classes"
           options={[
-            { value: ALL, label: "All Grades" },
+            { value: ALL, label: "All Classes" },
             ...options.grades.map((g) => ({ value: g, label: formatGradeLabel(g) })),
           ]}
         />

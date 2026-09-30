@@ -30,10 +30,10 @@ export function ClassSettingsCard({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-zinc-50/50 dark:bg-zinc-900/20 rounded-xl border border-zinc-150 dark:border-zinc-800/60 w-full gap-4">
               <div className="space-y-0.5">
                 <h4 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-                  Separate Grade Selection
+                  Separate Class Level Selection
                 </h4>
                 <p className="text-xs text-muted-foreground">
-                  Choose to map grades manually when creating classes
+                  Choose to map class levels manually when creating classes
                 </p>
               </div>
               
@@ -61,7 +61,7 @@ export function ClassSettingsCard({
                 <div className="h-7 rounded border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex items-center px-2 text-[11px] text-zinc-700 dark:text-zinc-300 shadow-sm">Class 1</div>
               </div>
               <div className={`space-y-1 transition-all duration-500 ${enableGradeSelection ? "opacity-100" : "opacity-30"}`}>
-                <div className="text-[10px] font-semibold text-zinc-500">Grade</div>
+                <div className="text-[10px] font-semibold text-zinc-500">Class Level</div>
                 <div className="h-7 rounded border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex items-center px-2 text-[11px] text-zinc-700 dark:text-zinc-300 shadow-sm border-dashed">1</div>
               </div>
             </div>

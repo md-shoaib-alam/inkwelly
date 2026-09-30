@@ -195,7 +195,7 @@ async function getExportData(type: string, tenantId: string, params: any): Promi
 
       return classes.map(c => ({
         'Class Name': c.name,
-        'Grade': c.grade,
+        'Class Level': c.grade,
         'Section': c.section,
         'Students': c.studentsCount,
         'Capacity': c.capacity

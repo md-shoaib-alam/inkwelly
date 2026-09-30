@@ -19,7 +19,7 @@ export const CLASS_GRADES = [
 
 export const CLASS_SORT_OPTIONS = [
   { value: 'name', label: 'Name' },
-  { value: 'grade', label: 'Grade' },
+  { value: 'grade', label: 'Class Level' },
   { value: 'section', label: 'Section' },
   { value: 'capacity', label: 'Capacity' },
   { value: 'enrolled', label: 'Students enrolled' },
@@ -101,7 +101,7 @@ export function formatGradeLabel(grade: string | undefined | null): string {
 
 /**
  * The name the create form auto-fills. The section stays out of it: every stored
- * row is named after its grade alone ("Grade 1"), and the slug is what carries the
+ * row is named after its class level alone ("Class 1"), and the slug is what carries the
  * section ("grade-1-a"). Putting the section in the name duplicates it there.
  */
 export function autoClassName(grade: string): string {

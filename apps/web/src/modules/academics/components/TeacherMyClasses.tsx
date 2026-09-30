@@ -100,7 +100,7 @@ export function TeacherClasses() {
   });
 
   const classes = [...(Array.isArray(classData) ? classData : [])].sort((a, b) => {
-    // Extract numeric part from grade name (e.g. "Grade 5" → 5)
+    // Extract numeric part from the class name (e.g. "Class 5" → 5)
     const gradeNum = (g: string) => parseInt(g.replace(/\D/g, ""), 10) || 0;
     const gradeDiff = gradeNum(a.name) - gradeNum(b.name);
     if (gradeDiff !== 0) return gradeDiff;

@@ -154,11 +154,11 @@ export function ClassFormDialog({ open, onOpenChange, initial, busy, onSubmit }:
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="class-grade">
-                Grade level <span className="text-red-500">*</span>
+                Class level <span className="text-red-500">*</span>
               </Label>
               <Select value={form.grade || undefined} onValueChange={onGradeChange}>
                 <SelectTrigger id="class-grade">
-                  <SelectValue placeholder="Select grade" />
+                  <SelectValue placeholder="Select class level" />
                 </SelectTrigger>
                 <SelectContent>
                   {CLASS_GRADES.map((grade) => (
@@ -193,7 +193,7 @@ export function ClassFormDialog({ open, onOpenChange, initial, busy, onSubmit }:
             <Label htmlFor="class-name">
               Class name <span className="text-red-500">*</span>
               <span className="ml-2 text-[11px] font-normal text-slate-500 dark:text-zinc-400">
-                Auto-filled from the grade. Edit it to override.
+                Auto-filled from the class level. Edit it to override.
               </span>
             </Label>
             <Input
