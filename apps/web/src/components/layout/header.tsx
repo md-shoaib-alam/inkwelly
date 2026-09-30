@@ -33,6 +33,8 @@ interface HeaderProps {
   onExpandSidebarPanel?: () => void;
 }
 
+
+
 export function Header({
   items,
   resolvedScreen,
@@ -217,7 +219,7 @@ export function Header({
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         {/* The reference build ships an AI assistant here */}
         <button
           type="button"
@@ -291,27 +293,27 @@ export function Header({
         {/* Subtle Divider */}
         <div className="h-5 w-px bg-slate-200 dark:bg-zinc-800 mx-0.5 sm:mx-1 hidden sm:block" />
 
-        {/* User profile dropdown */}
+        {/* User profile dropdown - Sleek avatar with gradient ring and chevron */}
         {(effectiveIsMinimal || isModernUI) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
-                className="size-8.5 sm:size-auto sm:h-10 p-0 sm:pl-1.5 sm:pr-3 sm:py-1 sm:gap-2.5 rounded-full border border-slate-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 hover:bg-slate-100/90 dark:hover:bg-zinc-800 shadow-2xs transition-all cursor-pointer group focus-visible:ring-0 shrink-0 flex items-center justify-center"
+                className="h-9 px-1 gap-1.5 rounded-full hover:bg-slate-100/60 dark:hover:bg-zinc-800/60 focus-visible:ring-0 shrink-0 flex items-center justify-center cursor-pointer group transition-all"
               >
                 <div
                   style={{
                     background: "conic-gradient(from 200deg, #0d9488, #14b8a6, #f2c66d, #e6ae45, #0d9488)",
                   }}
-                  className="ink-avatar-ring relative flex rounded-full p-[2px] shrink-0"
+                  className="ink-avatar-ring relative flex rounded-full p-[2px] shrink-0 transition-transform duration-200 group-hover:scale-105 shadow-xs"
                 >
                   <div
                     style={{
                       background: "linear-gradient(145deg, #134e4a 0%, #06201c 100%)",
                       color: "#f2c66d",
                     }}
-                    className="ink-avatar size-[30px] rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center text-[11px] font-semibold tracking-[0.02em] overflow-hidden shrink-0"
+                    className="ink-avatar size-[30px] rounded-full border-2 border-white dark:border-[#0c1427] flex items-center justify-center text-[11px] font-bold tracking-[0.02em] overflow-hidden shrink-0"
                   >
                     {currentUser.avatar ? (
                       <img src={currentUser.avatar} alt={currentUser.name} className="size-full object-cover" />
@@ -320,15 +322,7 @@ export function Header({
                     )}
                   </div>
                 </div>
-                <div className="hidden sm:flex flex-col text-left">
-                  <span className="text-xs font-semibold text-slate-800 dark:text-zinc-100 leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {currentUser.name}
-                  </span>
-                  <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-medium leading-none mt-0.5">
-                    {roleLabels[currentUser.role] || (isSuperAdmin ? "Super Admin" : "School Admin")}
-                  </span>
-                </div>
-                <ChevronDown className="hidden sm:block size-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-zinc-300 transition-transform duration-200" />
+                <ChevronDown className="size-3.5 text-slate-400 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-200 transition-colors" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 mt-2 rounded-2xl p-1.5 shadow-xl shadow-black/20 border-slate-200/80 dark:border-zinc-800 dark:bg-zinc-950">
