@@ -97,23 +97,26 @@ function Cell({ col, row }: { col: RosterColumn; row: RosterRow }) {
       return <span className="text-[13px] text-slate-600 dark:text-zinc-300 whitespace-nowrap">{fmtDate(row.admissionDate) ?? dash}</span>;
     case "gender":
       return <span className="text-[13px] text-slate-600 dark:text-zinc-300">{cap(row.gender) ?? dash}</span>;
-    case "status":
+    case "status": {
+      const s = row.status?.toLowerCase();
+      const isRed = s === "inactive" || s === "suspended";
       return (
         <span
           className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            row.status?.toLowerCase() === "inactive"
-              ? "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800"
+            isRed
+              ? "bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 border border-red-200 dark:border-red-800"
               : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
           }`}
         >
           <span
             className={`size-1.5 rounded-full ${
-              row.status?.toLowerCase() === "inactive" ? "bg-amber-500" : "bg-emerald-500"
+              isRed ? "bg-red-500" : "bg-emerald-500"
             }`}
           />
           {cap(row.status) ?? "Active"}
         </span>
       );
+    }
     case "rte":
       return <span className="text-[13px] text-slate-600 dark:text-zinc-300">{row.isRte ? "Yes" : "No"}</span>;
     case "mobile":

@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { ClassSelect } from "@/components/ui/class-select";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BookOpen,
   Camera,
@@ -29,6 +29,11 @@ import { queryKeys } from "@/lib/graphql/keys";
 import { useAppStore } from "@/store/use-app-store";
 import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";
 import { useModulePermissions } from "@/modules/access-control/hooks/use-permissions";
+import {
+  parseStudentsSettings,
+  previewId,
+  shortSchoolYear,
+} from "../settings/settings-format";
 
 const labelCls = "text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400";
 const fieldCls = "h-10 text-[13px] rounded-xl bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-700 shadow-none focus-visible:ring-1 focus-visible:ring-teal-500";
@@ -91,6 +96,42 @@ function AdminAdmissionsContent() {
   const { year } = useActiveAcademicYear();
   const { canCreate } = useModulePermissions("students");
   const queryClient = useQueryClient();
+
+  const { data: settingsData } = useQuery<Record<string, unknown>>({
+    queryKey: ["student-settings", currentTenantId],
+    queryFn: async () => {
+      const res = await apiFetch("/api/student-settings");
+      if (!res.ok) throw new Error("Failed to load settings");
+      return res.json();
+    },
+    enabled: Boolean(currentTenantId),
+  });
+
+  const settings = useMemo(() => parseStudentsSettings(settingsData), [settingsData]);
+
+  const previewStudentId = useMemo(
+    () =>
+      settings.studentId.enabled
+        ? previewId(settings.studentId, {
+            schoolCode: settings.schoolCode,
+            calendarYear: String(new Date().getFullYear()),
+            schoolYear: shortSchoolYear(year?.name),
+          })
+        : null,
+    [settings.studentId, settings.schoolCode, year?.name]
+  );
+
+  const previewAdmissionNo = useMemo(
+    () =>
+      settings.admissionNo.enabled
+        ? previewId(settings.admissionNo, {
+            schoolCode: settings.schoolCode,
+            calendarYear: String(new Date().getFullYear()),
+            schoolYear: shortSchoolYear(year?.name),
+          })
+        : null,
+    [settings.admissionNo, settings.schoolCode, year?.name]
+  );
 
   const [form, setForm] = useState<AdmissionForm>(emptyForm);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -267,23 +308,51 @@ function AdminAdmissionsContent() {
               </Field>
 
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
-                <Field id="adm_student_id" title="STUDENT ID" req>
-                  <Input
-                    id="adm_student_id"
-                    value={form.studentId}
-                    onChange={(e) => set("studentId")(e.target.value)}
-                    placeholder="STU2025001"
-                    className={fieldCls}
-                  />
+                <Field id="adm_student_id" title="STUDENT ID" req={!settings.studentId.enabled}>
+                  {settings.studentId.enabled ? (
+                    <div>
+                      <div className="flex h-10 w-full items-center justify-between rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-850 px-3 text-[13px] font-semibold text-slate-800 dark:text-zinc-200 font-mono shadow-none">
+                        <span>{previewStudentId || "AUTO"}</span>
+                        <span className="rounded bg-emerald-100/80 dark:bg-emerald-950/60 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-emerald-700 dark:text-emerald-400">
+                          AUTO
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[11px] text-slate-400 dark:text-zinc-500">
+                        Assigned automatically when you admit this student.
+                      </p>
+                    </div>
+                  ) : (
+                    <Input
+                      id="adm_student_id"
+                      value={form.studentId}
+                      onChange={(e) => set("studentId")(e.target.value)}
+                      placeholder="STU2025001"
+                      className={fieldCls}
+                    />
+                  )}
                 </Field>
-                <Field id="adm_no" title="ADMISSION NO." req>
-                  <Input
-                    id="adm_no"
-                    value={form.admissionNo}
-                    onChange={(e) => set("admissionNo")(e.target.value)}
-                    placeholder="ADM2025001"
-                    className={fieldCls}
-                  />
+                <Field id="adm_no" title="ADMISSION NO." req={!settings.admissionNo.enabled}>
+                  {settings.admissionNo.enabled ? (
+                    <div>
+                      <div className="flex h-10 w-full items-center justify-between rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-850 px-3 text-[13px] font-semibold text-slate-800 dark:text-zinc-200 font-mono shadow-none">
+                        <span>{previewAdmissionNo || "AUTO"}</span>
+                        <span className="rounded bg-emerald-100/80 dark:bg-emerald-950/60 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-emerald-700 dark:text-emerald-400">
+                          AUTO
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[11px] text-slate-400 dark:text-zinc-500">
+                        Assigned automatically when you admit this student.
+                      </p>
+                    </div>
+                  ) : (
+                    <Input
+                      id="adm_no"
+                      value={form.admissionNo}
+                      onChange={(e) => set("admissionNo")(e.target.value)}
+                      placeholder="ADM2025001"
+                      className={fieldCls}
+                    />
+                  )}
                 </Field>
                 <Field id="adm_date" title="ADMISSION DATE">
                   <Input

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useReducer, useState, Suspense } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState, Suspense } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,27 +21,28 @@ import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
 import { useModulePermissions } from "@/modules/access-control/hooks/use-permissions";
 import { useAppStore } from "@/store/use-app-store";
-import { useQueryClient } from "@tanstack/react-query";
 import { ClassSelect } from "@/components/ui/class-select";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 // Sub-components
 import { RosterTable } from "./adminStudents/RosterTable";
 import { ColumnsPopover } from "./adminStudents/ColumnsPopover";
-import { StudentDialog } from "./adminStudents/StudentDialog";
 import { StudentSkeleton } from "./adminStudents/StudentSkeleton";
 import { Pagination } from "./adminStudents/Pagination";
 import { StudentProfileView } from "./adminStudents/profile/StudentProfileView";
+import { UpdateInformationView } from "./adminStudents/UpdateInformationView";
 import { DEFAULT_TAB, tabFromParam, tabParamOf, type ProfileTabId } from "./adminStudents/profile/tabs";
 
 // Types
 import { DEFAULT_VISIBLE, MOBILE_VISIBLE, ROSTER_COLUMNS, type RosterRow } from "./adminStudents/columns";
-import type { StudentInfo, StudentFormData } from "./adminStudents/types";
+import type { StudentInfo } from "./adminStudents/types";
 import {
   profilePathOf,
   rosterPathOf,
   studentRefFromPathname,
   studentRefOf,
+  updateInfoPathOf,
+  updateInfoRefFromPathname,
 } from "./student-ref";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
@@ -63,23 +64,6 @@ const SORT_OPTIONS = [
   { value: "createdAt", label: "Newest" },
 ];
 
-const emptyFormData: StudentFormData = {
-  name: "",
-  email: "",
-  username: "",
-  password: "",
-  phone: "",
-  rollNumber: "",
-  classId: "",
-  gender: "male",
-  dateOfBirth: "",
-  bloodGroup: "",
-  house: "",
-  transportEnabled: false,
-  routeId: "",
-  pickupPoint: "",
-};
-
 type State = {
   search: string;
   classFilter: string;
@@ -92,10 +76,6 @@ type State = {
   sortDir: "asc" | "desc";
   currentPage: number;
   itemsPerPage: number;
-  dialogOpen: boolean;
-  editingStudent: StudentInfo | null;
-  formData: StudentFormData;
-  submitting: boolean;
 };
 
 type Action =
@@ -109,11 +89,7 @@ type Action =
   | { type: 'SET_SORT'; payload: string }
   | { type: 'SET_SORT_DIR'; payload: "asc" | "desc" }
   | { type: 'SET_CURRENT_PAGE'; payload: number }
-  | { type: 'SET_ITEMS_PER_PAGE'; payload: number }
-  | { type: 'OPEN_EDIT'; payload: StudentInfo }
-  | { type: 'CLOSE_DIALOG' }
-  | { type: 'SET_FORM_DATA'; payload: StudentFormData }
-  | { type: 'SET_SUBMITTING'; payload: boolean };
+  | { type: 'SET_ITEMS_PER_PAGE'; payload: number };
 
 const initialState: State = {
   search: "",
@@ -127,10 +103,6 @@ const initialState: State = {
   sortDir: "asc",
   currentPage: 1,
   itemsPerPage: 25,
-  dialogOpen: false,
-  editingStudent: null,
-  formData: emptyFormData,
-  submitting: false,
 };
 
 function reducer(state: State, action: Action): State {
@@ -157,32 +129,6 @@ function reducer(state: State, action: Action): State {
       return { ...state, currentPage: action.payload };
     case 'SET_ITEMS_PER_PAGE':
       return { ...state, itemsPerPage: action.payload, currentPage: 1 };
-    case 'OPEN_EDIT':
-      return {
-        ...state,
-        editingStudent: action.payload,
-        formData: {
-          name: action.payload.name,
-          email: action.payload.email,
-          phone: action.payload.phone || "",
-          rollNumber: action.payload.rollNumber,
-          classId: action.payload.classId || "",
-          gender: action.payload.gender || "male",
-          dateOfBirth: action.payload.dateOfBirth || "",
-          bloodGroup: action.payload.bloodGroup || "",
-          house: action.payload.house || "",
-          transportEnabled: !!action.payload.transport,
-          routeId: action.payload.transport?.routeId || "",
-          pickupPoint: action.payload.transport?.pickupPoint || "",
-        },
-        dialogOpen: true,
-      };
-    case 'CLOSE_DIALOG':
-      return { ...state, dialogOpen: false };
-    case 'SET_FORM_DATA':
-      return { ...state, formData: action.payload };
-    case 'SET_SUBMITTING':
-      return { ...state, submitting: action.payload };
     default:
       return state;
   }
@@ -205,13 +151,7 @@ function AdminStudentsContent() {
     sortDir,
     currentPage,
     itemsPerPage,
-    dialogOpen,
-    editingStudent,
-    formData,
-    submitting,
   } = state;
-
-  const queryClient = useQueryClient();
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -221,20 +161,20 @@ function AdminStudentsContent() {
   // `/students/list` is the roster: the same screen answering two URLs. Nothing is
   // mirrored into state, which is why a refresh lands on the student it says.
   const profileRef = studentRefFromPathname(pathname);
-  const rosterPath = rosterPathOf(pathname, Boolean(profileRef));
+  const editRef = updateInfoRefFromPathname(pathname);
+  const rosterPath = rosterPathOf(pathname, Boolean(profileRef || editRef));
   const activeTab = tabFromParam(searchParams.get("tab"));
 
   const [rows, setRows] = useState<RosterRow[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [reloadTick, setReloadTick] = useState(0);
-  const reload = useCallback(() => setReloadTick((t) => t + 1), []);
 
   useEffect(() => {
     if (!currentTenantId) return;
-    // While a profile is open the roster is not on screen, so its page of 25 rows is
-    // not fetched. This is the request the user asked to stop paying for.
-    if (profileRef) return;
+    // While a profile or the correction form is open the roster is not on screen, so
+    // its page of 25 rows is not fetched. This is the request the user asked to stop
+    // paying for.
+    if (profileRef || editRef) return;
     const controller = new AbortController();
     setLoading(true);
 
@@ -273,10 +213,10 @@ function AdminStudentsContent() {
 
     return () => controller.abort();
   }, [
-    currentTenantId, profileRef,
+    currentTenantId, profileRef, editRef,
     search, classFilter, genderFilter, statusFilter,
     categoryFilter, bloodGroupFilter, rteFilter, sort, sortDir,
-    currentPage, itemsPerPage, reloadTick,
+    currentPage, itemsPerPage,
   ]);
 
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
@@ -339,8 +279,6 @@ function AdminStudentsContent() {
     router.replace(newQuery ? `${pathname}?${newQuery}` : pathname, { scroll: false });
   }, [pathname, router, searchParams, state]);
 
-  const handleOpenEdit = (student: StudentInfo) => dispatch({ type: 'OPEN_EDIT', payload: student });
-
   // The roster's own filters travel with a profile link, so Back lands where the user
   // left the list. `tab` is the profile's key and never belongs to the roster.
   const rosterQuery = useCallback(() => {
@@ -379,114 +317,25 @@ function AdminStudentsContent() {
     router.replace(profileUrl(profileRef, next), { scroll: false });
   };
 
-  // The edit form reads roster-row fields the profile payload doesn't carry (classId,
-  // house, transport), so it is fetched from the roster on the click that needs it.
-  const handleEditFromProfile = async () => {
-    if (!profileRef) return;
-    const fromCache = rows.find((r) => studentRefOf(r) === profileRef || r.id === profileRef);
-    if (fromCache) {
-      handleOpenEdit(fromCache as unknown as StudentInfo);
-      return;
+  const navigatedFromProfileRef = useRef(false);
+
+  // The correction form is its own address, so Edit is a navigation and the form loads
+  // what it needs itself: a refresh mid-edit lands back on the same form, same child.
+  const openUpdateInformation = useCallback(
+    (ref: string) => {
+      navigatedFromProfileRef.current = true;
+      router.push(updateInfoPathOf(rosterPath, ref), { scroll: false });
+    },
+    [rosterPath, router],
+  );
+
+  const handleCancelEdit = useCallback(() => {
+    if (navigatedFromProfileRef.current) {
+      router.back();
+    } else if (editRef) {
+      router.replace(profileUrl(editRef, activeTab), { scroll: false });
     }
-    try {
-      const res = await apiFetch(
-        `/api/student-roster?limit=1&search=${encodeURIComponent(profileRef)}`,
-      );
-      const data = await res.json().catch(() => ({}));
-      const items: RosterRow[] = data.items ?? [];
-      const match = items.find((r) => studentRefOf(r) === profileRef || r.id === profileRef);
-      if (!match) {
-        toast.error("This student isn't in the roster, so there's nothing to edit.");
-        return;
-      }
-      handleOpenEdit(match as unknown as StudentInfo);
-    } catch {
-      toast.error("Couldn't open the edit form.");
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!editingStudent) return;
-
-    // Required fields validation
-    if (!formData.name || !formData.rollNumber || !formData.classId) {
-      toast.error("Name, Roll Number, and Class are required");
-      return;
-    }
-
-    // Email format validation (only if provided)
-    if (formData.email && formData.email.trim()) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email.trim())) {
-        toast.error("Please enter a valid email address");
-        return;
-      }
-    }
-
-    toast.promise(
-      (async () => {
-        dispatch({ type: 'SET_SUBMITTING', payload: true });
-        try {
-          // Clean payload: omit empty strings for optional fields to avoid backend schema validation errors
-          const payload: Record<string, any> = {
-            id: editingStudent.id,
-            name: formData.name.trim(),
-            rollNumber: formData.rollNumber.trim(),
-            classId: formData.classId,
-            gender: formData.gender || "male",
-            transportEnabled: Boolean(formData.transportEnabled),
-          };
-
-          if (formData.email?.trim()) {
-            payload.email = formData.email.trim();
-          }
-          if (formData.phone?.trim()) {
-            payload.phone = formData.phone.trim();
-          }
-          if (formData.dateOfBirth?.trim()) {
-            payload.dateOfBirth = formData.dateOfBirth.trim();
-          }
-          if (formData.bloodGroup?.trim()) {
-            payload.bloodGroup = formData.bloodGroup.trim();
-          }
-          if (formData.transportEnabled && formData.routeId?.trim()) {
-            payload.routeId = formData.routeId.trim();
-            if (formData.pickupPoint?.trim()) {
-              payload.pickupPoint = formData.pickupPoint.trim();
-            }
-          }
-
-          const res = await apiFetch("/api/students", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
-
-          if (!res.ok) {
-            const errData = await res.json().catch(() => ({}));
-            throw new Error(errData.error || "Failed to update student");
-          }
-
-          dispatch({ type: 'CLOSE_DIALOG' });
-          // Refresh the roster from the server to ensure total accuracy
-          reload();
-          queryClient.invalidateQueries({
-            queryKey: ["admin-dashboard", currentTenantId],
-          });
-          // The profile caches a header and one tab per student, so a write clears them.
-          queryClient.invalidateQueries({ queryKey: ["student-profile"] });
-          return "Student details updated";
-        } finally {
-          dispatch({ type: 'SET_SUBMITTING', payload: false });
-        }
-      })(),
-      {
-        loading: "Updating student details...",
-        success: (msg) => msg,
-        error: (err: any) => err.message,
-      },
-    );
-  };
+  }, [editRef, activeTab, profileUrl, router]);
 
   const [visibleCols, setVisibleCols] = useState<Set<string>>(() =>
     // A phone gets the three identity columns; the rest stay one tap away.
@@ -499,34 +348,34 @@ function AdminStudentsContent() {
     [visibleCols],
   );
 
+  // --- Correction form (full page, one tail segment past the profile) ---
+  if (editRef) {
+    return (
+      <UpdateInformationView
+        key={editRef}
+        studentRef={editRef}
+        canEdit={canEdit}
+        onDone={() => router.replace(profileUrl(editRef, activeTab), { scroll: false })}
+        onCancel={handleCancelEdit}
+      />
+    );
+  }
+
   // --- Profile view (full page replace, like teachers) ---
   // Checked before the roster's loading gate: opening a profile must not wait on a
   // page of rows nobody is looking at.
   if (profileRef) {
     return (
-      <div className="space-y-6">
-        <StudentProfileView
-          studentRef={profileRef}
-          tab={activeTab}
-          onTabChange={handleTabChange}
-          onBack={handleCloseView}
-          onSwitch={(ref) => openProfile(ref, activeTab)}
-          canEdit={canEdit}
-          canDelete={canDelete}
-          onEdit={handleEditFromProfile}
-        />
-
-        <StudentDialog
-          open={dialogOpen}
-          onOpenChange={(open) => {
-            if (!open) dispatch({ type: 'CLOSE_DIALOG' });
-          }}
-          formData={formData}
-          setFormData={(fd) => dispatch({ type: 'SET_FORM_DATA', payload: fd })}
-          submitting={submitting}
-          onSubmit={handleSubmit}
-        />
-      </div>
+      <StudentProfileView
+        studentRef={profileRef}
+        tab={activeTab}
+        onTabChange={handleTabChange}
+        onBack={handleCloseView}
+        onSwitch={(ref) => openProfile(ref, activeTab)}
+        canEdit={canEdit}
+        canDelete={canDelete}
+        onEdit={() => openUpdateInformation(profileRef)}
+      />
     );
   }
 
@@ -536,7 +385,7 @@ function AdminStudentsContent() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-[22px] font-medium tracking-tight font-[family-name:var(--font-lexend)] text-[#0F172A] dark:text-zinc-50">
+        <h1 className="text-[22px] font-bold tracking-tight font-[family-name:var(--font-lexend)] text-[#0F172A] dark:text-zinc-50">
           All students
         </h1>
         <p className="mt-1 text-[13px] text-[#64748B] dark:text-zinc-400">
@@ -748,17 +597,6 @@ function AdminStudentsContent() {
           />
         </CardContent>
       </Card>
-
-      <StudentDialog
-        open={dialogOpen}
-        onOpenChange={(open) => {
-          if (!open) dispatch({ type: 'CLOSE_DIALOG' });
-        }}
-        formData={formData}
-        setFormData={(fd) => dispatch({ type: 'SET_FORM_DATA', payload: fd })}
-        submitting={submitting}
-        onSubmit={handleSubmit}
-      />
     </div>
   );
 }

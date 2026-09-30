@@ -34,7 +34,7 @@ import {
 const CARD =
   "rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xs overflow-hidden";
 const CARD_HEAD =
-  "flex items-start gap-3 px-4 sm:px-5 py-4 bg-slate-50/80 dark:bg-zinc-900/60 border-b border-slate-200/70 dark:border-zinc-800";
+  "flex items-center gap-3 px-5 py-3.5 bg-slate-50/80 dark:bg-zinc-900/60 border-b border-slate-200/70 dark:border-zinc-800";
 const LABEL =
   "block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400";
 const HELPER = "mt-1.5 text-[12px] text-slate-500 dark:text-zinc-400";
@@ -83,6 +83,8 @@ function RuleCard({
   title,
   description,
   rule,
+  schoolCode,
+  academicYear,
   onChange,
 }: {
   icon: typeof Hash;
@@ -90,10 +92,77 @@ function RuleCard({
   title: string;
   description: string;
   rule: IdRuleSettings;
+  schoolCode?: string;
+  academicYear?: string;
   onChange: (patch: Partial<IdRuleSettings>) => void;
 }) {
   const [open, setOpen] = useState(true);
   const live = rule.enabled;
+
+  // Breakdown of tokens in format:
+  const breakdownSegments = useMemo(() => {
+    const rawFormat = rule.format || "{PREFIX}{YEAR}{SEQ}";
+    const tokens = [
+      {
+        token: "{PREFIX}",
+        label: "Prefix",
+        value: rule.prefix || (title.includes("Student") ? "STU" : "ADM"),
+        bg: "bg-emerald-100/70 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300",
+      },
+      {
+        token: "{SCHOOL_CODE}",
+        label: "School Code",
+        value: schoolCode || "DPS",
+        bg: "bg-indigo-100/70 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300",
+      },
+      {
+        token: "{YEAR}",
+        label: "Year",
+        value: String(new Date().getFullYear()),
+        bg: "bg-amber-100/70 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
+      },
+      {
+        token: "{SCHOOL_YEAR}",
+        label: "School Year",
+        value: shortSchoolYear(academicYear) || `${new Date().getFullYear()}-${String(new Date().getFullYear() + 1).slice(2)}`,
+        bg: "bg-amber-100/70 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
+      },
+      {
+        token: "{SEQ}",
+        label: "Number",
+        value: (rule.startFrom ? rule.startFrom.replace(/\D/g, "") : "1").padStart(
+          Math.min(10, Math.max(1, Number(rule.numberLength.replace(/\D/g, "")) || 4)),
+          "0"
+        ),
+        bg: "bg-teal-100/70 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300",
+      },
+    ];
+
+    // Split format into parts
+    const regex = /(\{PREFIX\}|\{SCHOOL_CODE\}|\{YEAR\}|\{SCHOOL_YEAR\}|\{SEQ\}|[-/])/g;
+    const parts: { label?: string; value: string; bg?: string; isToken: boolean }[] = [];
+    let match: RegExpExecArray | null;
+    let lastIndex = 0;
+
+    while ((match = regex.exec(rawFormat)) !== null) {
+      if (match.index > lastIndex) {
+        const text = rawFormat.slice(lastIndex, match.index);
+        if (text) parts.push({ value: text, isToken: false });
+      }
+      const tokenStr = match[0];
+      const found = tokens.find((t) => t.token === tokenStr);
+      if (found) {
+        parts.push({ label: found.label, value: found.value, bg: found.bg, isToken: true });
+      } else {
+        parts.push({ value: tokenStr, isToken: false });
+      }
+      lastIndex = regex.lastIndex;
+    }
+    if (lastIndex < rawFormat.length) {
+      parts.push({ value: rawFormat.slice(lastIndex), isToken: false });
+    }
+    return parts;
+  }, [rule.format, rule.prefix, rule.startFrom, rule.numberLength, schoolCode, academicYear, title]);
 
   return (
     <section className={CARD}>
@@ -121,7 +190,7 @@ function RuleCard({
       </div>
 
       {open && (
-        <div className={`p-4 sm:p-5 space-y-5 transition-opacity ${live ? "" : "opacity-60"}`}>
+        <div className={`px-5 py-4 space-y-4 transition-opacity ${live ? "" : "opacity-60"}`}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Prefix">
               <Input
@@ -212,6 +281,35 @@ function RuleCard({
                 className={FIELD}
               />
             </Field>
+          </div>
+
+          {/* WHAT EACH ID IS MADE OF */}
+          <div className="rounded-xl bg-slate-50/70 dark:bg-zinc-900/50 border border-slate-200/60 dark:border-zinc-800/80 p-4 space-y-3">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+              WHAT EACH ID IS MADE OF
+            </div>
+            <div className="flex flex-wrap items-end gap-2.5">
+              {breakdownSegments.map((seg, idx) =>
+                seg.isToken ? (
+                  <div key={idx} className="flex flex-col items-center">
+                    <span
+                      className={`inline-flex items-center justify-center font-mono font-semibold px-3 py-1.5 rounded-lg text-sm ${seg.bg}`}
+                    >
+                      {seg.value}
+                    </span>
+                    <span className="mt-1.5 text-[11px] text-slate-500 dark:text-zinc-400 font-medium">
+                      {seg.label}
+                    </span>
+                  </div>
+                ) : (
+                  <div key={idx} className="flex flex-col items-center pb-5">
+                    <span className="font-mono text-sm font-semibold text-slate-500 dark:text-zinc-400 px-0.5">
+                      {seg.value}
+                    </span>
+                  </div>
+                )
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -416,6 +514,8 @@ function AdminStudentsSettingsContent() {
         title="Student ID Auto-Generation"
         description="Automatically generate unique student IDs during admission"
         rule={settings.studentId}
+        schoolCode={settings.schoolCode}
+        academicYear={year?.name}
         onChange={patchRule("studentId")}
       />
 
@@ -425,6 +525,8 @@ function AdminStudentsSettingsContent() {
         title="Admission Number Auto-Generation"
         description="Automatically generate unique admission numbers during admission"
         rule={settings.admissionNo}
+        schoolCode={settings.schoolCode}
+        academicYear={year?.name}
         onChange={patchRule("admissionNo")}
       />
 
