@@ -48,6 +48,8 @@ import {
   MoveRight,
   Trash2,
   Upload,
+  ArrowUpCircle,
+  PieChart,
   SlidersHorizontal,
   Plus,
   Lock,
@@ -539,7 +541,8 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
     {
       label: "Data",
       items: [
-        { key: "reports", label: "Reports", icon: <BarChart3 className={iconCls} />, permModule: "reports" },
+        { key: "import", label: "Import", icon: <ArrowUpCircle className={iconCls} />, permModule: "students" },
+        { key: "reports", label: "Reports", icon: <PieChart className={iconCls} />, permModule: "reports" },
       ],
     },
     {
@@ -586,15 +589,15 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
     {
       label: "Overview",
       items: [
-        { key: "attendance-dashboard", label: "Dashboard", icon: <LayoutDashboard className={iconCls} />, disabled: true },
-        { key: "attendance", label: "Class Register", icon: <BookOpen className={iconCls} /> },
+        { key: "attendance-dashboard", label: "Dashboard", icon: <LayoutDashboard className={iconCls} /> },
+        { key: "classes", label: "Class Register", icon: <BookOpen className={iconCls} /> },
       ],
     },
     {
       label: "Marking",
       items: [
-        { key: "attendance-today", label: "Today", icon: <CalendarDays className={iconCls} />, disabled: true },
-        { key: "attendance-past-days", label: "Past Days", icon: <History className={iconCls} />, disabled: true },
+        { key: "today", label: "Today", icon: <CalendarDays className={iconCls} /> },
+        { key: "past-days", label: "Past Days", icon: <History className={iconCls} /> },
       ],
     },
     {

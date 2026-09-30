@@ -52,7 +52,8 @@ describe("qualifyAdminTail", () => {
   });
 
   test("the current module wins when it declares the row", () => {
-    // `reports` is a row of six panels, so no single owner is right; from the
+    // `reports` is a row of five panels (Students dropped its borrowed one on
+    // 2026-09-30), so no single owner is right; from the
     // module you are standing in, the answer is unambiguous.
     expect(qualifyAdminTail("reports", "money-book")).toBe("money-book/reports");
     expect(qualifyAdminTail("reports", "student-fees")).toBe("student-fees/reports");

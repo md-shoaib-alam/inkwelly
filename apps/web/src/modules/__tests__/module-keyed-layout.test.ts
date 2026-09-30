@@ -1,7 +1,7 @@
 import { test, expect, describe } from "bun:test";
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { adminPanelSections } from "@/components/layout/sidebar/module-nav-config";
+import { adminPanelSections, type ModuleNavSection } from "../../components/layout/sidebar/module-nav-config";
 
 const MOD_ROOT = resolve(import.meta.dir, "..");
 
@@ -17,7 +17,7 @@ function rowHasScreen(module: string, row: string): boolean {
  * moves these numbers without any edit here, which is the point.
  */
 const LIVE_ROWS_PANES: [string, string][] = Object.entries(adminPanelSections).flatMap(
-  ([module, sections]) =>
+  ([module, sections]: [string, ModuleNavSection[]]) =>
     sections.flatMap((s) => s.items).filter((i) => !i.disabled).map((i) => [module, i.key] as [string, string]),
 );
 const FOLDERED = LIVE_ROWS_PANES.filter(([m, r]) => rowHasScreen(m, r)).map(([m, r]) => `${m}/${r}`).sort();
@@ -37,7 +37,7 @@ describe("iam", () => {
 
 describe("students", () => {
   test("every students row lives under modules/students/", () => {
-    for (const row of ["students", "promotion", "graduated", "classes", "students-dashboard", "class-change", "student-trash", "admissions", "bulk-update", "settings"]) {
+    for (const row of ["students", "promotion", "graduated", "classes", "students-dashboard", "class-change", "student-trash", "admissions", "bulk-update", "settings", "import", "reports"]) {
       expect(rowHasScreen("students", row)).toBe(true);
     }
   });
@@ -53,7 +53,9 @@ describe("employees", () => {
 
 describe("attendance and leaves", () => {
   test("each row lives under its own sidebar module", () => {
-    expect(rowHasScreen("student-attendance", "attendance")).toBe(true);
+    expect(rowHasScreen("student-attendance", "classes")).toBe(true);
+    expect(rowHasScreen("student-attendance", "today")).toBe(true);
+    expect(rowHasScreen("student-attendance", "past-days")).toBe(true);
     expect(rowHasScreen("employee-attendance", "teacher-attendance")).toBe(true);
     expect(rowHasScreen("employee-attendance", "staff-attendance")).toBe(true);
     for (const row of ["student-leaves", "teacher-leaves", "staff-leaves"]) {
@@ -127,8 +129,10 @@ const LIVE_ROWS: [string, string][] = [
   // bulk-promote left the roster on 2026-09-30: the Promotion screen absorbed its function.
   ["students", "students-dashboard"], ["students", "class-change"], ["students", "student-trash"],
   ["students", "admissions"], ["students", "bulk-update"], ["students", "settings"],
+  ["students", "import"], ["students", "reports"],
   ["employees", "teachers"], ["employees", "staff"], ["employees", "parents"],
-  ["student-attendance", "attendance"],
+  ["student-attendance", "classes"], ["student-attendance", "attendance-dashboard"],
+  ["student-attendance", "today"], ["student-attendance", "past-days"],
   ["employee-attendance", "teacher-attendance"], ["employee-attendance", "staff-attendance"],
   ["student-fees", "fees"], ["student-fees", "reports"],
   ["examinations", "exams"], ["examinations", "results-entry"],
@@ -139,9 +143,9 @@ const LIVE_ROWS: [string, string][] = [
 ];
 
 describe("the module-keyed convention", () => {
-  test("37 of the 58 live rows have their own folder", () => {
-    expect(LIVE_ROWS_PANES.length).toBe(58);
-    expect(FOLDERED.length).toBe(37);
+  test("42 of the 62 live rows have their own folder", () => {
+    expect(LIVE_ROWS_PANES.length).toBe(62);
+    expect(FOLDERED.length).toBe(42);
     for (const [module, row] of LIVE_ROWS) expect(rowHasScreen(module, row)).toBe(true);
     // LIVE_ROWS is the foldered set plus the two folders named after a retired key:
     // students/students (the bare root's alias, next to the panel row's own `list`) and
@@ -153,7 +157,7 @@ describe("the module-keyed convention", () => {
     expect(FOLDERED.filter((k) => !listed.includes(k))).toEqual([]);
   });
 
-  test("the other 21 of the 58 live rows share a folder or await routing Task 3", () => {
+  test("the other 20 of the 62 live rows share a folder or await routing Task 3", () => {
     const EXPECTED_UNFOLDERED = [
       // Collapsed onto a sibling folder in the same module, because their cases are stacked
       // fall-throughs with identical props (9): fee-categories, fee-concessions,
@@ -167,22 +171,22 @@ describe("the module-keyed convention", () => {
       // students/list is the class roster and academics/session the academic-years screen.
       "academics/session", "students/list",
       // Deferred to routing Task 3. Each is a live row whose bare dispatcher key is shared with a
-      // sibling module's row (reports x6 modules, classes x2, student-leaves x2, staff-leaves x2,
+      // sibling module's row (reports x5 modules, classes x3, student-leaves x2, staff-leaves x2,
       // staff x2), and componentKey() returns the bare key, so no per-module case can reach a
       // folder for it yet. Creating one now is a file nothing imports. `students/classes` left
       // this list with the class roster: it is the one row with an entry in COMPONENT_OVERRIDES,
       // so its case key is its own rather than the shared `classes`.
       "employee-attendance/reports", "employee-attendance/staff", "employee-attendance/staff-leaves",
       "employees/reports", "money-book/reports", "student-attendance/reports",
-      "student-attendance/student-leaves", "student-fees/classes", "students/reports",
+      "student-attendance/student-leaves", "student-fees/classes",
       // The row that moved panels but not folders: calendar left Academics when Events became a
       // rail module, while its screen stayed at modules/academics/calendar/.
       "events/calendar",
     ];
     expect(UNFOLDERED).toEqual([...EXPECTED_UNFOLDERED].sort());
 
-    // 37 folders + 9 collapses + 2 override-named + 9 deferrals + 1 moved panel = 58 live rows.
-    expect(37 + 9 + 2 + 9 + 1).toBe(UNFOLDERED.length + FOLDERED.length);
+    // 42 folders + 9 collapses + 2 override-named + 8 deferrals + 1 moved panel = 62 live rows.
+    expect(42 + 9 + 2 + 8 + 1).toBe(UNFOLDERED.length + FOLDERED.length);
   });
 
   test("no admin screen is still filed by domain", () => {

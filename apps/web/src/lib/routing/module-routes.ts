@@ -85,6 +85,11 @@ export function parseRoute(pathname: string, ctx: RouteContext): RouteParts {
  */
 export const COMPONENT_OVERRIDES: Record<string, string> = {
   "students/classes": "class-roster",
+  // `classes` is a bare key three modules share, so without this the register's own
+  // qualified key would switch on Academics' case. The case key stays `attendance`,
+  // which is also what the staff, teacher and parent trees still call this screen.
+  "student-attendance/classes": "attendance",
+  "students/reports": "student-reports",
 };
 
 export function componentKey(module: string | null, screen: string): string {

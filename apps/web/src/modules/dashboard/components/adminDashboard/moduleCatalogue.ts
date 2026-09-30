@@ -147,7 +147,7 @@ export const moduleCatalogue: ModuleCard[] = [
 
   { id: "employees", title: "Employees", subtitle: "Staff directory", icon: Briefcase, tint: "violet", screen: "staff", permModule: "staff", inRail: true },
   { id: "leaves", title: "Leaves", subtitle: "Apply & approve", icon: CalendarDays, tint: "teal", screen: "leaves", permModule: "leaves", inRail: true },
-  { id: "student-attendance", title: "Students Attendance", subtitle: "Daily attendance", icon: CalendarCheck, tint: "amber", screen: "attendance", permModule: "attendance", inRail: true },
+  { id: "student-attendance", title: "Students Attendance", subtitle: "Daily attendance", icon: CalendarCheck, tint: "amber", screen: "attendance-dashboard", permModule: "attendance", inRail: true },
   { id: "employee-attendance", title: "Employees Attendance", subtitle: "Staff attendance", icon: IdCard, tint: "blue", screen: "staff-attendance", permModule: "attendance", inRail: true },
 
   { id: "money-book", title: "Money Book", subtitle: "Income & expenses", icon: Wallet, tint: "green", screen: "expenses", permModule: "expenses", inRail: true },

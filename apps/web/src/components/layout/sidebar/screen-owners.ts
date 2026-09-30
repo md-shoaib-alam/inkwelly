@@ -33,7 +33,7 @@ export const adminModuleIds = new Set(buildAdminRail().map((item) => item.key));
 /**
  * `screen -> module`, for the cards that name exactly one owning module.
  *
- * Skipped on purpose: `parent: "shared"` (Reports is a row of six panels, so naming
+ * Skipped on purpose: `parent: "shared"` (Reports is a row of five panels, so naming
  * one owner would pick arbitrarily) and a card with `screen: null` (nothing routes,
  * so there is nothing to canonicalise).
  */
@@ -67,7 +67,7 @@ const adminOwners = { ...adminScreenOwners, ...adminLandingOwners };
  * panel declares it.
  *
  * `currentModule` is the module the admin is standing in, and it wins: `reports` is
- * a row of six panels, so from Money Book the answer is Money Book's Reports.
+ * a row of five panels, so from Money Book the answer is Money Book's Reports.
  */
 function adminOwnerOf(screen: string, currentModule: string | null): string | null {
   // A module root keeps the URL it has always had: `/slug/students` is the Students

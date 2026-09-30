@@ -43,7 +43,10 @@ const AdminTeachers = dynamic(() => import('@/modules/employees/teachers').then(
 const AdminParents = dynamic(() => import('@/modules/employees/parents').then(m => m.AdminParents), { loading: LoadingScreen });
 const AdminClasses = dynamic(() => import('@/modules/academics/classes').then(m => m.AdminClasses), { loading: LoadingScreen });
 const AdminSubjects = dynamic(() => import('@/modules/academics/subjects').then(m => m.AdminSubjects), { loading: LoadingScreen });
-const AdminAttendance = dynamic(() => import('@/modules/student-attendance/attendance').then(m => m.AdminAttendance), { loading: LoadingScreen });
+const AdminAttendance = dynamic(() => import('@/modules/student-attendance/classes').then(m => m.AdminAttendance), { loading: LoadingScreen });
+const AdminAttendanceDashboard = dynamic(() => import('@/modules/student-attendance/attendance-dashboard').then(m => m.AdminAttendanceDashboard), { loading: LoadingScreen });
+const AdminAttendanceToday = dynamic(() => import('@/modules/student-attendance/today').then(m => m.AdminAttendanceToday), { loading: LoadingScreen });
+const AdminAttendancePastDays = dynamic(() => import('@/modules/student-attendance/past-days').then(m => m.AdminAttendancePastDays), { loading: LoadingScreen });
 const AdminFees = dynamic(() => import('@/modules/student-fees/fees').then(m => m.AdminFees), { loading: LoadingScreen });
 const AdminNotices = dynamic(() => import('@/modules/communication/components/AdminNotices').then(m => m.AdminNotices), { loading: LoadingScreen });
 const AdminTimetable = dynamic(() => import('@/modules/academics/timetable').then(m => m.AdminTimetable), { loading: LoadingScreen });
@@ -78,6 +81,8 @@ const AdminClassChange = dynamic(() => import('@/modules/students/class-change')
 const AdminStudentTrash = dynamic(() => import('@/modules/students/student-trash').then(m => m.AdminStudentTrash), { loading: LoadingScreen });
 const AdminAdmissions = dynamic(() => import('@/modules/students/admissions').then(m => m.AdminAdmissions), { loading: LoadingScreen });
 const AdminBulkUpdate = dynamic(() => import('@/modules/students/bulk-update').then(m => m.AdminBulkUpdate), { loading: LoadingScreen });
+const AdminStudentImport = dynamic(() => import('@/modules/students/import').then(m => m.AdminStudentImport), { loading: LoadingScreen });
+const AdminStudentReports = dynamic(() => import('@/modules/students/reports').then(m => m.AdminStudentReports), { loading: LoadingScreen });
 const AdminStudentsSettings = dynamic(() => import('@/modules/students/settings').then(m => m.AdminStudentsSettings), { loading: LoadingScreen });
 const ExpensesScreen = dynamic(() => import('@/modules/money-book/expenses').then(m => m.ExpensesScreen), { loading: LoadingScreen });
 const AdminSubscription = dynamic(() => import('@/modules/tenancy/components/AdminSubscription').then(m => m.SchoolSubscriptionScreen), { loading: LoadingScreen });
@@ -143,6 +148,8 @@ const STAFF_EXTRA_PERMISSIONS: Record<string, string> = {
   'admissions': 'students',
   // Bulk update edits the same roster, so it borrows the same grant.
   'bulk-update': 'students',
+  'student-import': 'students',
+  'import': 'students',
 };
 
 /**
@@ -179,6 +186,7 @@ const STAFF_FORBIDDEN_SCREENS = new Set([
   'settings',
   'academics-dashboard',
   'students-dashboard',
+  'attendance-dashboard',
   'ai-connect',
 ]);
 
@@ -376,6 +384,9 @@ export default function TenantScreenDispatcherClient() {
       case 'student-trash': return <AdminStudentTrash />;
       case 'admissions': return <AdminAdmissions />;
       case 'bulk-update': return <AdminBulkUpdate />;
+      case 'import':
+      case 'student-import': return <AdminStudentImport />;
+      case 'student-reports': return <AdminStudentReports />;
       // The Students panel's own Settings row. `settings` is also the super-admin
       // platform screen, but that lives at `/slug/settings` in the one-segment
       // dispatcher, so the two spellings never reach the same switch.
@@ -386,6 +397,9 @@ export default function TenantScreenDispatcherClient() {
       case 'class-roster': return <ClassRoster />;
       case 'subjects': return <AdminSubjects />;
       case 'attendance': return <AdminAttendance />;
+      case 'attendance-dashboard': return <AdminAttendanceDashboard />;
+      case 'today': return <AdminAttendanceToday />;
+      case 'past-days': return <AdminAttendancePastDays />;
       case 'fees':
       case 'fee-categories':
       case 'fee-concessions':

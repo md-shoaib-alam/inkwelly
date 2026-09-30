@@ -28,7 +28,7 @@ describe("admin screen owners", () => {
   });
 
   test("shared and unbuilt parents contribute nothing", () => {
-    // Reports is a row of six panels, so naming one owner would be a coin flip. Tests and
+    // Reports is a row of five panels, so naming one owner would be a coin flip. Tests and
     // Homework have `screen: null`, so there is no route to canonicalise.
     expect(adminScreenOwners["reports"]).toBeUndefined();
     expect(adminScreenOwners["assessments"]).toBeUndefined();

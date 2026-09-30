@@ -40,14 +40,21 @@ function resolvesToAFile(specifier: string): boolean {
 // 83/70 the same day for `certificates`, whose screen was taken out of the Students panel.
 // 83/70 -> 84/71 on 2026-09-30 for `settings`, the Students panel's own Settings screen —
 // which is a new specifier and a new key, not a reuse of `school-settings`.
+// 84/71 -> 85/72 on 2026-09-30 for `attendance-dashboard`, the Students Attendance panel's
+// command center — its own specifier and its own key, next to the register's `attendance`.
+// 85/72 -> 87/74 the same day: the register's row key became `classes` (an override onto the
+// existing `attendance` case, so no key moved) while `today` and `past-days` each gained a
+// specifier and a key of their own.
+// 85/72 -> 87/74 on 2026-09-30 for `today` and `past-days`, the Students Attendance panel's
+// daily and past-days marking screens.
 // Changing one of these numbers
 // must be a deliberate act in a task step, never a side effect of a rewrite.
 const REGISTRIES = [
   {
     name: "tenant-screen-dispatcher",
     path: "src/app/(authenticated)/[slug]/[...segments]/tenant-screen-dispatcher.tsx",
-    specifiers: 84,
-    keys: 71,
+    specifiers: 89,
+    keys: 77,
   },
   {
     name: "generic-slug-dispatcher",
