@@ -1,19 +1,5 @@
-import { ClassInfo, AttendanceRecord, GradeRecord, FeeRecord } from "@/lib/types";
+import { ClassInfo, GradeRecord, FeeRecord } from "@/lib/types";
 import { ChartConfig } from "@/components/ui/chart";
-
-export interface AttendanceSummary {
-  present: number;
-  absent: number;
-  total: number;
-  presentPct: string;
-  absentPct: string;
-}
-
-export interface DailyAttendance {
-  date: string;
-  present: number;
-  absent: number;
-}
 
 export interface SubjectAverage {
   subject: string;
@@ -34,11 +20,6 @@ export interface FeeTypeBreakdown {
   collected: number;
   pending: number;
 }
-
-export const attendanceChartConfig = {
-  present: { label: "Present", color: "#10b981" },
-  absent: { label: "Absent", color: "#ef4444" },
-} satisfies ChartConfig;
 
 export const gradeChartConfig = {
   count: { label: "Students", color: "#8b5cf6" },

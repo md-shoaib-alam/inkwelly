@@ -2,10 +2,9 @@
 
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart3, GraduationCap, IndianRupee, TrendingUp } from "lucide-react";
+import { BarChart3, GraduationCap, IndianRupee } from "lucide-react";
 
 // Sub-components
-import { AttendanceReport } from "./adminReports/AttendanceReport";
 import { AcademicReport } from "./adminReports/AcademicReport";
 import { FeeReport } from "./adminReports/FeeReport";
 
@@ -30,15 +29,15 @@ export function AdminReports() {
       </div>
 
       {/* Main Tabs */}
-      <Tabs defaultValue="attendance" className="space-y-6">
+      <Tabs defaultValue="fees" className="space-y-6">
         <div className="overflow-x-auto pb-1">
           <TabsList className="bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl h-auto flex-nowrap w-fit">
             <TabsTrigger
-              value="attendance"
+              value="fees"
               className="rounded-lg px-6 py-2.5 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-950 data-[state=active]:text-emerald-600 data-[state=active]:shadow-sm transition-all"
             >
-              <TrendingUp className="size-4 mr-2" />
-              Attendance
+              <IndianRupee className="size-4 mr-2" />
+              Finances
             </TabsTrigger>
             <TabsTrigger
               value="academic"
@@ -47,26 +46,15 @@ export function AdminReports() {
               <GraduationCap className="size-4 mr-2" />
               Academic
             </TabsTrigger>
-            <TabsTrigger
-              value="fees"
-              className="rounded-lg px-6 py-2.5 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-950 data-[state=active]:text-emerald-600 data-[state=active]:shadow-sm transition-all"
-            >
-              <IndianRupee className="size-4 mr-2" />
-              Finances
-            </TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="attendance" className="space-y-6 outline-none">
-          <AttendanceReport />
+        <TabsContent value="fees" className="space-y-6 outline-none">
+          <FeeReport />
         </TabsContent>
 
         <TabsContent value="academic" className="space-y-6 outline-none">
           <AcademicReport />
-        </TabsContent>
-
-        <TabsContent value="fees" className="space-y-6 outline-none">
-          <FeeReport />
         </TabsContent>
       </Tabs>
     </div>

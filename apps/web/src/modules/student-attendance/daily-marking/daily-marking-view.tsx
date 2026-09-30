@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { format, subDays } from "date-fns";
 import {
   Calendar as CalendarIcon,
@@ -15,9 +16,17 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
+import { useAppStore } from "@/store/use-app-store";
+import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";
+import { useAttendanceCommandCenter } from "../hooks/use-attendance-command-center";
+import { ClassDailyAttendanceView } from "./class-daily-attendance-view";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
+
+function buildClassSlug(name: string, section: string): string {
+  return `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${section.toLowerCase().trim()}`;
+}
 
 export type DailyMarkingMode = "today" | "past-days";
 
@@ -25,6 +34,8 @@ export type ClassAttendanceStatus = "pending" | "marked" | "partial" | "off-day"
 
 export interface ClassAttendanceRow {
   id: string;
+  /** DB slug (e.g. "class-1st-a") – used for URL matching and navigation */
+  slug?: string;
   name: string;
   section: string;
   totalStudents: number;
@@ -53,8 +64,30 @@ const DEFAULT_MOCK_CLASSES: ClassAttendanceRow[] = [
 ];
 
 export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const tenantHref = useTenantHref();
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const { currentTenantId } = useAppStore();
+  const { yearSlug } = useActiveAcademicYear();
+  const { data: commandCenter } = useAttendanceCommandCenter(currentTenantId, yearSlug);
+
+  const markingMap = useMemo(() => {
+    const byId = new Map<string, any>();
+    const byName = new Map<string, any>();
+    if (commandCenter?.marking) {
+      for (const m of commandCenter.marking) {
+        if (m.classId) byId.set(m.classId, m);
+        if (m.label) {
+          byName.set(m.label.toLowerCase().trim(), m);
+          byName.set(m.label.toLowerCase().replace(/[^a-z0-9]+/g, "-"), m);
+        }
+      }
+    }
+    return { byId, byName };
+  }, [commandCenter]);
 
   // Date selection: today defaults to current date; past-days defaults to yesterday
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
@@ -90,22 +123,121 @@ export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Merge server classes with default mock classes to ensure rich display
+  // Check if a class is active in the URL or query:
+  // e.g. /student-attendance/today/class-1st-a or ?classSlug=... or ?classId=...
+  const activeClassSlug = useMemo(() => {
+    const regex = new RegExp(`students?-attendance\/${mode}\/([^\/\\?]+)`);
+    const m = pathname ? pathname.match(regex) : null;
+    const raw = m?.[1] ? decodeURIComponent(m[1]) : searchParams?.get("classSlug") || searchParams?.get("classId");
+    return raw || null;
+  }, [pathname, searchParams, mode]);
+
+  // Merge server classes with default mock classes and command center status
   const rows: ClassAttendanceRow[] = useMemo(() => {
-    if (serverClasses && serverClasses.length > 0) {
-      return serverClasses.map((cls: any, idx: number) => {
-        const defaultMock = DEFAULT_MOCK_CLASSES[idx % DEFAULT_MOCK_CLASSES.length];
-        return {
-          id: cls.id,
-          name: cls.name || `Class ${idx + 1}`,
-          section: cls.section || "A",
-          totalStudents: cls.studentCount || cls.capacity || defaultMock.totalStudents || 25,
-          status: "pending" as ClassAttendanceStatus,
-        };
-      });
-    }
-    return DEFAULT_MOCK_CLASSES;
-  }, [serverClasses]);
+    const sourceClasses =
+      serverClasses && serverClasses.length > 0
+        ? serverClasses.map((cls: any, idx: number) => {
+            const defaultMock = DEFAULT_MOCK_CLASSES[idx % DEFAULT_MOCK_CLASSES.length];
+            return {
+              id: cls.id,
+              slug: cls.slug as string | undefined,
+              name: cls.name || `Class ${idx + 1}`,
+              section: cls.section || "A",
+              totalStudents: cls.studentCount || cls.capacity || defaultMock.totalStudents || 25,
+            };
+          })
+        : DEFAULT_MOCK_CLASSES;
+
+    return sourceClasses.map((cls: any) => {
+      const title = `${cls.name} - ${cls.section}`.toLowerCase().trim();
+      const slugTitle = `${cls.name}-${cls.section}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const m =
+        markingMap.byId.get(cls.id) ||
+        markingMap.byName.get(title) ||
+        markingMap.byName.get(slugTitle) ||
+        markingMap.byName.get(cls.name.toLowerCase().trim());
+
+      let status: ClassAttendanceStatus = "pending";
+      let present: number | undefined;
+      let absent: number | undefined;
+      let unmarked: number | undefined;
+      let rate: number | undefined;
+      let markedBy: string | undefined;
+
+      if (m && m.marked) {
+        status = m.studentsMarked >= cls.totalStudents ? "marked" : "partial";
+        present = m.present;
+        absent = m.absent;
+        unmarked = Math.max(0, cls.totalStudents - m.studentsMarked);
+        rate = m.rate;
+        markedBy = m.teacherName || undefined;
+      }
+
+      return {
+        id: cls.id,
+        slug: cls.slug,
+        name: cls.name,
+        section: cls.section,
+        totalStudents: cls.totalStudents,
+        status,
+        present,
+        absent,
+        unmarked,
+        rate,
+        markedBy,
+      };
+    });
+  }, [serverClasses, markingMap]);
+
+  // Match active class row – use the real DB id so attendance API calls work
+  const activeClassRow = useMemo(() => {
+    if (!activeClassSlug) return null;
+    const target = activeClassSlug.toLowerCase().trim();
+    // 1. Match by DB slug field (most reliable)
+    const byDbSlug = rows.find((r) => r.slug?.toLowerCase() === target);
+    if (byDbSlug) return byDbSlug;
+    // 2. Match by derived slug from name+section
+    const bySlug = rows.find((r) => buildClassSlug(r.name, r.section) === target);
+    if (bySlug) return bySlug;
+    // 3. Match by raw id
+    const byId = rows.find((r) => r.id === target);
+    if (byId) return byId;
+    // 4. Match by name-section joined slug variant
+    const byName = rows.find(
+      (r) => `${r.name}-${r.section}`.toLowerCase().replace(/[^a-z0-9]+/g, "-") === target
+    );
+    if (byName) return byName;
+    // 5. Fallback: create a placeholder row.
+    // id stays as the URL slug so ClassDailyAttendanceView can show seed data
+    // without hitting the real API (its guard checks UUID format).
+    return {
+      id: target,
+      slug: target,
+      name: target
+        .replace(/-([a-z])$/i, "")
+        .split("-")
+        .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+        .join(" ") || target,
+      section: target.split("-").slice(-1)[0]?.toUpperCase() || "A",
+      totalStudents: 25,
+      status: "pending" as ClassAttendanceStatus,
+    };
+  }, [activeClassSlug, rows]);
+
+  // If a class is selected, show ClassDailyAttendanceView (matching Images 2 & 3)
+  if (activeClassRow) {
+    return (
+      <ClassDailyAttendanceView
+        classId={activeClassRow.id}
+        className={activeClassRow.name}
+        section={activeClassRow.section}
+        selectedDate={selectedDate}
+        onBack={() => {
+          router.push(tenantHref(`student-attendance/${mode}`));
+        }}
+      />
+    );
+  }
 
   // Tab counts
   const counts = useMemo(() => {
@@ -465,17 +597,19 @@ export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
                 </tr>
               ) : (
                 filteredRows.map((row) => {
-                  const targetHref = `${tenantHref("student-attendance/classes")}?classId=${encodeURIComponent(
-                    row.id
-                  )}&date=${dateStr}`;
+                  const classSlug = buildClassSlug(row.name, row.section);
+                  const targetHref = `${tenantHref(`student-attendance/${mode}/${classSlug}`)}${
+                    mode === "past-days" ? `?date=${dateStr}` : ""
+                  }`;
 
                   return (
                     <tr
                       key={row.id}
-                      className="hover:bg-slate-50/50 dark:hover:bg-zinc-900/30 transition-colors"
+                      onClick={() => router.push(targetHref)}
+                      className="hover:bg-slate-50/50 dark:hover:bg-zinc-900/30 transition-colors cursor-pointer group"
                     >
                       {/* Class */}
-                      <td className="py-2.5 px-4 whitespace-nowrap text-[13px] font-medium text-slate-900 dark:text-zinc-100">
+                      <td className="py-2.5 px-4 whitespace-nowrap text-[13px] font-medium text-slate-900 dark:text-zinc-100 group-hover:text-[#0D9488] transition-colors">
                         {row.name} - {row.section}
                       </td>
 
@@ -555,21 +689,29 @@ export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
                       {/* Action */}
                       <td className="py-2.5 px-4 whitespace-nowrap text-right">
                         {row.status === "marked" ? (
-                          <a
-                            href={targetHref}
-                            className="inline-flex items-center gap-1 rounded-md border border-slate-200/90 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-1 text-[11.5px] font-medium text-slate-700 dark:text-zinc-200 shadow-sm hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(targetHref);
+                            }}
+                            className="inline-flex items-center gap-1 rounded-md border border-slate-200/90 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-1 text-[11.5px] font-medium text-slate-700 dark:text-zinc-200 shadow-sm hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                           >
                             <span>View</span>
                             <ArrowRight className="size-3" />
-                          </a>
+                          </button>
                         ) : (
-                          <a
-                            href={targetHref}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(targetHref);
+                            }}
                             className="inline-flex items-center gap-1 rounded-md bg-[#0D9488] hover:bg-[#0F766E] text-white px-3 py-1 text-[11.5px] font-semibold shadow-sm transition-colors cursor-pointer"
                           >
                             <span>Mark</span>
                             <ArrowRight className="size-3" />
-                          </a>
+                          </button>
                         )}
                       </td>
                     </tr>
