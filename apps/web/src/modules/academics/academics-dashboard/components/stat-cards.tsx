@@ -2,39 +2,12 @@
 
 import { BookOpen, School, Scale, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { AcademicsStage, AcademicsStats } from "../../hooks/use-academics-command-center";
+import type { AcademicsStats } from "../../hooks/use-academics-command-center";
 
 /**
  * The reference draws a trend sparkline in each tile. Nothing in this schema records a
- * class, teacher or subject count per session, so a trend would be invented; each tile
- * carries a composition bar built from the rows that do exist instead.
+ * class, teacher or subject count per session, so a trend would be invented.
  */
-
-const STAGE_TINT: Record<string, string> = {
-  foundational: "#0D9488",
-  preparatory: "#8B5CF6",
-  middle: "#F59E0B",
-  secondary: "#0EA5E9",
-  unclassified: "#94A3B8",
-};
-
-function CompositionBar({ segments }: { segments: { value: number; color: string; label: string }[] }) {
-  const total = segments.reduce((sum, s) => sum + s.value, 0);
-  if (total <= 0) return <div className="h-1.5 rounded-full bg-slate-100 dark:bg-zinc-800" />;
-  return (
-    <div className="flex h-1.5 w-full gap-0.5 overflow-hidden rounded-full">
-      {segments
-        .filter((s) => s.value > 0)
-        .map((s) => (
-          <div
-            key={s.label}
-            title={`${s.label}: ${s.value}`}
-            style={{ width: `${(s.value / total) * 100}%`, backgroundColor: s.color }}
-          />
-        ))}
-    </div>
-  );
-}
 
 function Tile({
   icon: Icon,
@@ -42,14 +15,12 @@ function Tile({
   tint,
   value,
   caption,
-  children,
 }: {
   icon: typeof School;
   label: string;
   tint: string;
   value: number;
   caption: string;
-  children: React.ReactNode;
 }) {
   return (
     <div className="rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] shadow-2xs overflow-hidden">
@@ -62,7 +33,6 @@ function Tile({
           {value.toLocaleString()}
         </p>
         <p className="mt-1.5 text-[11px] text-slate-400 dark:text-zinc-500 truncate">{caption}</p>
-        <div className="mt-3">{children}</div>
       </div>
     </div>
   );
@@ -118,11 +88,9 @@ function RatioGauge({ label, band, students, teachers }: { label: string; band: 
 
 export function StatCards({
   stats,
-  stages,
   loading,
 }: {
   stats: AcademicsStats | undefined;
-  stages: AcademicsStage[];
   loading: boolean;
 }) {
   if (loading || !stats) {
@@ -132,18 +100,12 @@ export function StatCards({
           <div key={i} className="rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] p-4">
             <Skeleton className="h-4 w-24 rounded-md" />
             <Skeleton className="mt-4 h-8 w-16 rounded-md" />
-            <Skeleton className="mt-4 h-1.5 w-full rounded-full" />
+            <Skeleton className="mt-4 h-3 w-full rounded-md" />
           </div>
         ))}
       </div>
     );
   }
-
-  const stageSegments = stages.map((s) => ({
-    value: s.classes,
-    color: STAGE_TINT[s.key] ?? "#94A3B8",
-    label: s.label,
-  }));
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
@@ -153,9 +115,7 @@ export function StatCards({
         tint="text-teal-600 dark:text-teal-400"
         value={stats.classes}
         caption={`${stats.grades} grade level${stats.grades === 1 ? "" : "s"}`}
-      >
-        <CompositionBar segments={stageSegments} />
-      </Tile>
+      />
 
       <Tile
         icon={Users}
@@ -163,14 +123,7 @@ export function StatCards({
         tint="text-violet-600 dark:text-violet-400"
         value={stats.teachers}
         caption={`${stats.taught.toLocaleString()} of ${stats.offerings.toLocaleString()} offerings assigned`}
-      >
-        <CompositionBar
-          segments={[
-            { value: stats.taught, color: "#8B5CF6", label: "Assigned" },
-            { value: Math.max(stats.offerings - stats.taught, 0), color: "#E2E8F0", label: "Unassigned" },
-          ]}
-        />
-      </Tile>
+      />
 
       <Tile
         icon={BookOpen}
@@ -178,14 +131,7 @@ export function StatCards({
         tint="text-amber-600 dark:text-amber-400"
         value={stats.subjects}
         caption={`${stats.offerings.toLocaleString()} offerings · ${stats.classesWithOfferings}/${stats.classes} classes covered`}
-      >
-        <CompositionBar
-          segments={[
-            { value: stats.classesWithOfferings, color: "#F59E0B", label: "Classes with offerings" },
-            { value: Math.max(stats.classes - stats.classesWithOfferings, 0), color: "#E2E8F0", label: "Classes without" },
-          ]}
-        />
-      </Tile>
+      />
 
       <div className="rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-[#0D1526] shadow-2xs overflow-hidden">
         <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-100 dark:border-zinc-800/80">

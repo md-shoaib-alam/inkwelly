@@ -303,7 +303,7 @@ export function AdminClasses() {
       )}
 
       <ClassFormDialog
-        key={formSession}
+        key={`class-form-${formSession}`}
         open={formOpen}
         onOpenChange={setFormOpen}
         initial={formTarget}
@@ -312,7 +312,7 @@ export function AdminClasses() {
       />
 
       <ClassTeachersDialog
-        key={teachersSession}
+        key={`class-teachers-${teachersSession}`}
         open={!!teachersTarget}
         onOpenChange={(open) => { if (!open) setTeachersTarget(null); }}
         cls={teachersTarget}

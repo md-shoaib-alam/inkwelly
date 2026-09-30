@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { 
   Calendar, 
   Plus, 
-  Trash2, 
   Pencil, 
   CheckCircle2, 
   Activity,
@@ -66,7 +65,6 @@ export function AcademicYearsScreen() {
     isLoading, 
     createAcademicYear, 
     updateAcademicYear, 
-    deleteAcademicYear, 
     setCurrentAcademicYear,
     isCreating,
     isUpdating,
@@ -139,22 +137,6 @@ export function AcademicYearsScreen() {
         return;
       }
       toast.error("Failed to save academic year");
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    const target = academicYears.find((y: any) => y.id === id);
-    if (target?.isCurrent) {
-      toast.error("The current academic session cannot be deleted");
-      return;
-    }
-    if (confirm("Are you sure you want to delete this academic year?")) {
-      try {
-        await deleteAcademicYear(id);
-        toast.success("Academic year deleted");
-      } catch (error) {
-        toast.error("Failed to delete academic year");
-      }
     }
   };
 
@@ -564,21 +546,6 @@ export function AcademicYearsScreen() {
                             className="size-7 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center justify-center transition-colors cursor-pointer"
                           >
                             <Pencil className="size-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            disabled={isCurrent}
-                            onClick={() => !isCurrent && handleDelete(year.id)}
-                            title={isCurrent ? "Current session cannot be deleted" : `Delete ${year.name}`}
-                            aria-label={isCurrent ? "Current session cannot be deleted" : `Delete ${year.name}`}
-                            className={cn(
-                              "size-7 rounded-lg flex items-center justify-center transition-colors",
-                              isCurrent
-                                ? "text-slate-300 dark:text-zinc-700 cursor-not-allowed opacity-40"
-                                : "text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 cursor-pointer"
-                            )}
-                          >
-                            <Trash2 className="size-3.5" />
                           </button>
                         </div>
                       </td>

@@ -47,7 +47,7 @@ export function AdminAcademicsDashboard() {
         </div>
       )}
 
-      <StatCards stats={stats} stages={data?.stages ?? []} loading={isLoading} />
+      <StatCards stats={stats} loading={isLoading} />
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
         <ReadinessCard
