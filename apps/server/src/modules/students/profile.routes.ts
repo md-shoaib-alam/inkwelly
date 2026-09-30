@@ -6,6 +6,8 @@ import { requireAuth } from '../../lib/auth';
 import { requirePermission } from '../../lib/permissions';
 import { captureError } from '../../lib/monitoring/posthog';
 import { dataCache } from '../../lib/cache';
+import { generatePdfFromHtml } from '../../lib/pdf/playwright-pdf';
+import { buildAdmissionFormHtml } from '../../lib/pdf/admission-form-html';
 import Elysia from 'elysia';
 
 /**
@@ -191,6 +193,21 @@ export const guardiansOf = (r: StudentRow) => {
   ].filter((g): g is NonNullable<typeof g> => !!g);
 };
 
+/**
+ * The guardian the school actually writes to. `isPrimary` is the only signal the flat
+ * model carries and it comes from the parent's own login name, so a student whose
+ * parent never got an account has no primary contact rather than a guessed one.
+ */
+const primaryContactOf = (r: StudentRow) => {
+  const guardian = guardiansOf(r).find((g) => g.isPrimary);
+  if (!guardian) return null;
+  return {
+    name: guardian.name,
+    relation: guardian.relation === 'father' ? 'Father' : 'Mother',
+    mobile: guardian.mobile,
+  };
+};
+
 const siblingsOf = async (r: StudentRow, tenantId: string) => {
   if (!r.parentId) return [];
   const rows = await db
@@ -237,11 +254,34 @@ const headerOf = (r: StudentRow) => ({
   joiningDate: r.joiningDate,
 });
 
+/**
+ * Placement and the session list describe the same seat, so both must answer with one
+ * date. A school that records an admission date but no joining date would otherwise show
+ * a dash upstairs and a date downstairs.
+ */
+const joinedOnOf = (r: StudentRow) => r.joiningDate ?? r.admissionDate;
+
+/**
+ * The sessions this school holds a record of for the student. There is no enrolment
+ * history table, so the most that can be true is the one class they sit in today —
+ * which is also why the tab badge and the list can never disagree.
+ */
+export const sessionsOf = (r: StudentRow) =>
+  r.classId && r.className
+    ? [
+        {
+          academicYear: r.academicYear,
+          className: classNameOf(r),
+          status: r.status,
+          joinedOn: joinedOnOf(r),
+          isCurrent: true,
+        },
+      ]
+    : [];
+
 export const countsOf = (r: StudentRow, guardians: unknown[], siblings: unknown[]) => ({
   family: guardians.length + siblings.length,
-  // One enrolment record exists while the student sits in a class; there is no
-  // history table, so this can never claim to count more than that.
-  academic: r.classId && r.className ? 1 : 0,
+  academic: sessionsOf(r).length,
   addresses: r.address?.trim() ? 1 : 0,
 });
 
@@ -260,6 +300,7 @@ export const summaryOf = (r: StudentRow) => ({
     mobile: r.phone,
     email: r.email,
     address: r.address,
+    primaryContact: primaryContactOf(r),
   },
   identifiers: {
     studentId: r.username,
@@ -285,16 +326,16 @@ export const summaryOf = (r: StudentRow) => ({
 });
 
 export const academicOf = (r: StudentRow) => ({
-  enrolment: {
+  placement: {
+    academicYear: r.academicYear,
     className: classNameOf(r),
     grade: r.classGrade,
     rollNumber: r.rollNumber,
-    academicYear: r.academicYear,
-    admissionNo: r.admissionNo,
-    admissionDate: r.admissionDate,
-    joiningDate: r.joiningDate,
+    registrationNo: r.registrationNo,
     status: r.status,
+    joiningDate: joinedOnOf(r),
   },
+  sessions: sessionsOf(r),
 });
 
 export const addressesOf = (r: StudentRow) => ({
@@ -365,7 +406,7 @@ export const studentProfileRoutes = new Elysia({ prefix: '/student-profile' })
       if (tab && !isTab(tab)) return errorResponse(set, 400, 'Unknown profile tab', 'UNKNOWN_TAB');
 
       // Namespaced `students:` so the existing write purge clears these.
-      const cacheKey = `students:profile:v1:${tenantId}:${keySafeRef(ref)}:${isTab(tab) ? tab : 'header'}`;
+      const cacheKey = `students:profile:v4:${tenantId}:${keySafeRef(ref)}:${isTab(tab) ? tab : 'header'}`;
       const result = await dataCache.getOrSet(cacheKey, () => handleProfile(ref, tenantId, tab), 300_000);
 
       if (result.kind === 'not-found') return errorResponse(set, 404, 'Student profile not found', 'STUDENT_NOT_FOUND');
@@ -373,6 +414,85 @@ export const studentProfileRoutes = new Elysia({ prefix: '/student-profile' })
       return { tab: result.tab, ...result.payload };
     } catch (error) {
       captureError(error, { method: 'GET', path: '/student-profile/:ref', tenantId });
+      return errorResponse(set, 500, 'Internal server error', 'INTERNAL_SERVER_ERROR');
+    }
+  })
+  .get('/:ref/admission-form-pdf', async ({ params: { ref }, tenantId, user, set }) => {
+    try {
+      if (!tenantId) return errorResponse(set, 403, 'Tenant ID is required', 'TENANT_REQUIRED');
+      if (!(await assertReadable(ref, tenantId, user))) {
+        return errorResponse(set, 403, 'Access denied', 'STUDENT_ACCESS_DENIED');
+      }
+
+      const student = await loadStudent(ref, tenantId);
+      if (!student) return errorResponse(set, 404, 'Student profile not found', 'STUDENT_NOT_FOUND');
+
+      const [tenantRow] = await db
+        .select()
+        .from(schema.tenants)
+        .where(eq(schema.tenants.id, tenantId))
+        .limit(1);
+
+      const header = headerOf(student);
+      const summary = summaryOf(student);
+      const guardians = guardiansOf(student);
+      const siblings = await siblingsOf(student, tenantId);
+      const family = { guardians, siblings };
+
+      // Filename priority:
+      // 1. Admission Number
+      // 2. Student ID (username)
+      // 3. Roll Number
+      // Fallback: "Record"
+      const rawId =
+        header.admissionNo?.trim() ||
+        summary.identifiers?.admissionNo?.trim() ||
+        header.studentId?.trim() ||
+        summary.identifiers?.studentId?.trim() ||
+        header.rollNumber?.trim() ||
+        'Record';
+
+      const sanitizedId = decodeURIComponent(rawId)
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[/\\?%*:|"<>]/g, '');
+
+      const filename = `Admission-Form-${sanitizedId}.pdf`;
+
+      const nowTime = new Date();
+      const timeFormatted = `${nowTime.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })} at ${nowTime.toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      })}`;
+
+      const html = buildAdmissionFormHtml({
+        student: header,
+        summary,
+        family,
+        school: {
+          name: tenantRow?.name || 'Delhi Public School Delhi',
+          logo: tenantRow?.logo || '',
+          address: tenantRow?.address || 'Madanpur',
+        },
+        timeFormatted,
+      });
+
+      const pdfBuffer = await generatePdfFromHtml({ html });
+
+      return new Response(new Uint8Array(pdfBuffer), {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="${filename}"`,
+          'Content-Length': String(pdfBuffer.length),
+        },
+      });
+    } catch (error) {
+      captureError(error, { method: 'GET', path: '/student-profile/:ref/admission-form-pdf', tenantId });
       return errorResponse(set, 500, 'Internal server error', 'INTERNAL_SERVER_ERROR');
     }
   });
