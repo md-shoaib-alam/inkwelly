@@ -1,7 +1,7 @@
 import { db } from '../../lib/db';
 import { hashPassword } from '../../lib/passwords';
 import * as schema from '../../db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { requireAuth } from '../../lib/auth';
 import { requirePermission } from '../../lib/permissions';
 import { dataCache } from '../../lib/cache';
@@ -70,7 +70,19 @@ const clean = (value: unknown): string | null => {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 };
 
-const generateUniqueStudentId = async (tx: any, provided: string | undefined, tenantId: string): Promise<string> => {
+const formatShortSchoolYear = (name: string | null | undefined): string => {
+  const m = /^(\d{4})-(\d{4})$/.exec(name ?? '');
+  if (!m || !m[1] || !m[2]) return name ?? '';
+  return `${m[1]}-${m[2].slice(2)}`;
+};
+
+const generateUniqueStudentId = async (
+  tx: any,
+  provided: string | undefined,
+  tenantId: string,
+  academicYear: string,
+  settings: typeof schema.studentIdSettings.$inferSelect | undefined
+): Promise<string> => {
   const studentId = clean(provided);
   if (studentId) {
     const existing = await tx.query.users.findFirst({
@@ -81,7 +93,46 @@ const generateUniqueStudentId = async (tx: any, provided: string | undefined, te
     }
     return studentId;
   }
-  const currentYear = new Date().getFullYear();
+
+  const currentYear = String(new Date().getFullYear());
+  const schoolYr = formatShortSchoolYear(academicYear);
+  const schoolCode = settings?.schoolCode || '';
+
+  if (settings?.studentIdEnabled) {
+    const prefix = settings.studentIdPrefix || 'STU';
+    const width = Math.min(10, Math.max(1, settings.studentIdNumberLength || 4));
+    const format = settings.studentIdFormat || '{PREFIX}{YEAR}{SEQ}';
+    const startFrom = settings.studentIdStartFrom ?? 1;
+
+    // Count existing students in tenant to determine sequence
+    const [countResult] = await tx
+      .select({ count: sql<number>`count(*)::int` })
+      .from(schema.students)
+      .innerJoin(schema.users, eq(schema.students.userId, schema.users.id))
+      .where(
+        settings.studentIdResetEveryYear
+          ? and(eq(schema.users.tenantId, tenantId), eq(schema.students.academicYear, academicYear))
+          : eq(schema.users.tenantId, tenantId)
+      );
+
+    const baseSeq = Math.max(startFrom, (countResult?.count ?? 0) + 1);
+
+    for (let attempt = 0; attempt < 50; attempt++) {
+      const seqStr = String(baseSeq + attempt).padStart(width, '0');
+      const candidate = format
+        .split('{PREFIX}').join(prefix)
+        .split('{SCHOOL_CODE}').join(schoolCode)
+        .split('{YEAR}').join(currentYear)
+        .split('{SCHOOL_YEAR}').join(schoolYr)
+        .split('{SEQ}').join(seqStr);
+
+      const existing = await tx.query.users.findFirst({
+        where: and(eq(schema.users.username, candidate), eq(schema.users.tenantId, tenantId))
+      });
+      if (!existing) return candidate;
+    }
+  }
+
   for (let attempt = 0; attempt < 10; attempt++) {
     const candidate = `STU${currentYear}${Math.floor(1000 + Math.random() * 9000)}`;
     const existing = await tx.query.users.findFirst({
@@ -92,7 +143,13 @@ const generateUniqueStudentId = async (tx: any, provided: string | undefined, te
   return `STU${currentYear}${crypto.randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase()}`;
 };
 
-const generateUniqueAdmissionNo = async (tx: any, provided: string | undefined): Promise<string> => {
+const generateUniqueAdmissionNo = async (
+  tx: any,
+  provided: string | undefined,
+  tenantId: string,
+  academicYear: string,
+  settings: typeof schema.studentIdSettings.$inferSelect | undefined
+): Promise<string> => {
   const admissionNo = clean(provided);
   if (admissionNo) {
     const existing = await tx.query.students.findFirst({
@@ -103,7 +160,45 @@ const generateUniqueAdmissionNo = async (tx: any, provided: string | undefined):
     }
     return admissionNo;
   }
-  const currentYear = new Date().getFullYear();
+
+  const currentYear = String(new Date().getFullYear());
+  const schoolYr = formatShortSchoolYear(academicYear);
+  const schoolCode = settings?.schoolCode || '';
+
+  if (settings?.admissionNoEnabled) {
+    const prefix = settings.admissionNoPrefix || 'ADM';
+    const width = Math.min(10, Math.max(1, settings.admissionNoNumberLength || 4));
+    const format = settings.admissionNoFormat || '{PREFIX}{YEAR}{SEQ}';
+    const startFrom = settings.admissionNoStartFrom ?? 1;
+
+    const [countResult] = await tx
+      .select({ count: sql<number>`count(*)::int` })
+      .from(schema.students)
+      .innerJoin(schema.users, eq(schema.students.userId, schema.users.id))
+      .where(
+        settings.admissionNoResetEveryYear
+          ? and(eq(schema.users.tenantId, tenantId), eq(schema.students.academicYear, academicYear))
+          : eq(schema.users.tenantId, tenantId)
+      );
+
+    const baseSeq = Math.max(startFrom, (countResult?.count ?? 0) + 1);
+
+    for (let attempt = 0; attempt < 50; attempt++) {
+      const seqStr = String(baseSeq + attempt).padStart(width, '0');
+      const candidate = format
+        .split('{PREFIX}').join(prefix)
+        .split('{SCHOOL_CODE}').join(schoolCode)
+        .split('{YEAR}').join(currentYear)
+        .split('{SCHOOL_YEAR}').join(schoolYr)
+        .split('{SEQ}').join(seqStr);
+
+      const existing = await tx.query.students.findFirst({
+        where: eq(schema.students.admissionNo, candidate)
+      });
+      if (!existing) return candidate;
+    }
+  }
+
   for (let attempt = 0; attempt < 10; attempt++) {
     const candidate = `ADM${currentYear}${Math.floor(1000 + Math.random() * 9000)}`;
     const existing = await tx.query.students.findFirst({
@@ -140,14 +235,18 @@ const handleCreateAdmission = async (body: any, tenantId: string, user: any, req
 
   const hashedPassword = await hashPassword(rawPassword || 'Student@123');
 
+  const settings = await db.query.studentIdSettings.findFirst({
+    where: eq(schema.studentIdSettings.tenantId, tenantId),
+  });
+
   const result = await db.transaction(async (tx) => {
     const cls = await tx.query.classes.findFirst({
       where: and(eq(schema.classes.id, body.classId), eq(schema.classes.tenantId, tenantId))
     });
     if (!cls) throw new AdmissionRouteError(400, 'INVALID_CLASS', 'Invalid class for this tenant');
 
-    const studentId = await generateUniqueStudentId(tx, body.studentId, tenantId);
-    const admissionNo = await generateUniqueAdmissionNo(tx, body.admissionNo);
+    const studentId = await generateUniqueStudentId(tx, body.studentId, tenantId, academicYear, settings);
+    const admissionNo = await generateUniqueAdmissionNo(tx, body.admissionNo, tenantId, academicYear, settings);
 
     const studentEmail = clean(body.email) ?? `${studentId.toLowerCase()}@school.com`;
     const gender = ['male', 'female', 'other'].includes(body.gender) ? body.gender : 'male';

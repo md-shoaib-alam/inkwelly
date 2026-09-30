@@ -35,7 +35,7 @@ const asTrimmed = (value: unknown): string | undefined => {
   return trimmed === "" ? undefined : trimmed;
 };
 
-const isCalendarDate = (value: string): boolean => {
+export const isCalendarDate = (value: string): boolean => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   // A regex alone accepts 2026-13-45, so compare the parsed parts against the
   // text: Date silently rolls an impossible day over, and a rolled date in the

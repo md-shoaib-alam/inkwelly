@@ -11,7 +11,7 @@ import Elysia, { t } from 'elysia';
 import { formatDate } from '../../lib/date-utils';
 import { StudentService } from './student.service';
 import { academicYearIsKnown } from './student.create.guards';
-import { StudentUpdateAuditError, studentUpdateAuditDetails } from './student-update.audit';
+import { StudentUpdateAuditError, isCalendarDate, studentUpdateAuditDetails } from './student-update.audit';
 
 const PHONE_PATTERN = '^\\+?[0-9\\-()\\s]{7,20}$';
 const DATE_PATTERN = '^\\d{4}-\\d{2}-\\d{2}$';
@@ -53,6 +53,24 @@ const studentUpdateBodySchema = t.Object({
   dateOfBirth: t.Optional(t.String()),
   bloodGroup: t.Optional(t.String()),
   status: t.Optional(t.String()),
+  // The Edit student information screen writes back everything admission captured.
+  // Before these keys existed here, the form's own fields were accepted on create and
+  // silently dropped on update, so a correction typed by a school never reached the row.
+  title: t.Optional(t.String()),
+  firstName: t.Optional(t.String()),
+  middleName: t.Optional(t.String()),
+  lastName: t.Optional(t.String()),
+  admissionNo: t.Optional(t.String()),
+  admissionDate: t.Optional(t.String()),
+  peNumber: t.Optional(t.String()),
+  abcId: t.Optional(t.String()),
+  apaarId: t.Optional(t.String()),
+  aadhaarNo: t.Optional(t.String()),
+  religion: t.Optional(t.String()),
+  nationality: t.Optional(t.String()),
+  motherTongue: t.Optional(t.String()),
+  casteCategory: t.Optional(t.String()),
+  isRte: t.Optional(t.Boolean()),
   transportEnabled: t.Optional(t.Boolean()),
   routeId: t.Optional(t.String()),
   pickupPoint: t.Optional(t.String()),
@@ -101,6 +119,37 @@ const errorResponse = (set: { status?: number | string }, status: number, messag
 const isDuplicateKeyError = (error: unknown): boolean => {
   return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: string }).code === '23505';
 };
+
+// An empty box on the edit screen means "this child has none of these", not "keep what
+// was there": every one of these columns is nullable and none has a default worth keeping.
+export const cleanText = (value: unknown): string | null => {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed || null;
+};
+
+/**
+ * The display name is derived from the parts, never typed twice: admission builds it the
+ * same way, and an update that changed a part while leaving User.name alone would show
+ * two different names for one child.
+ */
+export const fullNameFromParts = (parts: {
+  firstName?: string | null;
+  middleName?: string | null;
+  lastName?: string | null;
+}): string =>
+  [parts.firstName, parts.middleName, parts.lastName]
+    .map((part) => (part ?? '').trim())
+    .filter(Boolean)
+    .join(' ');
+
+// The columns the Edit student information screen owns, minus the ones the write block
+// already handles with extra rules (dates, gender, status).
+const EDITABLE_TEXT_COLUMNS = [
+  'title', 'firstName', 'middleName', 'lastName',
+  'admissionNo', 'peNumber', 'abcId', 'apaarId', 'aadhaarNo',
+  'religion', 'nationality', 'motherTongue', 'casteCategory',
+] as const;
 
 const mapStudentRouteError = (error: unknown) => {
   if (error instanceof StudentRouteError) return error;
@@ -449,6 +498,19 @@ const handleUpdateStudent = async (body: any, tenantId: string, user: any, reque
     throw new StudentRouteError(400, 'INVALID_TRANSPORT_ROUTE', 'Route ID is required when transport is enabled');
   }
 
+  // A date input can be typed into, so "2026-13-45" reaches here as happily as a real
+  // date. Reject it before the transaction: a rolled-over date on a student record is
+  // worse than refusing the save.
+  for (const [key, label] of [
+    ['dateOfBirth', 'Date of birth'],
+    ['admissionDate', 'Admission date'],
+  ] as const) {
+    const value = typeof data[key] === 'string' ? data[key].trim() : '';
+    if (value && !isCalendarDate(value)) {
+      throw new StudentRouteError(400, 'INVALID_DATE', `${label} must be a real date in YYYY-MM-DD form`);
+    }
+  }
+
   // Read before the write so a bad effective date fails the request instead of
   // leaving a class move on record that the audit trail cannot show.
   const changeDetails = studentUpdateAuditDetails(data);
@@ -470,6 +532,23 @@ const handleUpdateStudent = async (body: any, tenantId: string, user: any, reque
 
     const userUpdate: Record<string, unknown> = {};
     if (typeof data.name === 'string') userUpdate.name = data.name.trim();
+    // The edit screen sends the name in parts; the roster dialog sends it whole. Parts
+    // win when both arrive, and User.name is rebuilt from them so the roster and the
+    // profile header cannot keep showing a name the school just corrected.
+    const namePartGiven = (['firstName', 'middleName', 'lastName'] as const).some(
+      (key) => typeof data[key] === 'string',
+    );
+    if (namePartGiven) {
+      const partOf = (key: 'firstName' | 'middleName' | 'lastName') =>
+        typeof data[key] === 'string' ? data[key] : student[key];
+      const fullName = fullNameFromParts({
+        firstName: partOf('firstName'),
+        middleName: partOf('middleName'),
+        lastName: partOf('lastName'),
+      });
+      if (!fullName) throw new StudentRouteError(400, 'NAME_REQUIRED', 'A student needs at least a first name');
+      userUpdate.name = fullName;
+    }
     if (typeof data.phone === 'string') userUpdate.phone = data.phone.trim() || null;
     if (typeof data.email === 'string') {
       const trimmedEmail = data.email.trim();
@@ -484,9 +563,14 @@ const handleUpdateStudent = async (body: any, tenantId: string, user: any, reque
     if (typeof data.rollNumber === 'string') studentUpdate.rollNumber = data.rollNumber.trim();
     if (typeof data.classId === 'string') studentUpdate.classId = data.classId;
     if (typeof data.gender === 'string') studentUpdate.gender = data.gender || 'male';
-    if (typeof data.dateOfBirth === 'string') studentUpdate.dateOfBirth = data.dateOfBirth.trim() || null;
-    if (typeof data.bloodGroup === 'string') studentUpdate.bloodGroup = data.bloodGroup.trim() || null;
+    if (typeof data.dateOfBirth === 'string') studentUpdate.dateOfBirth = cleanText(data.dateOfBirth);
+    if (typeof data.admissionDate === 'string') studentUpdate.admissionDate = cleanText(data.admissionDate);
+    if (typeof data.bloodGroup === 'string') studentUpdate.bloodGroup = cleanText(data.bloodGroup);
     if (typeof data.status === 'string') studentUpdate.status = data.status;
+    for (const key of EDITABLE_TEXT_COLUMNS) {
+      if (typeof data[key] === 'string') studentUpdate[key] = cleanText(data[key]);
+    }
+    if (typeof data.isRte === 'boolean') studentUpdate.isRte = data.isRte;
     if (Object.keys(studentUpdate).length > 0) {
       studentUpdate.updatedAt = new Date();
       await tx.update(schema.students).set(studentUpdate).where(eq(schema.students.id, data.id));
@@ -924,6 +1008,20 @@ export const studentsRoutes = new Elysia({ prefix: '/students' })
         dateOfBirth: student.dateOfBirth,
         bloodGroup: student.bloodGroup,
         admissionDate: student.admissionDate,
+        admissionNo: student.admissionNo,
+        title: student.title,
+        firstName: student.firstName,
+        middleName: student.middleName,
+        lastName: student.lastName,
+        peNumber: student.peNumber,
+        abcId: student.abcId,
+        apaarId: student.apaarId,
+        aadhaarNo: student.aadhaarNo,
+        religion: student.religion,
+        nationality: student.nationality,
+        motherTongue: student.motherTongue,
+        casteCategory: student.casteCategory,
+        isRte: student.isRte,
         transport: student.transport,
         status: student.status,
         siblings
