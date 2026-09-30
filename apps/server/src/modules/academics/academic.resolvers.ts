@@ -1,7 +1,7 @@
 import { db } from '../../lib/db'
 import { GraphQLError } from 'graphql'
 import * as schema from '../../db/schema'
-import { eq, and, desc, inArray, count, sql, sum, ilike, or, lt, gt } from 'drizzle-orm'
+import { eq, and, ne, desc, inArray, count, sql, sum, ilike, or, lt, gt } from 'drizzle-orm'
 import { checkAuth, paginate, requireModule, requireSchoolAdmin, assertTenantOwnership, tenantFromArg } from '../../graphql/resolvers/helpers'
 import { invalidateUserPermissions, invalidateRolePermissions } from '../../lib/permissions'
 import { dataCache } from '../../lib/cache'
@@ -739,6 +739,22 @@ export const academicMutations = {
       where: and(eq(schema.academicYears.id, id), eq(schema.academicYears.tenantId, tenantId)),
     });
     if (!existing) throw new Error('Academic year not found');
+
+    if (existing.isCurrent && input.isCurrent === false) {
+      const otherCurrent = await db.query.academicYears.findFirst({
+        where: and(
+          eq(schema.academicYears.tenantId, tenantId),
+          eq(schema.academicYears.isCurrent, true),
+          ne(schema.academicYears.id, id),
+        ),
+      });
+      if (!otherCurrent) {
+        throw new GraphQLError(
+          `MUST_KEEP_CURRENT: One session must remain current. Use "Set current" on another session to move it.`,
+          { extensions: { code: 'MUST_KEEP_CURRENT' } },
+        );
+      }
+    }
 
     if (input.name && input.name !== existing.name) {
       const counts = await yearUsageCounts(tenantId, existing.name);

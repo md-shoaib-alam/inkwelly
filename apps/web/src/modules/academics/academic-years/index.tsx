@@ -140,6 +140,10 @@ export function AcademicYearsScreen() {
         setRenameError(err.message.replace(/^.*YEAR_IN_USE:\s*/, ""));
         return;
       }
+      if (err?.message?.includes("MUST_KEEP_CURRENT")) {
+        toast.error("One session must remain current. Use \"Set current\" on another session to move it.");
+        return;
+      }
       toast.error("Failed to save academic year");
     }
   };
@@ -162,6 +166,10 @@ export function AcademicYearsScreen() {
   const currentYear = useMemo(() => {
     return academicYears.find((y: any) => y.isCurrent);
   }, [academicYears]);
+
+  // The only way to move the current flag is to set another session current;
+  // the server refuses to unset the last one, so the dialog blocks it too.
+  const guardCurrentToggle = Boolean(editingYear?.isCurrent) && !academicYears.some((y: any) => y.isCurrent && y.id !== editingYear?.id);
 
   const activeCount = useMemo(() => {
     return academicYears.filter((y: any) => y.status === "active").length;
@@ -347,11 +355,14 @@ export function AcademicYearsScreen() {
                     Set as Current Session
                   </p>
                   <p className="text-[11px] text-slate-500 dark:text-zinc-400">
-                    Mark this as the active current session
+                    {guardCurrentToggle
+                      ? "Set another session as current first — one session must always be current"
+                      : "Mark this as the active current session"}
                   </p>
                 </div>
                 <Switch
                   checked={formData.isCurrent}
+                  disabled={guardCurrentToggle}
                   onCheckedChange={(checked) => {
                     setFormData((prev) => ({
                       ...prev,
