@@ -20,6 +20,15 @@ export async function triggerGlobalRefresh(pathOrTag?: string) {
   // Always refresh the dashboard stats
   queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
   queryClient.invalidateQueries({ queryKey: ["admin"] });
+  // The students roll reads its own query root. A write that matches one of the
+  // keywords below never reaches the "refresh everything" fallback, so editing a
+  // student or moving a class would leave this screen on its old counts and its old
+  // "Updated" stamp until a reload. Only active queries refetch, so with the screen
+  // closed this marks one cached entry stale and does nothing else.
+  queryClient.invalidateQueries({ queryKey: ["students-command-center"] });
+  // The attendance dashboard reads its own aggregate for the same reason: marking a
+  // register has to move its tiles and its calendar without a reload.
+  queryClient.invalidateQueries({ queryKey: ["attendance-command-center"] });
 
   // staff-attendance must be checked before attendance and excluded from staff
   if (tag.includes("staffattendance")) {
