@@ -90,6 +90,9 @@ export const COMPONENT_OVERRIDES: Record<string, string> = {
   // which is also what the staff, teacher and parent trees still call this screen.
   "student-attendance/classes": "attendance",
   "students/reports": "student-reports",
+  "student-attendance/reports": "student-attendance-reports",
+  "students-attendance/reports": "student-attendance-reports",
+  "attendance/reports": "student-attendance-reports",
 };
 
 export function componentKey(module: string | null, screen: string): string {

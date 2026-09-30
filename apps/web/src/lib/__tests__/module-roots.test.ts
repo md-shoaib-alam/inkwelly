@@ -38,7 +38,7 @@ const EXPECTED_LANDINGS: [string, string][] = [
   ["examinations", "exams"],
   ["iam", "iam-dashboard"],
   ["money-book", "expenses"],
-  ["student-attendance", "attendance"],
+  ["student-attendance", "attendance-dashboard"],
   ["student-fees", "fees"],
   ["students", "students-dashboard"],
   ["transport", "transport-fee"],

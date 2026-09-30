@@ -83,6 +83,7 @@ const AdminAdmissions = dynamic(() => import('@/modules/students/admissions').th
 const AdminBulkUpdate = dynamic(() => import('@/modules/students/bulk-update').then(m => m.AdminBulkUpdate), { loading: LoadingScreen });
 const AdminStudentImport = dynamic(() => import('@/modules/students/import').then(m => m.AdminStudentImport), { loading: LoadingScreen });
 const AdminStudentReports = dynamic(() => import('@/modules/students/reports').then(m => m.AdminStudentReports), { loading: LoadingScreen });
+const AdminStudentAttendanceReports = dynamic(() => import('@/modules/student-attendance/reports').then(m => m.AdminStudentAttendanceReports), { loading: LoadingScreen });
 const AdminStudentsSettings = dynamic(() => import('@/modules/students/settings').then(m => m.AdminStudentsSettings), { loading: LoadingScreen });
 const ExpensesScreen = dynamic(() => import('@/modules/money-book/expenses').then(m => m.ExpensesScreen), { loading: LoadingScreen });
 const AdminSubscription = dynamic(() => import('@/modules/tenancy/components/AdminSubscription').then(m => m.SchoolSubscriptionScreen), { loading: LoadingScreen });
@@ -400,6 +401,7 @@ export default function TenantScreenDispatcherClient() {
       case 'attendance-dashboard': return <AdminAttendanceDashboard />;
       case 'today': return <AdminAttendanceToday />;
       case 'past-days': return <AdminAttendancePastDays />;
+      case 'student-attendance-reports': return <AdminStudentAttendanceReports />;
       case 'fees':
       case 'fee-categories':
       case 'fee-concessions':

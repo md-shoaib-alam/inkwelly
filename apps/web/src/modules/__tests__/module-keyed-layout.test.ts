@@ -132,7 +132,7 @@ const LIVE_ROWS: [string, string][] = [
   ["students", "import"], ["students", "reports"],
   ["employees", "teachers"], ["employees", "staff"], ["employees", "parents"],
   ["student-attendance", "classes"], ["student-attendance", "attendance-dashboard"],
-  ["student-attendance", "today"], ["student-attendance", "past-days"],
+  ["student-attendance", "today"], ["student-attendance", "past-days"], ["student-attendance", "reports"],
   ["employee-attendance", "teacher-attendance"], ["employee-attendance", "staff-attendance"],
   ["student-fees", "fees"], ["student-fees", "reports"],
   ["examinations", "exams"], ["examinations", "results-entry"],
@@ -143,9 +143,9 @@ const LIVE_ROWS: [string, string][] = [
 ];
 
 describe("the module-keyed convention", () => {
-  test("42 of the 62 live rows have their own folder", () => {
+  test("43 of the 62 live rows have their own folder", () => {
     expect(LIVE_ROWS_PANES.length).toBe(62);
-    expect(FOLDERED.length).toBe(42);
+    expect(FOLDERED.length).toBe(43);
     for (const [module, row] of LIVE_ROWS) expect(rowHasScreen(module, row)).toBe(true);
     // LIVE_ROWS is the foldered set plus the two folders named after a retired key:
     // students/students (the bare root's alias, next to the panel row's own `list`) and
@@ -157,7 +157,7 @@ describe("the module-keyed convention", () => {
     expect(FOLDERED.filter((k) => !listed.includes(k))).toEqual([]);
   });
 
-  test("the other 20 of the 62 live rows share a folder or await routing Task 3", () => {
+  test("the other 19 of the 62 live rows share a folder or await routing Task 3", () => {
     const EXPECTED_UNFOLDERED = [
       // Collapsed onto a sibling folder in the same module, because their cases are stacked
       // fall-throughs with identical props (9): fee-categories, fee-concessions,
@@ -177,7 +177,7 @@ describe("the module-keyed convention", () => {
       // this list with the class roster: it is the one row with an entry in COMPONENT_OVERRIDES,
       // so its case key is its own rather than the shared `classes`.
       "employee-attendance/reports", "employee-attendance/staff", "employee-attendance/staff-leaves",
-      "employees/reports", "money-book/reports", "student-attendance/reports",
+      "employees/reports", "money-book/reports",
       "student-attendance/student-leaves", "student-fees/classes",
       // The row that moved panels but not folders: calendar left Academics when Events became a
       // rail module, while its screen stayed at modules/academics/calendar/.
@@ -185,8 +185,8 @@ describe("the module-keyed convention", () => {
     ];
     expect(UNFOLDERED).toEqual([...EXPECTED_UNFOLDERED].sort());
 
-    // 42 folders + 9 collapses + 2 override-named + 8 deferrals + 1 moved panel = 62 live rows.
-    expect(42 + 9 + 2 + 8 + 1).toBe(UNFOLDERED.length + FOLDERED.length);
+    // 43 folders + 9 collapses + 2 override-named + 7 deferrals + 1 moved panel = 62 live rows.
+    expect(43 + 9 + 2 + 7 + 1).toBe(UNFOLDERED.length + FOLDERED.length);
   });
 
   test("no admin screen is still filed by domain", () => {

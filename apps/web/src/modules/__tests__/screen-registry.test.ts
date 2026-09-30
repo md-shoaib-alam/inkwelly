@@ -53,8 +53,8 @@ const REGISTRIES = [
   {
     name: "tenant-screen-dispatcher",
     path: "src/app/(authenticated)/[slug]/[...segments]/tenant-screen-dispatcher.tsx",
-    specifiers: 89,
-    keys: 77,
+    specifiers: 90,
+    keys: 78,
   },
   {
     name: "generic-slug-dispatcher",

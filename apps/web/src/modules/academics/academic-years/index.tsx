@@ -9,11 +9,13 @@ import {
   Activity,
   Search,
   CalendarDays,
-  Check
+  Check,
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Dialog, 
@@ -68,10 +70,12 @@ export function AcademicYearsScreen() {
     setCurrentAcademicYear,
     isCreating,
     isUpdating,
+    isSettingCurrent,
   } = useAcademicYears();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingYear, setEditingYear] = useState<any>(null);
+  const [confirmingSession, setConfirmingSession] = useState<any>(null);
   const [renameError, setRenameError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -140,10 +144,16 @@ export function AcademicYearsScreen() {
     }
   };
 
-  const handleSetCurrent = async (id: string) => {
+  const handlePromptSetCurrent = (year: any) => {
+    setConfirmingSession(year);
+  };
+
+  const handleConfirmSetCurrent = async () => {
+    if (!confirmingSession) return;
     try {
-      await setCurrentAcademicYear(id);
+      await setCurrentAcademicYear(confirmingSession.id);
       toast.success("Current academic year updated");
+      setConfirmingSession(null);
     } catch (error) {
       toast.error("Failed to set current academic year");
     }
@@ -212,38 +222,100 @@ export function AcademicYearsScreen() {
           <DialogTrigger asChild>
             <Button
               onClick={() => handleOpenDialog()}
-              className="bg-[#064E3B] hover:bg-[#047857] dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer shrink-0"
+              className="bg-[#0D9488] hover:bg-[#0F766E] text-white rounded-md h-9 px-4 text-[13px] font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer shrink-0"
             >
               <Plus className="size-4" />
               <span>Assign Session</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="w-[95vw] max-w-[425px] rounded-2xl p-5 sm:p-6">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-bold">
-                {editingYear ? "Edit Academic Session" : "New Academic Session"}
-              </DialogTitle>
-              <DialogDescription className="text-xs text-slate-500">
-                Set the name and calendar duration for this academic session.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4 py-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="name" className="text-xs font-semibold">Session Name</Label>
-                <Input 
-                  id="name" 
-                  placeholder="e.g. 2026-27" 
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="rounded-xl"
-                  required
-                />
+          <DialogContent className="w-[95vw] max-w-[460px] rounded-3xl p-6 sm:p-7 border-slate-200 dark:border-zinc-800 shadow-xl bg-white dark:bg-zinc-950">
+            <DialogHeader className="flex flex-row items-center gap-3.5 space-y-0 text-left pb-1">
+              <div className="size-11 rounded-2xl bg-[#E6F8F3] dark:bg-teal-950/60 border border-teal-100 dark:border-teal-900/50 flex items-center justify-center shrink-0 text-[#0d9488]">
+                <Calendar className="size-5" />
               </div>
+              <div className="space-y-0.5">
+                <DialogTitle className="text-[17px] sm:text-lg font-bold tracking-tight text-slate-900 dark:text-zinc-50">
+                  {editingYear ? "Edit Academic Session" : "Assign Academic Session"}
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-[13px] text-slate-500 dark:text-zinc-400">
+                  Assign a session to this school with dates
+                </DialogDescription>
+              </div>
+            </DialogHeader>
+
+            <form onSubmit={handleSubmit} className="space-y-4 pt-3">
+              {/* ACADEMIC SESSION * */}
+              <div className="space-y-1.5">
+                <Label htmlFor="session-name" className="text-[11px] font-bold tracking-wider uppercase text-slate-500 dark:text-zinc-400">
+                  ACADEMIC SESSION <span className="text-rose-500">*</span>
+                </Label>
+                {editingYear ? (
+                  <Input 
+                    id="session-name" 
+                    placeholder="Select a session" 
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="h-10 rounded-xl border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 text-xs font-medium focus-visible:ring-[#0D9488]"
+                    required
+                  />
+                ) : (
+                  <Select
+                    value={formData.name}
+                    onValueChange={(val) => {
+                      if (val === "__custom__") {
+                        setFormData({ ...formData, name: "" });
+                      } else {
+                        // Prepopulate default sensible start/end dates if available
+                        const parts = val.match(/(\d{4})/g);
+                        let sDate = formData.startDate;
+                        let eDate = formData.endDate;
+                        if (parts && parts.length >= 1) {
+                          const startYear = parseInt(parts[0], 10);
+                          sDate = `${startYear}-04-01`;
+                          eDate = `${startYear + 1}-03-31`;
+                        }
+                        setFormData({
+                          ...formData,
+                          name: val,
+                          startDate: formData.startDate || sDate,
+                          endDate: formData.endDate || eDate,
+                        });
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="h-10 w-full rounded-xl border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 text-xs font-medium text-slate-800 dark:text-zinc-200">
+                      <SelectValue placeholder="Select a session" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-xs">
+                      {/* Suggest standard upcoming sessions or existing names */}
+                      {Array.from(
+                        new Set([
+                          "2026-27",
+                          "2027-28",
+                          "2028-29",
+                          "2025-26",
+                          "2024-25",
+                          ...academicYears.map((y: any) => y.name),
+                        ])
+                      ).map((sName) => (
+                        <SelectItem key={sName} value={sName} className="text-xs">
+                          {sName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+
+              {/* DATES ROW */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="startDate" className="text-xs font-semibold">Start Date</Label>
+                  <Label htmlFor="startDate" className="text-[11px] font-bold tracking-wider uppercase text-slate-500 dark:text-zinc-400">
+                    START DATE <span className="text-rose-500">*</span>
+                  </Label>
                   <DatePicker 
                     date={parseLocalDate(formData.startDate)}
+                    className="h-10 rounded-xl border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 text-xs font-medium w-full text-slate-700 dark:text-zinc-300"
                     onChange={(d) => {
                       const formatted = formatLocalDate(d);
                       const currentEnd = parseLocalDate(formData.endDate);
@@ -253,9 +325,12 @@ export function AcademicYearsScreen() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="endDate" className="text-xs font-semibold">End Date</Label>
+                  <Label htmlFor="endDate" className="text-[11px] font-bold tracking-wider uppercase text-slate-500 dark:text-zinc-400">
+                    END DATE <span className="text-rose-500">*</span>
+                  </Label>
                   <DatePicker 
                     date={parseLocalDate(formData.endDate)}
+                    className="h-10 rounded-xl border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 text-xs font-medium w-full text-slate-700 dark:text-zinc-300"
                     onChange={(d) => setFormData({ ...formData, endDate: formatLocalDate(d) })}
                     disabled={(d) => {
                       const start = parseLocalDate(formData.startDate);
@@ -264,17 +339,159 @@ export function AcademicYearsScreen() {
                   />
                 </div>
               </div>
+
+              {/* Toggle 1: Set as Current Session */}
+              <div className="rounded-2xl border border-slate-100 dark:border-zinc-800/80 bg-slate-50/70 dark:bg-zinc-900/40 p-4 flex items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <p className="text-xs font-semibold text-slate-900 dark:text-zinc-100">
+                    Set as Current Session
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                    Mark this as the active current session
+                  </p>
+                </div>
+                <Switch
+                  checked={formData.isCurrent}
+                  onCheckedChange={(checked) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      isCurrent: checked,
+                      // If it's set as current, it must also be active
+                      status: checked ? "active" : prev.status,
+                    }));
+                  }}
+                  className="data-[state=checked]:bg-slate-900 dark:data-[state=checked]:bg-zinc-100 data-[state=unchecked]:bg-slate-200 dark:data-[state=unchecked]:bg-zinc-800"
+                />
+              </div>
+
+              {/* Toggle 2: Active */}
+              <div className="rounded-2xl border border-slate-100 dark:border-zinc-800/80 bg-slate-50/70 dark:bg-zinc-900/40 p-4 flex items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <p className="text-xs font-semibold text-slate-900 dark:text-zinc-100">
+                    Active
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                    Inactive sessions cannot accept new enrollments
+                  </p>
+                </div>
+                <Switch
+                  checked={formData.status === "active"}
+                  disabled={formData.isCurrent}
+                  onCheckedChange={(checked) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      status: checked ? "active" : "inactive",
+                    }));
+                  }}
+                  className="data-[state=checked]:bg-slate-900 dark:data-[state=checked]:bg-zinc-100 data-[state=unchecked]:bg-slate-200 dark:data-[state=unchecked]:bg-zinc-800"
+                />
+              </div>
+
               {renameError && <p className="text-xs text-red-600 dark:text-red-400">{renameError}</p>}
-              <DialogFooter className="pt-3">
+              
+              {/* Footer: Cancel and Assign Session Buttons */}
+              <div className="flex items-center gap-3 pt-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                  disabled={isCreating || isUpdating}
+                  className="h-9 px-5 rounded-md border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 text-[13px] font-semibold hover:bg-slate-50 dark:hover:bg-zinc-900 cursor-pointer shadow-xs"
+                >
+                  Cancel
+                </Button>
                 <Button 
                   type="submit" 
                   disabled={isCreating || isUpdating} 
-                  className="w-full bg-[#064E3B] hover:bg-[#047857] text-white rounded-xl font-semibold"
+                  className="flex-1 h-9 bg-[#0D9488] hover:bg-[#0F766E] text-white rounded-md font-semibold text-[13px] cursor-pointer shadow-xs transition-colors"
                 >
-                  {isCreating || isUpdating ? "Saving..." : (editingYear ? "Update Session" : "Create Session")}
+                  {isCreating || isUpdating ? "Saving..." : (editingYear ? "Update Session" : "Assign Session")}
                 </Button>
-              </DialogFooter>
+              </div>
             </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Set as Current Session Confirmation Dialog */}
+        <Dialog open={!!confirmingSession} onOpenChange={(open) => !open && setConfirmingSession(null)}>
+          <DialogContent className="w-[95vw] max-w-[480px] rounded-2xl p-6 border-slate-200 dark:border-zinc-800 shadow-xl bg-white dark:bg-zinc-950">
+            <DialogHeader className="flex flex-row items-center gap-3.5 space-y-0 text-left">
+              <div className="size-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center shrink-0 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="size-5" />
+              </div>
+              <div className="space-y-0.5">
+                <DialogTitle className="text-base sm:text-lg font-bold text-slate-900 dark:text-zinc-100">
+                  Set as Current Session
+                </DialogTitle>
+                <DialogDescription className="text-xs text-slate-500 dark:text-zinc-400">
+                  Confirm the session change
+                </DialogDescription>
+              </div>
+            </DialogHeader>
+
+            {confirmingSession && (
+              <div className="space-y-4 pt-2">
+                {/* Session Details Box */}
+                <div className="rounded-xl border border-slate-100 dark:border-zinc-800/80 bg-slate-50/70 dark:bg-zinc-900/40 p-4 space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500 text-[10px]">
+                      SESSION
+                    </span>
+                    <span className="font-bold text-slate-800 dark:text-zinc-200 text-sm">
+                      {confirmingSession.name}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500 text-[10px]">
+                      START DATE
+                    </span>
+                    <span className="font-medium text-slate-700 dark:text-zinc-300">
+                      {formatSessionDate(confirmingSession.startDate)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500 text-[10px]">
+                      END DATE
+                    </span>
+                    <span className="font-medium text-slate-700 dark:text-zinc-300">
+                      {formatSessionDate(confirmingSession.endDate)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Warning Alert Note */}
+                <div className="rounded-xl border border-amber-200/90 dark:border-amber-900/60 bg-amber-50/80 dark:bg-amber-950/30 p-3.5 flex items-start gap-2.5">
+                  <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed font-medium">
+                    This will automatically unset the previous current session. Only one session can be current at a time.
+                  </p>
+                </div>
+
+                {/* Actions Footer */}
+                <div className="flex items-center gap-3 pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setConfirmingSession(null)}
+                    disabled={isSettingCurrent}
+                    className="flex-1 h-9 rounded-md border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 text-[13px] font-semibold hover:bg-slate-50 dark:hover:bg-zinc-900 cursor-pointer shadow-xs"
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button
+                    type="button"
+                    onClick={handleConfirmSetCurrent}
+                    disabled={isSettingCurrent}
+                    className="flex-1 h-9 rounded-md bg-[#0D9488] hover:bg-[#0F766E] text-white text-[13px] font-semibold shadow-xs transition-colors cursor-pointer"
+                  >
+                    {isSettingCurrent ? "Confirming..." : "Confirm"}
+                  </Button>
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
@@ -528,7 +745,7 @@ export function AcademicYearsScreen() {
                         ) : (
                           <button
                             type="button"
-                            onClick={() => handleSetCurrent(year.id)}
+                            onClick={() => handlePromptSetCurrent(year)}
                             className="text-xs font-medium text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer outline-none"
                           >
                             Set current

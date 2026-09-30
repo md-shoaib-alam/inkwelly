@@ -355,7 +355,7 @@ export const ClassService = {
               sql`select 1 from "Subject" sub where sub."classId" = ${cls.id} and sub."teacherId" = ${teacherId}`,
             ));
           },
-          columns: { id: true, name: true, section: true, grade: true },
+          columns: { id: true, name: true, section: true, grade: true, slug: true },
           orderBy: [asc(schema.classes.name), asc(schema.classes.section)],
         });
         return classes;
