@@ -3,6 +3,7 @@ import { platformTypeDefs } from '../../modules/platform/platform.typeDefs'
 import { dashboardTypeDefs } from '../../modules/dashboard/dashboard.typeDefs'
 import { academicTypeDefs } from '../../modules/academics/academic.typeDefs'
 import { studentsDashboardTypeDefs } from '../../modules/students/students-dashboard.typeDefs'
+import { attendanceDashboardTypeDefs } from '../../modules/student-attendance/attendance-dashboard.typeDefs'
 import { financeTypeDefs } from '../../modules/money-book/finance.typeDefs'
 import { responseTypeDefs } from './responses.typeDefs'
 import { inputTypeDefs } from './inputs.typeDefs'
@@ -15,6 +16,7 @@ export const typeDefs = [
   dashboardTypeDefs,
   academicTypeDefs,
   studentsDashboardTypeDefs,
+  attendanceDashboardTypeDefs,
   financeTypeDefs,
   responseTypeDefs,
   inputTypeDefs,

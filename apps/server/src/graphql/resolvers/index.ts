@@ -5,6 +5,7 @@ import { platformResolvers as platformQueries } from '../../modules/platform/pla
 import { dashboardResolvers as dashboardQueries } from '../../modules/dashboard/dashboard.resolvers'
 import { academicQueries, academicMutations } from '../../modules/academics/academic.resolvers'
 import { studentsDashboardQueries } from '../../modules/students/students-dashboard.resolvers'
+import { attendanceDashboardQueries } from '../../modules/student-attendance/attendance-dashboard.resolvers'
 import { financeQueries, financeMutations } from '../../modules/money-book/finance.resolvers'
 import { commonQueries, commonMutations } from '../../modules/support/common.resolvers'
 import { authResolvers as authMutations } from '../../modules/auth/auth.resolvers'
@@ -24,6 +25,7 @@ export const resolvers = {
     ...dashboardQueries,
     ...academicQueries,
     ...studentsDashboardQueries,
+    ...attendanceDashboardQueries,
     ...financeQueries,
     ...commonQueries,
     ...notificationResolvers.Query,
