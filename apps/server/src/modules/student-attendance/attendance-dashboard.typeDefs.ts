@@ -21,7 +21,7 @@ export const attendanceDashboardTypeDefs = /* GraphQL */ `#graphql
   }
 
   type AttendanceStats {
-    "Present today over the roll on it, the share the reference calls in-school attendance."
+    "In school over the roll on it, where a late child counts as in school and a half day as half."
     todayRate: Float!
     presentToday: Int!
     absentToday: Int!
@@ -49,9 +49,6 @@ export const attendanceDashboardTypeDefs = /* GraphQL */ `#graphql
     share: Float!
     """students for the five statuses, classes for the unmarked column."""
     kind: String!
-    """False when no screen in this build can produce the status."""
-    tracked: Boolean!
-    reason: String!
   }
 
   type AttendanceMarkingRow {
@@ -86,13 +83,6 @@ export const attendanceDashboardTypeDefs = /* GraphQL */ `#graphql
     kind: String!
   }
 
-  """A status the shipped design counts and this build cannot, with what is missing."""
-  type AttendanceUntrackedTile {
-    key: String!
-    label: String!
-    reason: String!
-  }
-
   type AttendanceCommandCenter {
     session: AttendanceSession
     settings: AttendanceSettingsView!
@@ -106,7 +96,6 @@ export const attendanceDashboardTypeDefs = /* GraphQL */ `#graphql
     monthMarks: [AttendanceMonthMark!]!
     "The day every figure here was measured on, as YYYY-MM-DD on the school's own clock."
     today: String!
-    untracked: [AttendanceUntrackedTile!]!
   }
 
   extend type Query {

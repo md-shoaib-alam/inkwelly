@@ -46,8 +46,6 @@ export type AttendanceStatusCell = {
   share: number;
   /** `students` for the five statuses, `classes` for the unmarked column. */
   kind: string;
-  tracked: boolean;
-  reason: string;
 };
 
 export type AttendanceMarkingRow = {
@@ -76,9 +74,6 @@ export type AttendanceCalendarDay = {
 
 export type AttendanceMonthMark = { date: string; name: string; kind: string };
 
-/** A status the shipped design counts and this build has no writer for. */
-export type AttendanceUntrackedTile = { key: string; label: string; reason: string };
-
 export type AttendanceCommandCenter = {
   session: AttendanceSession | null;
   settings: AttendanceSettingsView;
@@ -90,7 +85,6 @@ export type AttendanceCommandCenter = {
   displayedMonth: string;
   monthMarks: AttendanceMonthMark[];
   today: string;
-  untracked: AttendanceUntrackedTile[];
 };
 
 const GET_COMMAND_CENTER = `
@@ -127,7 +121,7 @@ const GET_COMMAND_CENTER = `
         sessionRateDelta
         todayRateDelta
       }
-      statusBreakdown { key label students share kind tracked reason }
+      statusBreakdown { key label students share kind }
       marking {
         classId
         label
@@ -145,7 +139,6 @@ const GET_COMMAND_CENTER = `
       displayedMonth
       monthMarks { date name kind }
       today
-      untracked { key label reason }
     }
   }
 `;

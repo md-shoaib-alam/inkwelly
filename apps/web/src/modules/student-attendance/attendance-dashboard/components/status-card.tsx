@@ -1,7 +1,7 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, SoonNote } from "./card";
+import { Card } from "./card";
 import type { AttendanceStatusCell } from "../../hooks/use-attendance-command-center";
 
 /**
@@ -9,9 +9,6 @@ import type { AttendanceStatusCell } from "../../hooks/use-attendance-command-ce
  * and count against the roll; the sixth counts registers a teacher still has to open, so it
  * carries a bare number with no share — a percentage of classes next to percentages of
  * children would read as the same kind of figure when it is not.
- *
- * The three statuses no screen in this build can write keep their column and their dot and
- * lose their number, because an empty column would look like a school where nobody is late.
  */
 const DOT_TONES: Record<string, string> = {
   present: "bg-emerald-500",
@@ -54,22 +51,16 @@ export function StatusCard({
                   {cell.label}
                 </p>
               </div>
-              {cell.tracked ? (
-                <div className="mt-2 flex items-baseline gap-1.5">
-                  <span className="text-[26px] leading-none font-bold tabular-nums text-slate-900 dark:text-zinc-50">
-                    {cell.students.toLocaleString()}
+              <div className="mt-2 flex items-baseline gap-1.5">
+                <span className="text-[26px] leading-none font-bold tabular-nums text-slate-900 dark:text-zinc-50">
+                  {cell.students.toLocaleString()}
+                </span>
+                {cell.kind === "students" && (
+                  <span className="text-[12px] tabular-nums text-slate-500 dark:text-zinc-400">
+                    {cell.share.toFixed(1)}%
                   </span>
-                  {cell.kind === "students" && (
-                    <span className="text-[12px] tabular-nums text-slate-500 dark:text-zinc-400">
-                      {cell.share.toFixed(1)}%
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <div className="mt-2">
-                  <SoonNote reason={cell.reason} />
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ))}
         </div>

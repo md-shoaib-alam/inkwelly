@@ -3,15 +3,16 @@ import * as schema from '../../db/schema';
 import { and, count, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm';
 import { formatDate } from '../../lib/date-utils';
 import { pickCurrentSession, sessionProgress, type SessionRow } from '../../lib/academic-session';
+import { ATTENDANCE_STATUSES, normalizeAttendanceStatus, type AttendanceStatus } from './attendance-status';
 
 /**
  * The Students Attendance command center.
  *
- * Every number counts `Attendance` rows. Where the shipped reference shows a status this
- * build cannot produce — late, half-day, leave — the tile comes back in `statusBreakdown`
- * and `untracked` with `tracked: false` and the reason, and the card says "not tracked
- * yet". A zero would read as a school that never marks late arrivals, not a product that
- * never shipped the status.
+ * Every number counts `Attendance` rows, and every status the register can write is counted:
+ * a present, late, half-day, leave or absent row each lands in its own tile in
+ * `statusBreakdown`. The rate treats them the way the eligibility report already does, because
+ * the two screens read the same rows and cannot afford to disagree about them — a late child
+ * was in school, a half day was half of one, and a sanctioned leave was not in school.
  *
  * The cohort is scoped by tenant through `Class`, exactly as the Students command center
  * scopes it, so the two screens cannot disagree about how many students are on roll.
@@ -24,29 +25,10 @@ import { pickCurrentSession, sessionProgress, type SessionRow } from '../../lib/
  */
 
 /** The five statuses the reference lists, in the order it lists them. */
-const STATUS_KEYS = ['present', 'late', 'halfDay', 'leave', 'absent'] as const;
+const STATUS_KEYS = ATTENDANCE_STATUSES;
 
 export const DEFAULT_CUTOFF = '09:00';
 export const DEFAULT_TARGET = 92;
-
-/** The tiles the reference shows and this build cannot answer, each with what is missing. */
-export const UNTRACKED_TILES = [
-  {
-    key: 'late',
-    label: 'Late',
-    reason: 'Nothing writes a late status for a student; the register only records present or absent.',
-  },
-  {
-    key: 'halfDay',
-    label: 'Half day',
-    reason: 'Half day is a staff attendance status; no student-side screen can set one.',
-  },
-  {
-    key: 'leave',
-    label: 'On leave',
-    reason: 'A sanctioned leave is not joined to the attendance row, so it cannot be counted apart from an absence.',
-  },
-];
 
 function pct(part: number, whole: number): number {
   if (whole <= 0) return 0;
@@ -135,15 +117,36 @@ export function isSchoolDay(
   return days.includes(name);
 }
 
-export type DayCounts = { present: number; absent: number };
+/** One day's register, counted per status. */
+export type DayCounts = {
+  present: number;
+  late: number;
+  halfDay: number;
+  leave: number;
+  absent: number;
+};
 
-/** present / (present + absent) over a set of days, as a whole percentage. */
+export function newDayCounts(): DayCounts {
+  return { present: 0, late: 0, halfDay: 0, leave: 0, absent: 0 };
+}
+
+/** The half-days are worth half, so this is the figure the eligibility report divides by. */
+export function effectivePresent(d: DayCounts): number {
+  return d.present + d.late + 0.5 * d.halfDay;
+}
+
+/** Rows the register actually wrote, which is every status but an unmarked child. */
+export function markedTotal(d: DayCounts): number {
+  return d.present + d.late + d.halfDay + d.leave + d.absent;
+}
+
+/** In school / marked over a set of days, as a whole percentage. */
 export function rateOver(days: DayCounts[]): number {
   let present = 0;
   let marked = 0;
   for (const d of days) {
-    present += d.present;
-    marked += d.present + d.absent;
+    present += effectivePresent(d);
+    marked += markedTotal(d);
   }
   return pct(present, marked);
 }
@@ -334,21 +337,24 @@ export const AttendanceDashboardService = {
     const countsByDay = new Map<string, DayCounts>();
     for (const row of dayRows) {
       const key = String(row.date).slice(0, 10);
-      const cell = countsByDay.get(key) ?? { present: 0, absent: 0 };
-      if (row.status === 'present') cell.present += row.students;
-      else if (row.status === 'absent') cell.absent += row.students;
+      const cell = countsByDay.get(key) ?? newDayCounts();
+      // The grouped SELECT returns the stored string, so it goes through the same matcher the
+      // write path uses. A register that has been fed `Half Day` and `halfDay` both ways adds
+      // to one bucket here rather than drawing two tiles.
+      const status = normalizeAttendanceStatus(row.status);
+      if (status) cell[status] += row.students;
       countsByDay.set(key, cell);
     }
     const daysIn = (from: string, to: string): DayCounts[] =>
       [...countsByDay.entries()].filter(([d]) => d >= from && d <= to).map(([, c]) => c);
 
-    const todayByStatus = new Map<string, { present: number; absent: number; marked: number }>();
+    const todayByStatus = new Map<string, DayCounts & { marked: number }>();
     for (const row of todayClassRows) {
-      const cell = todayByStatus.get(row.classId) ?? { present: 0, absent: 0, marked: 0 };
-      if (row.status === 'present') cell.present += row.students;
-      else if (row.status === 'absent') cell.absent += row.students;
-      // Anything the register wrote counts as marked, so an unexpected status shows up as a
-      // marked class with a short present + absent total rather than vanishing.
+      const cell = todayByStatus.get(row.classId) ?? { ...newDayCounts(), marked: 0 };
+      const status = normalizeAttendanceStatus(row.status);
+      if (status) cell[status] += row.students;
+      // Anything the register wrote counts as marked, including a status this screen does not
+      // draw a tile for, so a class cannot show as still to be opened once it has been.
       cell.marked += row.students;
       todayByStatus.set(row.classId, cell);
     }
@@ -382,16 +388,18 @@ export const AttendanceDashboardService = {
     }
 
     // --- Today. ---
-    const todayCounts = countsByDay.get(today) ?? { present: 0, absent: 0 };
+    const todayCounts = countsByDay.get(today) ?? newDayCounts();
     const markedToday = [...todayByStatus.values()].reduce((sum, c) => sum + c.marked, 0);
     const presentToday = todayCounts.present;
     const absentToday = todayCounts.absent;
+    const inSchoolToday = effectivePresent(todayCounts);
     const unmarkedToday = Math.max(0, rollStrength - markedToday);
+    const todayRate = inSchoolRate(inSchoolToday, rollStrength);
 
     // --- Marking progress. ---
     const markingRows = classes
       .map((c) => {
-        const counts = todayByStatus.get(c.id) ?? { present: 0, absent: 0, marked: 0 };
+        const counts = todayByStatus.get(c.id) ?? { ...newDayCounts(), marked: 0 };
         const students = rollByClass.get(c.id) ?? 0;
         const teacher = teacherByClass.get(c.id);
         return {
@@ -402,7 +410,7 @@ export const AttendanceDashboardService = {
           studentsOnRoll: students,
           present: counts.present,
           absent: counts.absent,
-          rate: inSchoolRate(counts.present, students),
+          rate: inSchoolRate(effectivePresent(counts), students),
           teacherName: teacher?.name ?? '',
           teacherAvatar: teacher?.avatar ?? null,
         };
@@ -434,8 +442,8 @@ export const AttendanceDashboardService = {
     }> = [];
     for (let cursor = month.start; cursor <= month.end; cursor = shiftDay(cursor, 1)) {
       const counts = countsByDay.get(cursor);
-      const marked = !!counts && counts.present + counts.absent > 0;
-      const rate = counts ? inSchoolRate(counts.present, rollStrength) : 0;
+      const marked = !!counts && markedTotal(counts) > 0;
+      const rate = counts ? inSchoolRate(effectivePresent(counts), rollStrength) : 0;
       const off = !isSchoolDay(cursor, workingDays, holidayDates);
       calendarDays.push({
         date: cursor,
@@ -449,12 +457,12 @@ export const AttendanceDashboardService = {
       });
     }
 
-    const statusCounts: Record<string, number> = {
-      present: presentToday,
-      late: 0,
-      halfDay: 0,
-      leave: 0,
-      absent: absentToday,
+    const statusCounts: Record<AttendanceStatus, number> = {
+      present: todayCounts.present,
+      late: todayCounts.late,
+      halfDay: todayCounts.halfDay,
+      leave: todayCounts.leave,
+      absent: todayCounts.absent,
     };
     const STATUS_LABELS: Record<string, string> = {
       present: 'Present',
@@ -467,22 +475,18 @@ export const AttendanceDashboardService = {
       ...STATUS_KEYS.map((key) => ({
         key,
         label: STATUS_LABELS[key] ?? key,
-        students: statusCounts[key] ?? 0,
-        share: pct(statusCounts[key] ?? 0, rollStrength),
+        students: statusCounts[key],
+        share: pct(statusCounts[key], rollStrength),
         kind: 'students' as const,
-        tracked: key === 'present' || key === 'absent',
-        reason: UNTRACKED_TILES.find((t) => t.key === key)?.reason ?? '',
       })),
       {
         // The reference's sixth column counts classes, not children: the registers a
-        // teacher still has to open. It is a real number, so it is tracked.
+        // teacher still has to open. It is a real number, so it carries no share of the roll.
         key: 'unmarkedClasses',
         label: 'Unmarked classes',
         students: totalClasses - markedClasses,
         share: pct(totalClasses - markedClasses, totalClasses),
         kind: 'classes' as const,
-        tracked: true,
-        reason: '',
       },
     ];
 
@@ -508,7 +512,7 @@ export const AttendanceDashboardService = {
         todayHolidayName: holidayDates.has(today) ? marks.get(today)?.name ?? '' : '',
       },
       stats: {
-        todayRate: inSchoolRate(presentToday, rollStrength),
+        todayRate,
         presentToday,
         absentToday,
         unmarkedToday,
@@ -520,7 +524,7 @@ export const AttendanceDashboardService = {
         sessionRate,
         previousMonthRate,
         sessionRateDelta: deltaPoints(sessionRate, previousMonthRate),
-        todayRateDelta: deltaPoints(inSchoolRate(presentToday, rollStrength), weekRate),
+        todayRateDelta: deltaPoints(todayRate, weekRate),
       },
       // The day every number above was measured on, so the header cannot drift from the
       // figures when the school's clock and the browser's disagree.
@@ -537,7 +541,6 @@ export const AttendanceDashboardService = {
       monthMarks: [...marks.entries()]
         .map(([date, mark]) => ({ date, name: mark.name, kind: mark.kind }))
         .sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name)),
-      untracked: UNTRACKED_TILES,
     };
   },
 };

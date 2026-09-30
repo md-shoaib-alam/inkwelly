@@ -62,24 +62,6 @@ export function Card({
   );
 }
 
-/**
- * A status the shipped design counts and this build has no writer for. The column and its
- * real title stay so the row keeps its shape; the number is replaced by this note rather
- * than invented, and the reason is the server's, not a guess.
- */
-export function SoonNote({ reason }: { reason?: string }) {
-  return (
-    <div
-      title={reason}
-      className="rounded-lg border border-dashed border-slate-300/80 dark:border-zinc-700 bg-slate-50/70 dark:bg-zinc-900/40 px-2.5 py-1.5"
-    >
-      <p className="text-[11px] font-semibold leading-4 text-slate-600 dark:text-zinc-300">
-        Soon — not tracked yet
-      </p>
-    </div>
-  );
-}
-
 /** A rate as the reference prints it: one decimal, always, so two cards never disagree. */
 export function rate(n: number): string {
   return `${n.toFixed(1)}%`;

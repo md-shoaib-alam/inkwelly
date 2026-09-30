@@ -8,15 +8,20 @@ import {
   AttendanceDashboardService,
   bandOf,
   deltaPoints,
+  effectivePresent,
   inSchoolRate,
   isSchoolDay,
+  markedTotal,
   minutesOf,
   monthBounds,
+  newDayCounts,
   pastCutoff,
   previousMonthBounds,
   rateOver,
   shiftDay,
+  type DayCounts,
 } from "./attendance-dashboard.service";
+import { ATTENDANCE_STATUSES } from "./attendance-status";
 
 /**
  * The dashboard is a screen full of derived numbers, and the derivation is where a wrong
@@ -55,10 +60,24 @@ test("the bands come off the school's own target, not a constant", () => {
   expect(DEFAULT_TARGET).toBe(92);
 });
 
-test("a rate is present over marked students, never over an empty window", () => {
-  expect(rateOver([{ present: 8, absent: 2 }, { present: 10, absent: 0 }])).toBe(90);
+/** A day's register with the named statuses filled in and the rest at zero. */
+const day = (counts: Partial<DayCounts>): DayCounts => ({ ...newDayCounts(), ...counts });
+
+test("a rate is in school over marked students, never over an empty window", () => {
+  expect(rateOver([day({ present: 8, absent: 2 }), day({ present: 10, absent: 0 })])).toBe(90);
   expect(rateOver([])).toBe(0);
-  expect(rateOver([{ present: 0, absent: 0 }])).toBe(0);
+  expect(rateOver([day({})])).toBe(0);
+});
+
+test("the rate treats a late child as in school and a half day as half of one", () => {
+  // The eligibility report already divides this way, so the dashboard cannot show a school
+  // a different attendance figure for the same rows.
+  expect(effectivePresent(day({ present: 2, late: 1, halfDay: 1, leave: 3, absent: 4 }))).toBe(3.5);
+  expect(markedTotal(day({ present: 2, late: 1, halfDay: 1, leave: 3, absent: 4 }))).toBe(11);
+  // 3.5 in school of 4 marked. A leave is marked but not in school, so it weighs the
+  // denominator, the same way an absence does.
+  expect(rateOver([day({ present: 2, late: 1, halfDay: 1 })])).toBe(87.5);
+  expect(rateOver([day({ present: 3, leave: 1 })])).toBe(75);
 });
 
 test("the in-school share is measured against the roll, to one decimal", () => {
@@ -136,23 +155,27 @@ test("the roll agrees with the students dashboard's own count", async () => {
 
   expect(attendance.stats.rollStrength).toBe(activeOnRoll);
   expect(attendance.stats.rollStrength).toBe(students.stats.total);
-  // Every student on the roll is in exactly one of present, absent, or still unmarked,
+  // Every student on the roll is in exactly one of the five statuses, or still unmarked,
   // which is what stops the status grid from silently dropping children.
-  const present = attendance.statusBreakdown.find((cell) => cell.key === "present")?.students ?? 0;
-  const absent = attendance.statusBreakdown.find((cell) => cell.key === "absent")?.students ?? 0;
-  expect(present + absent + attendance.stats.unmarkedToday).toBe(attendance.stats.rollStrength);
+  const byStatus = Object.fromEntries(
+    attendance.statusBreakdown.map((cell) => [cell.key, cell.students]),
+  );
+  const counted = ATTENDANCE_STATUSES.reduce((sum, key) => sum + (byStatus[key] ?? 0), 0);
+  expect(counted + attendance.stats.unmarkedToday).toBe(attendance.stats.rollStrength);
   expect(attendance.stats.totalClasses).toBe(classes.length);
 });
 
-test("three of the six status columns are not tracked in this build", async () => {
-  // The honest part of the screen: a zero on an unshipped status reads as a school that
-  // failed to do something, so it has to arrive flagged rather than as a number.
+test("all five status columns carry a number", async () => {
+  // The three that used to read "soon" are statuses the marking screen writes and the
+  // reports count, so a zero on them is the school's, not ours, and it has to show.
   const out = await AttendanceDashboardService.commandCenter("otlwwde7c6n8mmhl7dc1c8zb");
-  const untracked = out.statusBreakdown.filter((cell) => !cell.tracked).map((cell) => cell.key);
-  expect(untracked).toEqual(["late", "halfDay", "leave"]);
-  expect(out.untracked.map((tile) => tile.key)).toEqual(["late", "halfDay", "leave"]);
-  for (const cell of out.statusBreakdown.filter((c) => !c.tracked)) {
-    expect(cell.reason.length).toBeGreaterThan(10);
+  expect(out.statusBreakdown.map((cell) => cell.key)).toEqual([
+    ...ATTENDANCE_STATUSES,
+    "unmarkedClasses",
+  ]);
+  for (const cell of out.statusBreakdown) {
+    expect(Number.isFinite(cell.students)).toBe(true);
+    expect(cell.label.length).toBeGreaterThan(0);
   }
 });
 
