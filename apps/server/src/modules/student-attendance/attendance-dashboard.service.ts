@@ -24,14 +24,7 @@ import { pickCurrentSession, sessionProgress, type SessionRow } from '../../lib/
  */
 
 /** The five statuses the reference lists, in the order it lists them. */
-export const STATUS_KEYS = ['present', 'late', 'halfDay', 'leave', 'absent'] as const;
-
-/**
- * The statuses a student-side screen can actually write. `attendance.routes.ts` and the
- * marking UI deal in these two and nothing else; `late`, `half_day` and `leave` exist only
- * on `StaffAttendance`, which is a different table about a different population.
- */
-export const TRACKED_STATUSES = new Set(['present', 'absent']);
+const STATUS_KEYS = ['present', 'late', 'halfDay', 'leave', 'absent'] as const;
 
 export const DEFAULT_CUTOFF = '09:00';
 export const DEFAULT_TARGET = 92;
@@ -80,7 +73,7 @@ export function monthBounds(iso: string): { start: string; end: string } {
 }
 
 /** The `YYYY-MM` key of a day. */
-export function monthKeyOf(iso: string): string {
+function monthKeyOf(iso: string): string {
   return /^\d{4}-\d{2}-\d{2}/.test(iso) ? iso.slice(0, 7) : '';
 }
 
@@ -90,7 +83,7 @@ export function monthKeyOf(iso: string): string {
  * today, so a school looking back at July sees July's days measured against the target
  * it has now.
  */
-export function monthBoundsOfKey(key: string | null | undefined, today: string): { start: string; end: string } {
+function monthBoundsOfKey(key: string | null | undefined, today: string): { start: string; end: string } {
   const match = /^(\d{4})-(\d{2})$/.exec(key ?? '');
   if (!match) return monthBounds(today);
   const year = Number(match[1]);
