@@ -38,6 +38,7 @@ import { admissionsRoutes } from './modules/students/admissions.routes';
 import { bulkUpdateRoutes } from './modules/students/bulk-update.routes';
 import { rosterRoutes } from './modules/students/roster.routes';
 import { studentProfileRoutes } from './modules/students/profile.routes';
+import { studentAddressRoutes } from './modules/students/address.routes';
 import { teachersRoutes } from './modules/employees/teachers.routes';
 import { classesRoutes } from './modules/academics/classes.routes';
 import { attendanceRoutes } from './modules/student-attendance/attendance.routes';
@@ -62,6 +63,7 @@ import { platformRoutes } from './modules/platform/platform.routes';
 import { tenantSettingsRoutes } from './modules/tenancy/tenantSettings.routes';
 import { promotionsRoutes } from './modules/students/promotions.routes';
 import { studentSettingsRoutes } from './modules/students/studentSettings.routes';
+import { attendanceSettingsRoutes } from './modules/student-attendance/attendanceSettings.routes';
 import { leavesRoutes } from './modules/leaves/leaves.routes';
 import { staffAttendanceRoutes } from './modules/employee-attendance/staffAttendance.routes';
 import { examsRoutes } from './modules/examinations/exams.routes';
@@ -303,9 +305,11 @@ const app = new Elysia()
       .use(bulkUpdateRoutes)
       .use(rosterRoutes)
       .use(studentProfileRoutes)
+      .use(studentAddressRoutes)
       .use(teachersRoutes)
       .use(classesRoutes)
       .use(attendanceRoutes)
+      .use(attendanceSettingsRoutes)
       .use(homeworkRoutes)
       .use(gradesRoutes)
       .use(feesRoutes)
@@ -351,9 +355,11 @@ const app = new Elysia()
       .use(bulkUpdateRoutes)
       .use(rosterRoutes)
       .use(studentProfileRoutes)
+      .use(studentAddressRoutes)
       .use(teachersRoutes)
       .use(classesRoutes)
       .use(attendanceRoutes)
+      .use(attendanceSettingsRoutes)
       .use(homeworkRoutes)
       .use(gradesRoutes)
       .use(feesRoutes)
