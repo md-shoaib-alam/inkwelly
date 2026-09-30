@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { CheckCircle2, UserX } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -49,7 +49,8 @@ export function AdminAttendance() {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   });
-  const [selectedClass, setSelectedClass] = useState<string>("");
+  const searchParams = useSearchParams();
+  const [selectedClass, setSelectedClass] = useState<string>(() => searchParams.get("classId") ?? "");
   const [search, setSearch] = useState("");
   const [isHistoryMode, setIsHistoryMode] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
