@@ -42,7 +42,7 @@ await step('tenant', `
 
 await step('classes', `
   insert into "Class" ("id","tenantId","name","section","grade","capacity","createdAt","updatedAt")
-  select 'ltcls'||c,'${TENANT}','Grade '||(1+((c-1)/4)),
+  select 'ltcls'||c,'${TENANT}','Class '||(1+((c-1)/4)),
          (array['A','B','C','D']::text[])[1+((c-1)%4)],
          (1+((c-1)/4))::text, 50, now(), now()
   from generate_series(1,${CLASSES}) c`);

@@ -280,7 +280,7 @@ async function main() {
     const classesData = gradesList.map((grade) => ({
       id: createId(),
       tenantId: tenant.id,
-      name: `Grade ${grade}`,
+      name: `Class ${grade}`,
       section: 'A',
       grade: grade,
       capacity: 35,

@@ -1,81 +1,72 @@
 import "dotenv/config";
 import { db } from "../lib/db";
 import * as schema from "./schema";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { formatDate } from "../lib/date-utils";
 
 const PASSWORD = 'test@123';
 const TENANT_SLUG = 'demo-academy';
+const SUPER_ADMIN_EMAIL = 'shoaibalamcse0786@gmail.com';
+
+/**
+ * Wipes one tenant, not the database. This used to be a `TRUNCATE ... RESTART IDENTITY
+ * CASCADE` over every table, which also deleted the `loadtest-academy` fixture — 1.1M
+ * attendance rows sharing this schema — so a re-seed cost a afternoon to rebuild.
+ */
+async function wipeTenant(slug: string) {
+  const [tenant] = await db.select({ id: schema.tenants.id }).from(schema.tenants).where(eq(schema.tenants.slug, slug));
+  if (!tenant) return;
+  const tenantId = tenant.id;
+
+  const userIds = sql`(select "id" from "User" where "tenantId" = ${tenantId})`;
+  const classIds = sql`(select "id" from "Class" where "tenantId" = ${tenantId})`;
+  const studentIds = sql`(select "id" from "Student" where "userId" in ${userIds} or "classId" in ${classIds})`;
+
+  // These carry no tenantId, so each is scoped through the row it points at — and each has
+  // to go before the sweep below removes those parents. There are only two real foreign
+  // keys in this schema, so nothing cascades on its own.
+  const throughParents = [
+    sql`delete from "ExamResult" where "examId" in (select "id" from "Exam" where "tenantId" = ${tenantId}) or "studentId" in ${studentIds}`,
+    sql`delete from "ClassTeacher" where "classId" in ${classIds} or "teacherId" in (select "id" from "Teacher" where "userId" in ${userIds})`,
+    sql`delete from "Timetable" where "classId" in ${classIds}`,
+    sql`delete from "FeeStructure" where "classId" in ${classIds} or "feeCategoryId" in (select "id" from "FeeCategory" where "tenantId" = ${tenantId})`,
+    sql`delete from "TransportAssignment" where "studentId" in ${studentIds} or "routeId" in (select "id" from "TransportRoute" where "tenantId" = ${tenantId})`,
+    sql`delete from "TicketMessage" where "ticketId" in (select "id" from "Ticket" where "tenantId" = ${tenantId}) or "userId" in ${userIds}`,
+    sql`delete from "NotificationToken" where "userId" in ${userIds}`,
+    sql`delete from "Student" where "userId" in ${userIds} or "classId" in ${classIds}`,
+    sql`delete from "Teacher" where "userId" in ${userIds}`,
+    sql`delete from "Parent" where "userId" in ${userIds}`,
+  ];
+  for (const statement of throughParents) await db.execute(statement);
+
+  // Read the tenant-scoped tables from the schema itself so a table added next month
+  // cannot quietly survive the wipe.
+  const tables = await db.execute(sql`
+    select table_name from information_schema.columns
+    where table_schema = 'public' and column_name = 'tenantId'
+      and table_name in (
+        select table_name from information_schema.tables
+        where table_schema = 'public' and table_type = 'BASE TABLE'
+      )`);
+  for (const row of tables) {
+    const table = row['table_name'];
+    if (typeof table !== 'string' || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(table)) continue;
+    await db.execute(sql`delete from ${sql.identifier(table)} where "tenantId" = ${tenantId}`);
+  }
+
+  // The seed's own super admin belongs to no tenant, so the sweep above left it standing.
+  await db.execute(sql`delete from "User" where "tenantId" is null and "email" = ${SUPER_ADMIN_EMAIL}`);
+  await db.execute(sql`delete from "Tenant" where "id" = ${tenantId}`);
+  console.log(`🧹 Wiped ${slug}; every other tenant left untouched.`);
+}
+
 
 async function main() {
   console.log('🌱 Starting Rich Seed with Drizzle...');
   const hashedPassword = await Bun.password.hash(PASSWORD);
   const now = new Date();
 
-  // Clean database
-  const tables = [
-    schema.ticketMessages,
-    schema.tickets,
-    schema.examResults,
-    schema.exams,
-    schema.leaves,
-    schema.staffAttendance,
-    schema.certificates,
-    schema.promotions,
-    schema.transportAssignments,
-    schema.transportRoutes,
-    schema.vehicles,
-    schema.feeReceipts,
-    schema.fees,
-    schema.feeStructures,
-    schema.feeCategories,
-    schema.grades,
-    schema.attendance,
-    schema.submissions,
-    schema.assignments,
-    schema.timetables,
-    schema.subjects,
-    schema.classTeachers,
-    schema.students,
-    schema.teachers,
-    schema.parents,
-    schema.notices,
-    schema.events,
-    schema.subscriptions,
-    schema.auditLogs,
-    schema.customRoles,
-    schema.platformRoles,
-    schema.classes,
-    schema.users,
-    schema.tenants,
-    schema.platformSettings
-  ];
-
-  // Forceful, absolute clean using CASCADE to kill dependency locks
-  try {
-    await db.execute(sql`
-      TRUNCATE TABLE 
-        "ticketMessages", "tickets", "examResults", "exams", "leaves", 
-        "staffAttendance", "certificates", "promotions", "transportAssignments", 
-        "transportRoutes", "vehicles", "feeReceipts", "fees", "feeStructures", 
-        "feeCategories", "grades", "attendance", "submissions", "assignments", 
-        "timetables", "subjects", "classTeachers", "students", "teachers", 
-        "parents", "notices", "events", "subscriptions", "auditLogs", 
-        "customRoles", "platformRoles", "classes", "User", "Tenant", "platformSettings" 
-      RESTART IDENTITY CASCADE;
-    `);
-    console.log('🧹 Database completely wiped clean via TRUNCATE CASCADE.');
-  } catch (e) {
-    console.warn('⚠️ Truncate failed, running backup clean loop...');
-    for (const table of tables) {
-      try {
-        await db.delete(table);
-      } catch (err) {
-        // Log failures when cleaning individual tables during seed fallback
-        console.warn('Failed to delete table during seed cleanup', table, err);
-      }
-    }
-  }
+  await wipeTenant(TENANT_SLUG);
 
   const [tenant] = await db.insert(schema.tenants).values({
     name: 'Demo Academy',
@@ -95,6 +86,24 @@ async function main() {
 
   if (!tenant) throw new Error("Failed to create tenant");
 
+  // The session and the numbering rules are things a school sets in the UI, not things a
+  // seed makes, and the wipe destroys them. Without the current year every URL under
+  // /demo-academy/<session>/ resolves to nothing, so the screen comes back blank after a
+  // re-seed. These mirror the rows the demo school already had.
+  await db.insert(schema.academicYears).values([
+    { tenantId: tenant.id, name: '2025-2026', startDate: '2026-05-01', endDate: '2026-11-24', status: 'active', isCurrent: false, createdAt: now, updatedAt: now },
+    { tenantId: tenant.id, name: '2026-27', startDate: '2026-06-30', endDate: '2027-09-29', status: 'active', isCurrent: true, createdAt: now, updatedAt: now },
+  ]);
+
+  await db.insert(schema.studentIdSettings).values({
+    tenantId: tenant.id,
+    schoolCode: 'DEL',
+    rollNumberEnabled: true,
+    rollNumberStartingNumber: 1,
+    createdAt: now,
+    updatedAt: now,
+  });
+
   const mkUser = async (email: string, name: string, role: string, tenantId?: string) => {
     const [u] = await db.insert(schema.users).values({
       email,
@@ -109,7 +118,7 @@ async function main() {
     return u!;
   };
 
-  const superAdmin = await mkUser('shoaibalamcse0786@gmail.com', 'Super Admin', 'super_admin');
+  const superAdmin = await mkUser(SUPER_ADMIN_EMAIL, 'Super Admin', 'super_admin');
   const admin = await mkUser('admin@school.com', 'School Admin', 'admin', tenant.id);
 
   const teacherUsers = await Promise.all(Array.from({ length: 40 }, (_, i: number) => mkUser(`teacher${String(i + 1).padStart(3, '0')}@school.com`, `Teacher ${i + 1}`, 'teacher', tenant.id)));
@@ -141,7 +150,7 @@ async function main() {
 
   const classes = await Promise.all(Array.from({ length: 20 }, async (_, i) => {
     const [c] = await db.insert(schema.classes).values({
-      name: `Grade ${Math.floor(i / 2) + 1}`,
+      name: `Class ${Math.floor(i / 2) + 1}`,
       section: i % 2 === 0 ? 'A' : 'B',
       grade: `${Math.floor(i / 2) + 1}`,
       capacity: 40,
