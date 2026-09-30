@@ -14,6 +14,7 @@ import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-acad
 import { useTenantHref } from "@/modules/academics/hooks/use-tenant-href";
 import { yearSlugOf } from "@/lib/routing/academic-year-url";
 import { splitKey } from "@/lib/routing/module-routes";
+import { mayChooseSession } from "@/lib/routing/year-gate";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -231,10 +232,14 @@ export function Header({
           <span className="ink-ask-ai-label text-[13px] font-semibold leading-tight">Ask AI</span>
         </button>
 
-        {/* Academic Session / Year Pill Selector — hidden on the sessions screen, where
-            years are managed. Admins reach it as `academics/session`; staff, the year
-            gate's no-year escape hatch and old bookmarks still use bare `academic-years`. */}
-        {splitKey(resolvedScreen).screen !== 'academic-years' &&
+        {/* Academic Session / Year Pill Selector — only for the roles that may
+            choose which session they are looking at; a platform account has no
+            tenant session and a learner is pinned to the current one. Hidden on
+            the sessions screen, where years are managed. Admins reach it as
+            `academics/session`; staff, the year gate's no-year escape hatch and
+            old bookmarks still use bare `academic-years`. */}
+        {mayChooseSession(currentUser.role) &&
+          splitKey(resolvedScreen).screen !== 'academic-years' &&
           splitKey(resolvedScreen).screen !== 'session' && (
           <DropdownMenu>
             <DropdownMenuTrigger

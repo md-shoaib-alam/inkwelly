@@ -14,6 +14,8 @@
  * the SDL does not declare.
  */
 
+import { SESSION_FLAGGED_ROLES } from './off-session';
+
 export type YearGateStatus = 'loading' | 'empty' | 'ready';
 
 export type YearGateInput = {
@@ -56,6 +58,18 @@ export const YEAR_FREE_SCREENS = new Set(['academic-years']);
  * keep the flag (see `off-session.ts`).
  */
 export const SESSION_PINNED_ROLES = new Set(['student', 'parent']);
+
+/**
+ * Whether the chrome may offer this caller a session switcher. The permission is
+ * "may look at a session other than the current one", which `off-session.ts`
+ * already names for the roles it flags, so it is reused rather than restated. A
+ * platform admin has no tenant session (see this file's header) and a learner is
+ * pinned to the current one, so for both a switcher would be an offer they cannot
+ * take up.
+ */
+export function mayChooseSession(role: string): boolean {
+  return SESSION_FLAGGED_ROLES.has(role);
+}
 
 export function decideYearGate(input: YearGateInput): YearGate {
   if (input.role === 'super_admin') return { kind: 'render' };

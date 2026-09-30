@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { decideYearGate, YEAR_FREE_SCREENS, type YearGateInput } from '../routing/year-gate';
+import { decideYearGate, mayChooseSession, YEAR_FREE_SCREENS, type YearGateInput } from '../routing/year-gate';
 
 const g = (over: Partial<YearGateInput> = {}) =>
   decideYearGate({
@@ -146,6 +146,20 @@ describe("the year gate and the platform admin", () => {
         kind: 'canonicalise',
         toYearSlug: '2026-2027',
       });
+    }
+  });
+});
+
+describe('who the header offers a session switcher to', () => {
+  test('the three roles that may open a past session may choose one', () => {
+    for (const role of ['admin', 'staff', 'teacher']) {
+      expect(mayChooseSession(role)).toBe(true);
+    }
+  });
+
+  test('a platform admin has no tenant session and a learner is pinned to one', () => {
+    for (const role of ['super_admin', 'student', 'parent']) {
+      expect(mayChooseSession(role)).toBe(false);
     }
   });
 });
