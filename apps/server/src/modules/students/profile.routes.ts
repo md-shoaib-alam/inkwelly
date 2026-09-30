@@ -417,12 +417,19 @@ export const studentProfileRoutes = new Elysia({ prefix: '/student-profile' })
       return errorResponse(set, 500, 'Internal server error', 'INTERNAL_SERVER_ERROR');
     }
   })
-  .get('/:ref/admission-form-pdf', async ({ params: { ref }, tenantId, user, set }) => {
+  .get('/:ref/admission-form-pdf', async ({ params: { ref }, query, tenantId, user, set }) => {
     try {
       if (!tenantId) return errorResponse(set, 403, 'Tenant ID is required', 'TENANT_REQUIRED');
       if (!(await assertReadable(ref, tenantId, user))) {
         return errorResponse(set, 403, 'Access denied', 'STUDENT_ACCESS_DENIED');
       }
+
+      const paperSize: 'A4' | 'Letter' =
+        typeof query.paper === 'string' && query.paper.toLowerCase() === 'letter'
+          ? 'Letter'
+          : typeof query.format === 'string' && query.format.toLowerCase() === 'letter'
+          ? 'Letter'
+          : 'A4';
 
       const student = await loadStudent(ref, tenantId);
       if (!student) return errorResponse(set, 404, 'Student profile not found', 'STUDENT_NOT_FOUND');
@@ -480,9 +487,10 @@ export const studentProfileRoutes = new Elysia({ prefix: '/student-profile' })
           address: tenantRow?.address || 'Madanpur',
         },
         timeFormatted,
+        paperSize,
       });
 
-      const pdfBuffer = await generatePdfFromHtml({ html });
+      const pdfBuffer = await generatePdfFromHtml({ html, format: paperSize });
 
       return new Response(new Uint8Array(pdfBuffer), {
         headers: {

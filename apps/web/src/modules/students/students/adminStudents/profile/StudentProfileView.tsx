@@ -15,8 +15,6 @@ import {
   Trash2,
   UserX,
 } from "lucide-react";
-import { downloadAdmissionFormPDF } from "./admissionFormPrinter";
-import { useAppStore } from "@/store/use-app-store";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -149,61 +147,29 @@ export function StudentProfileView({
     try {
       toast.loading("Generating admission form PDF...", { id: "adm-form" });
 
-      // Primary: Generate vector PDF on server via Playwright (Headless Chromium Skia engine)
       const res = await apiFetch(`/api/student-profile/${encodeURIComponent(studentRef)}/admission-form-pdf`);
 
-      if (res.ok) {
-        const blob = await res.blob();
-        const disposition = res.headers.get("Content-Disposition");
-        let filename = `Admission-Form-${profile.header?.admissionNo || profile.header?.studentId || "Record"}.pdf`;
-        if (disposition && disposition.includes("filename=")) {
-          const match = /filename=["']?([^"']+)["']?/.exec(disposition);
-          if (match?.[1]) filename = match[1];
-        }
-
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(() => URL.revokeObjectURL(url), 5000);
-
-        toast.success("Admission form downloaded successfully!", { id: "adm-form" });
-        return;
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => null);
+        throw new Error(errJson?.error || "Failed to generate admission form");
       }
 
-      // Fallback: Client-side @react-pdf/renderer
-      const [summaryRes, familyRes] = await Promise.all([
-        tab === "summary" && tabQuery.data
-          ? Promise.resolve({ ok: true, json: async () => tabQuery.data })
-          : apiFetch(`/api/student-profile/${encodeURIComponent(studentRef)}?tab=summary`),
-        tab === "family" && tabQuery.data
-          ? Promise.resolve({ ok: true, json: async () => tabQuery.data })
-          : apiFetch(`/api/student-profile/${encodeURIComponent(studentRef)}?tab=family`),
-      ]);
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition");
+      let filename = `Admission-Form-${profile.header?.admissionNo || profile.header?.studentId || "Record"}.pdf`;
+      if (disposition && disposition.includes("filename=")) {
+        const match = /filename=["']?([^"']+)["']?/.exec(disposition);
+        if (match?.[1]) filename = match[1];
+      }
 
-      const summaryData = summaryRes.ok ? await summaryRes.json() : null;
-      const familyData  = familyRes.ok  ? await familyRes.json()  : null;
-
-      const tenantState = useAppStore.getState();
-      const school = {
-        name:    tenantState.currentTenantName || "Delhi Public School Delhi",
-        logo:    tenantState.currentTenantLogo || undefined,
-        address: tenantState.currentUser?.address || undefined,
-      };
-
-      await downloadAdmissionFormPDF({
-        student: {
-          ...profile.header,
-          admissionNo: profile.header?.admissionNo || summaryData?.identifiers?.admissionNo,
-          studentId: profile.header?.studentId || summaryData?.identifiers?.studentId,
-        },
-        summary: summaryData,
-        family:  familyData,
-        school,
-      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
 
       toast.success("Admission form downloaded successfully!", { id: "adm-form" });
     } catch (err: any) {
@@ -280,9 +246,10 @@ export function StudentProfileView({
   const studentId = header.studentId;
   // The reference carries every identifier the school has issued on one dotted line,
   // rather than labelling each one. A school that issues none of them has no line.
-  const idLine = [header.admissionNo, studentId, header.rollNumber].filter(Boolean).join(" · ");
+  const idLine = [header.admissionNo, studentId].filter(Boolean).join(" · ");
   const enrolledIn = [
     header.className,
+    header.rollNumber ? `Roll ${header.rollNumber}` : null,
     header.academicYear ? `Session ${header.academicYear}` : null,
   ]
     .filter(Boolean)
@@ -393,22 +360,22 @@ export function StudentProfileView({
       </div>
 
       {/* Identity card */}
-      <section className="rounded-lg border border-slate-200/90 bg-white px-5 py-5 sm:px-6 sm:py-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] dark:border-zinc-800/80 dark:bg-zinc-900">
-        <div className="flex items-start gap-4">
+      <section className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] dark:border-zinc-800/80 dark:bg-zinc-900">
+        <div className="flex items-start gap-4 sm:gap-5">
           {header.avatar ? (
             <img
               src={header.avatar}
               alt=""
-              className="size-20 shrink-0 rounded-xl object-cover ring-1 ring-slate-100 dark:ring-zinc-800 sm:size-24"
+              className="size-20 shrink-0 rounded-2xl object-cover ring-1 ring-slate-100 dark:ring-zinc-800 sm:size-22"
             />
           ) : (
-            <div className="grid size-20 shrink-0 place-items-center rounded-xl bg-emerald-50 text-2xl font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 sm:size-24 sm:text-3xl">
+            <div className="grid size-20 shrink-0 place-items-center rounded-2xl bg-[#E8F8F0] text-2xl font-bold text-[#00875A] dark:bg-emerald-950/50 dark:text-emerald-400 sm:size-22 sm:text-3xl">
               {initials(header.name)}
             </div>
           )}
 
-          <div className="min-w-0 flex-1 space-y-1.5 pt-0.5">
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="min-w-0 flex-1 space-y-1 pt-0.5">
+            <div className="flex flex-wrap items-center gap-2.5">
               <h2 className="truncate text-[22px] sm:text-[24px] leading-tight font-bold tracking-tight font-[family-name:var(--font-lexend)] text-[#0F172A] dark:text-zinc-50">
                 {header.name}
               </h2>
@@ -421,13 +388,13 @@ export function StudentProfileView({
                   ? "border-red-200/80 bg-red-50 text-red-700 dark:border-red-800/80 dark:bg-red-950/50 dark:text-red-400"
                   : isGraduated
                   ? "border-sky-200/80 bg-sky-50 text-sky-700 dark:border-sky-800/80 dark:bg-sky-950/50 dark:text-sky-400"
-                  : "border-emerald-200/80 bg-emerald-50 text-emerald-700 dark:border-emerald-800/80 dark:bg-emerald-950/50 dark:text-emerald-400";
+                  : "border-emerald-200/70 bg-[#ECFDF5] text-[#059669] dark:border-emerald-800/80 dark:bg-emerald-950/50 dark:text-emerald-400";
 
                 const dotClasses = isInactive
                   ? "bg-red-500"
                   : isGraduated
                   ? "bg-sky-500"
-                  : "bg-emerald-500";
+                  : "bg-[#10B981]";
 
                 return (
                   <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${badgeClasses}`}>
@@ -439,31 +406,26 @@ export function StudentProfileView({
             </div>
 
             {idLine && (
-              <div className="flex flex-wrap items-center gap-1 text-[12.5px] text-[#64748B] dark:text-zinc-400">
-                <span className="font-mono">{idLine}</span>
-                {studentId && (
-                  <button
-                    onClick={() => handleCopy(studentId, "Student ID")}
-                    className="rounded p-1 text-slate-400 transition-colors hover:text-emerald-600"
-                    aria-label="Copy Student ID"
-                  >
-                    {copied === "Student ID" ? (
-                      <Check className="size-3.5 text-emerald-600" />
-                    ) : (
-                      <Copy className="size-3.5" />
-                    )}
-                  </button>
-                )}
+              <div className="flex flex-wrap items-center gap-1.5 text-[13px] text-[#64748B] dark:text-zinc-400">
+                <span className="font-mono tracking-tight">{idLine}</span>
+                <button
+                  onClick={() => handleCopy(studentId || header.admissionNo || idLine, "Student ID")}
+                  className="rounded p-0.5 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer"
+                  aria-label="Copy ID"
+                  title="Copy"
+                >
+                  {copied ? (
+                    <Check className="size-3.5 text-emerald-600" />
+                  ) : (
+                    <Copy className="size-3.5" />
+                  )}
+                </button>
               </div>
             )}
 
-            <p className="text-[13px] font-medium text-slate-700 dark:text-zinc-200">
-              {enrolledIn || "Not assigned to a class"}
-            </p>
-
-            {header.joiningDate && (
-              <p className="text-[12.5px] text-[#64748B] dark:text-zinc-400">
-                Joined {formatDate(header.joiningDate)}
+            {enrolledIn && (
+              <p className="text-[13px] text-[#475569] dark:text-zinc-400">
+                {enrolledIn}
               </p>
             )}
           </div>

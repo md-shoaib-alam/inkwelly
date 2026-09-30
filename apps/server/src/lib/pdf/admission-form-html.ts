@@ -18,10 +18,13 @@ export interface AdmissionFormData {
     address?: string | null;
   };
   timeFormatted: string;
+  paperSize?: 'A4' | 'Letter';
 }
 
 export function buildAdmissionFormHtml(data: AdmissionFormData): string {
-  const { student, summary, family, school, timeFormatted } = data;
+  const { student, summary, family, school, timeFormatted, paperSize = 'A4' } = data;
+
+  const isLetter = paperSize === 'Letter';
 
   const p = summary?.personal || {};
   const c = summary?.contact || {};
@@ -70,21 +73,31 @@ export function buildAdmissionFormHtml(data: AdmissionFormData): string {
   const LBL_BG = '#f0f3f6';
   const LBL_CLR = '#334155';
 
-  const lblStyle = `font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; background: ${LBL_BG}; padding: 5px 8px; border-right: ${INNER}; color: ${LBL_CLR}; white-space: nowrap; vertical-align: middle;`;
-  const valStyle = `font-size: 9pt; padding: 5px 8px; color: #0f172a; vertical-align: middle;`;
+  // Compact line-height and cell padding to ensure exact single-page fit on both A4 and Letter
+  const cellPad = isLetter ? '3.5px 7px' : '4.2px 8px';
+  const fontSize = isLetter ? '8pt' : '8.5pt';
+  const lblFontSize = isLetter ? '7.5pt' : '8pt';
+  const bandFontSize = isLetter ? '8pt' : '8.5pt';
+  const bandPadding = isLetter ? '3.5px 0' : '4.5px 0';
+  const photoW = isLetter ? '92px' : '100px';
+  const photoH = isLetter ? '104px' : '112px';
+  const sigMinH = isLetter ? '46px' : '52px';
+
+  const lblStyle = `font-size: ${lblFontSize}; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; background: ${LBL_BG}; padding: ${cellPad}; border-right: ${INNER}; color: ${LBL_CLR}; white-space: nowrap; vertical-align: middle;`;
+  const valStyle = `font-size: ${fontSize}; padding: ${cellPad}; color: #0f172a; vertical-align: middle;`;
 
   const secBand = (text: string) => `
-    <div style="background: ${BAND_BG}; color: #ffffff; text-align: center; font-size: 9pt; font-weight: 800; letter-spacing: 2.5px; text-transform: uppercase; padding: 5px 0; border-bottom: ${OUTER};">
+    <div style="background: ${BAND_BG}; color: #ffffff; text-align: center; font-size: ${bandFontSize}; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; padding: ${bandPadding}; border-bottom: ${OUTER};">
       ${text}
     </div>
   `;
 
   const parentTable = (person: any, role: string) => `
-    <table style="width: 100%; border-collapse: collapse; font-size: 9pt;">
+    <table style="width: 100%; border-collapse: collapse; font-size: ${fontSize};">
       <tbody>
         <tr style="border-bottom: ${INNER};">
           <td style="${lblStyle} width: 18%;">${role}</td>
-          <td colspan="3" style="font-weight: 700; font-size: 9.5pt; padding: 4px 8px; color: #0f172a; vertical-align: middle;">
+          <td colspan="3" style="font-weight: 700; font-size: ${fontSize}; padding: ${isLetter ? '3px 7px' : '4px 8px'}; color: #0f172a; vertical-align: middle;">
             ${dash(person?.name)}
           </td>
         </tr>
@@ -127,8 +140,8 @@ export function buildAdmissionFormHtml(data: AdmissionFormData): string {
   <title>Admission-Form-${student.admissionNo || student.studentId || 'student'}</title>
   <style>
     @page {
-      size: A4 portrait;
-      margin: 10mm 12mm;
+      size: ${isLetter ? 'letter' : 'A4'} portrait;
+      margin: ${isLetter ? '6mm 10mm' : '8mm 10mm'};
     }
     * {
       box-sizing: border-box;
@@ -137,8 +150,8 @@ export function buildAdmissionFormHtml(data: AdmissionFormData): string {
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      font-size: 9pt;
-      line-height: 1.35;
+      font-size: ${fontSize};
+      line-height: 1.3;
       color: #0f172a;
       background: #ffffff;
       -webkit-print-color-adjust: exact;
@@ -157,17 +170,17 @@ export function buildAdmissionFormHtml(data: AdmissionFormData): string {
   <div style="border: ${OUTER}; background: #ffffff; width: 100%; box-sizing: border-box;">
 
     <!-- ═══ School Header ═══ -->
-    <div style="display: flex; align-items: center; padding: 12px 18px; border-bottom: ${OUTER}; position: relative;">
-      <div style="width: 58px; height: 58px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+    <div style="display: flex; align-items: center; padding: ${isLetter ? '8px 14px' : '10px 16px'}; border-bottom: ${OUTER}; position: relative;">
+      <div style="width: 52px; height: 52px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
         ${
           schoolLogo
-            ? `<img src="${schoolLogo}" alt="Logo" style="max-width: 54px; max-height: 54px; object-fit: contain;" />`
-            : `<div style="width: 50px; height: 50px; border: 1.5px dashed #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8pt; color: #94a3b8;">Logo</div>`
+            ? `<img src="${schoolLogo}" alt="Logo" style="max-width: 48px; max-height: 48px; object-fit: contain;" />`
+            : `<div style="width: 44px; height: 44px; border: 1.5px dashed #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 7.5pt; color: #94a3b8;">Logo</div>`
         }
       </div>
-      <div style="flex: 1; text-align: center; padding-right: 58px;">
-        <h1 style="margin: 0; font-size: 17pt; font-weight: 800; color: #0f172a; letter-spacing: -0.2px;">${schoolName}</h1>
-        <p style="margin: 3px 0 0 0; font-size: 9pt; color: #475569; font-weight: 500;">${schoolSub}</p>
+      <div style="flex: 1; text-align: center; padding-right: 52px;">
+        <h1 style="margin: 0; font-size: ${isLetter ? '15pt' : '16pt'}; font-weight: 800; color: #0f172a; letter-spacing: -0.2px;">${schoolName}</h1>
+        <p style="margin: 2px 0 0 0; font-size: ${isLetter ? '8pt' : '8.5pt'}; color: #475569; font-weight: 500;">${schoolSub}</p>
       </div>
     </div>
 
@@ -206,11 +219,11 @@ export function buildAdmissionFormHtml(data: AdmissionFormData): string {
           </tbody>
         </table>
       </div>
-      <div style="width: 110px; border-left: ${INNER}; background: #f8fafc; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 4px;">
+      <div style="width: ${isLetter ? '96px' : '104px'}; border-left: ${INNER}; background: #f8fafc; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 4px;">
         ${
           student.avatar
-            ? `<img src="${student.avatar}" alt="Photo" style="width: 98px; height: 114px; object-fit: cover; display: block;" />`
-            : `<div style="font-size: 8pt; font-weight: 600; color: #94a3b8; text-align: center; text-transform: uppercase; letter-spacing: 1px;">PHOTO</div>`
+            ? `<img src="${student.avatar}" alt="Photo" style="width: ${photoW}; height: ${photoH}; object-fit: cover; display: block;" />`
+            : `<div style="font-size: 7.5pt; font-weight: 600; color: #94a3b8; text-align: center; text-transform: uppercase; letter-spacing: 1px;">PHOTO</div>`
         }
       </div>
     </div>
@@ -222,7 +235,7 @@ export function buildAdmissionFormHtml(data: AdmissionFormData): string {
       <tbody>
         <tr style="border-bottom: ${INNER};">
           <td style="${lblStyle} width: 17%;">FULL NAME</td>
-          <td colspan="3" style="font-weight: 700; font-size: 9.5pt; padding: 5px 8px; color: #0f172a;">${dash(student.name)}</td>
+          <td colspan="3" style="font-weight: 700; font-size: ${fontSize}; padding: ${cellPad}; color: #0f172a;">${dash(student.name)}</td>
         </tr>
         <tr style="border-bottom: ${INNER};">
           <td style="${lblStyle} width: 17%;">FATHER'S NAME</td>
@@ -280,7 +293,7 @@ export function buildAdmissionFormHtml(data: AdmissionFormData): string {
 
     <!-- Father block -->
     <div style="display: flex; border-bottom: ${INNER};">
-      <div style="width: 70px; background: #e8edf2; display: flex; align-items: center; justify-content: center; font-size: 13pt; font-weight: 800; color: #475569; letter-spacing: 1px; border-right: ${INNER}; flex-shrink: 0;">
+      <div style="width: ${isLetter ? '64px' : '68px'}; background: #e8edf2; display: flex; align-items: center; justify-content: center; font-size: 12pt; font-weight: 800; color: #475569; letter-spacing: 1px; border-right: ${INNER}; flex-shrink: 0;">
         ${fatherInitials}
       </div>
       <div style="flex: 1;">
@@ -290,7 +303,7 @@ export function buildAdmissionFormHtml(data: AdmissionFormData): string {
 
     <!-- Mother block -->
     <div style="display: flex; border-bottom: ${OUTER};">
-      <div style="width: 70px; background: #e8edf2; display: flex; align-items: center; justify-content: center; font-size: 13pt; font-weight: 800; color: #475569; letter-spacing: 1px; border-right: ${INNER}; flex-shrink: 0;">
+      <div style="width: ${isLetter ? '64px' : '68px'}; background: #e8edf2; display: flex; align-items: center; justify-content: center; font-size: 12pt; font-weight: 800; color: #475569; letter-spacing: 1px; border-right: ${INNER}; flex-shrink: 0;">
         ${motherInitials}
       </div>
       <div style="flex: 1;">
@@ -313,35 +326,35 @@ export function buildAdmissionFormHtml(data: AdmissionFormData): string {
     <!-- ═══ DOCUMENTS CHECKLIST ═══ -->
     ${secBand('DOCUMENTS CHECKLIST')}
 
-    <div style="padding: 6px 12px; font-size: 9pt; display: flex; align-items: center; border-bottom: ${OUTER};">
-      <span style="display: inline-block; width: 11px; height: 11px; border: 1.5px solid #64748b; border-radius: 2px; margin-right: 7px; flex-shrink: 0;"></span>
+    <div style="padding: ${isLetter ? '4px 10px' : '5px 12px'}; font-size: ${fontSize}; display: flex; align-items: center; border-bottom: ${OUTER};">
+      <span style="display: inline-block; width: 10px; height: 10px; border: 1.5px solid #64748b; border-radius: 2px; margin-right: 6px; flex-shrink: 0;"></span>
       <span style="font-weight: 600; color: #0f172a;">Aadhaar Card*</span>
-      <span style="font-size: 8pt; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-left: 6px;">${idents.aadhaarNo ? 'VERIFIED' : 'NOT UPLOADED'}</span>
+      <span style="font-size: 7.5pt; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-left: 6px;">${idents.aadhaarNo ? 'VERIFIED' : 'NOT UPLOADED'}</span>
     </div>
 
     <!-- ═══ DECLARATION ═══ -->
     ${secBand('DECLARATION')}
 
-    <div style="padding: 8px 12px; font-size: 8.5pt; line-height: 1.45; color: #334155; border-bottom: ${OUTER}; background: #ffffff;">
+    <div style="padding: ${isLetter ? '6px 10px' : '7px 12px'}; font-size: ${isLetter ? '7.5pt' : '8pt'}; line-height: 1.4; color: #334155; border-bottom: ${OUTER}; background: #ffffff;">
       I / We hereby declare that the information furnished above is true and correct to the best of my knowledge and belief. I / We have read and agree to abide by the rules and regulations of the school, and understand that any false statement may lead to cancellation of admission.
     </div>
 
     <!-- ═══ Signatures Row ═══ -->
-    <div style="display: flex; border-bottom: ${OUTER}; min-height: 60px;">
-      <div style="flex: 1; border-right: ${INNER}; text-align: center; display: flex; flex-direction: column; justify-content: flex-end; padding: 28px 8px 8px 8px;">
-        <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">Father / Guardian</div>
-        <div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">Signature &amp; Date</div>
+    <div style="display: flex; border-bottom: ${OUTER}; min-height: ${sigMinH};">
+      <div style="flex: 1; border-right: ${INNER}; text-align: center; display: flex; flex-direction: column; justify-content: flex-end; padding: ${isLetter ? '20px 6px 6px' : '24px 8px 7px'};">
+        <div style="font-size: ${fontSize}; font-weight: 700; color: #0f172a;">Father / Guardian</div>
+        <div style="font-size: 7pt; color: #64748b; margin-top: 1px;">Signature &amp; Date</div>
       </div>
-      <div style="flex: 1; border-right: ${INNER}; text-align: center; display: flex; flex-direction: column; justify-content: flex-end; padding: 28px 8px 8px 8px;">
-        <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">Mother</div>
-        <div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">Signature &amp; Date</div>
+      <div style="flex: 1; border-right: ${INNER}; text-align: center; display: flex; flex-direction: column; justify-content: flex-end; padding: ${isLetter ? '20px 6px 6px' : '24px 8px 7px'};">
+        <div style="font-size: ${fontSize}; font-weight: 700; color: #0f172a;">Mother</div>
+        <div style="font-size: 7pt; color: #64748b; margin-top: 1px;">Signature &amp; Date</div>
       </div>
-      <div style="flex: 1.4; border-right: ${INNER}; text-align: center; display: flex; flex-direction: column; justify-content: flex-end; padding: 28px 8px 8px 8px;">
-        <div style="font-size: 9pt; font-weight: 700; color: #0f172a;">Principal / Authorised Signatory</div>
-        <div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">For ${schoolName}</div>
+      <div style="flex: 1.4; border-right: ${INNER}; text-align: center; display: flex; flex-direction: column; justify-content: flex-end; padding: ${isLetter ? '20px 6px 6px' : '24px 8px 7px'};">
+        <div style="font-size: ${fontSize}; font-weight: 700; color: #0f172a;">Principal / Authorised Signatory</div>
+        <div style="font-size: 7pt; color: #64748b; margin-top: 1px;">For ${schoolName}</div>
       </div>
-      <div style="width: 86px; display: flex; align-items: center; justify-content: center; padding: 6px;">
-        <div style="width: 48px; height: 48px; border-radius: 50%; border: 1.5px dashed #94a3b8; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 7pt; color: #64748b; text-align: center; line-height: 1.2;">
+      <div style="width: 80px; display: flex; align-items: center; justify-content: center; padding: 4px;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; border: 1.5px dashed #94a3b8; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 6.5pt; color: #64748b; text-align: center; line-height: 1.15;">
           <span>School</span>
           <span>Seal</span>
         </div>
@@ -349,7 +362,7 @@ export function buildAdmissionFormHtml(data: AdmissionFormData): string {
     </div>
 
     <!-- ═══ Footer ═══ -->
-    <div style="display: flex; justify-content: space-between; padding: 4px 10px; font-size: 7.5pt; color: #64748b; background: #f8fafc;">
+    <div style="display: flex; justify-content: space-between; padding: 3px 8px; font-size: 7pt; color: #64748b; background: #f8fafc;">
       <span>This is a system-generated admission record.</span>
       <span>Generated on ${timeFormatted}</span>
     </div>

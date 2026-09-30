@@ -37,6 +37,7 @@ import {
   Users,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { AvatarGroup } from "@/components/ui/avatar-group";
 import { PromotionRun, RUN_STATUSES, STATUS_LABELS, RunScope } from "../promotion-types";
 import { usePromotionRuns } from "../use-promotion-runs";
 
@@ -88,46 +89,42 @@ const SCOPE_CONFIG: Record<
   },
 };
 
-function StudentStack({ count, studentIds }: { count: number; studentIds?: string[] }) {
+function StudentStack({
+  count,
+  studentIds,
+  students,
+}: {
+  count: number;
+  studentIds?: string[];
+  students?: { id: string; name: string; avatar?: string | null; className?: string | null }[];
+}) {
   if (count <= 0) {
     return <span className="text-[13px] text-slate-400 font-medium">0</span>;
   }
 
-  const overflow = count > 5 ? count - 5 : null;
+  const avatars = Array.from({ length: count }).map((_, i) => {
+    const student = students?.[i];
+    if (student) {
+      return {
+        src: student.avatar || undefined,
+        name: student.name,
+        className: student.className || "Class 2nd - A",
+      };
+    }
+    return {
+      name: `Student ${studentIds?.[i] ? `#${studentIds[i].slice(0, 5)}` : i + 1}`,
+      className: "Class 2nd - A",
+    };
+  });
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex items-center -space-x-1.5">
-        {Array.from({ length: Math.min(count, 5) }).map((_, i) => (
-          <div key={i} className="relative group/student" style={{ zIndex: 30 - i }}>
-            <div className="size-6 rounded-full bg-[#CCFBF1] dark:bg-teal-950 text-[#0F766E] dark:text-teal-300 flex items-center justify-center text-[9px] font-semibold border-2 border-white dark:border-zinc-900 shadow-2xs cursor-pointer">
-              S{i + 1}
-            </div>
-
-            {/* Hover Tooltip Popup matching the user screenshot */}
-            <div className="pointer-events-none absolute bottom-full left-0 mb-2 hidden group-hover/student:flex flex-col z-50 animate-in fade-in-0 zoom-in-95">
-              <div className="relative bg-[#111827] text-white px-3 py-2 rounded-xl shadow-xl min-w-[130px]">
-                <p className="text-[12px] font-semibold text-white leading-tight">
-                  Student {studentIds?.[i] ? `#${studentIds[i].slice(0, 6)}` : i + 1}
-                </p>
-                <p className="text-[11px] text-slate-400 leading-snug mt-0.5">Enrolled</p>
-                {/* Tooltip triangle tail */}
-                <div className="absolute top-full left-4 -mt-0.5 w-0 h-0 border-x-4 border-x-transparent border-t-[5px] border-t-[#111827]" />
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {overflow && (
-          <div
-            className="size-6 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 flex items-center justify-center text-[9px] font-semibold border-2 border-white dark:border-zinc-900 shadow-2xs shrink-0"
-            style={{ zIndex: 10 }}
-          >
-            +{overflow}
-          </div>
-        )}
-      </div>
-      <span className="text-[13px] font-semibold text-slate-800 dark:text-zinc-100 ml-0.5">
+      <AvatarGroup
+        avatars={avatars}
+        maxVisible={5}
+        size={28}
+      />
+      <span className="text-[13px] font-semibold text-slate-800 dark:text-zinc-100 ml-1">
         {count}
       </span>
     </div>
@@ -283,17 +280,20 @@ export function PromotionsHub({ onNew, onOpenRun }: PromotionsHubProps) {
           <p className="mt-1 text-[11.5px] text-[#64748B] dark:text-zinc-400">
             {counts.draft > 0 ? `${counts.draft} awaiting submission` : "No unfinished drafts"}
           </p>
-          <div className="mt-3 flex items-center gap-1">
-            {Array.from({ length: 12 }).map((_, idx) => (
-              <span
-                key={idx}
-                className={`h-4 w-2 rounded-xs transition-colors ${
-                  idx < Math.min(counts.draft, 12)
-                    ? "bg-slate-400 dark:bg-zinc-500"
-                    : "bg-slate-100 dark:bg-zinc-800"
-                }`}
-              />
-            ))}
+          <div className="mt-3 flex items-end gap-1.5 h-6">
+            {Array.from({ length: 10 }).map((_, idx) => {
+              const isActive = idx < Math.min(counts.draft, 10);
+              return (
+                <span
+                  key={idx}
+                  className={`w-2.5 rounded-xs transition-all ${
+                    isActive
+                      ? "h-6 bg-slate-400 dark:bg-slate-400"
+                      : "h-3 bg-slate-200/80 dark:bg-slate-800/80"
+                  }`}
+                />
+              );
+            })}
           </div>
         </div>
 
@@ -316,17 +316,20 @@ export function PromotionsHub({ onNew, onOpenRun }: PromotionsHubProps) {
           <p className="mt-1 text-[11.5px] text-[#64748B] dark:text-zinc-400">
             {counts.pending > 0 ? `${counts.pending} in queue` : "Inbox is empty"}
           </p>
-          <div className="mt-3 flex items-center gap-1">
-            {Array.from({ length: 12 }).map((_, idx) => (
-              <span
-                key={idx}
-                className={`h-4 w-2 rounded-xs transition-colors ${
-                  idx < Math.min(counts.pending, 12)
-                    ? "bg-amber-400 dark:bg-amber-500"
-                    : "bg-slate-100 dark:bg-zinc-800"
-                }`}
-              />
-            ))}
+          <div className="mt-3 flex items-end gap-1.5 h-6">
+            {Array.from({ length: 10 }).map((_, idx) => {
+              const isActive = idx < Math.min(counts.pending, 10);
+              return (
+                <span
+                  key={idx}
+                  className={`w-2.5 rounded-xs transition-all ${
+                    isActive
+                      ? "h-6 bg-amber-400 dark:bg-amber-500"
+                      : "h-3 bg-slate-200/80 dark:bg-slate-800/80"
+                  }`}
+                />
+              );
+            })}
           </div>
         </div>
 
@@ -383,17 +386,20 @@ export function PromotionsHub({ onNew, onOpenRun }: PromotionsHubProps) {
           <p className="mt-1 text-[11.5px] text-[#64748B] dark:text-zinc-400">
             {counts.completed > 0 ? `${counts.completed} successful` : "Nothing completed yet"}
           </p>
-          <div className="mt-3 flex items-center gap-1">
-            {Array.from({ length: 12 }).map((_, idx) => (
-              <span
-                key={idx}
-                className={`h-4 w-2 rounded-xs transition-colors ${
-                  idx < Math.min(counts.completed, 12)
-                    ? "bg-emerald-500 dark:bg-emerald-400"
-                    : "bg-slate-100 dark:bg-zinc-800"
-                }`}
-              />
-            ))}
+          <div className="mt-3 flex items-end gap-1.5 h-6">
+            {Array.from({ length: 10 }).map((_, idx) => {
+              const isActive = idx < Math.min(counts.completed, 10);
+              return (
+                <span
+                  key={idx}
+                  className={`w-2.5 rounded-xs transition-all ${
+                    isActive
+                      ? "h-6 bg-emerald-500 dark:bg-emerald-400"
+                      : "h-3 bg-slate-200/80 dark:bg-slate-800/80"
+                  }`}
+                />
+              );
+            })}
           </div>
         </div>
 
@@ -416,17 +422,20 @@ export function PromotionsHub({ onNew, onOpenRun }: PromotionsHubProps) {
           <p className="mt-1 text-[11.5px] text-[#64748B] dark:text-zinc-400">
             {counts.reversed > 0 ? `${counts.reversed} rollbacks` : "Nothing reversed"}
           </p>
-          <div className="mt-3 flex items-center gap-1">
-            {Array.from({ length: 12 }).map((_, idx) => (
-              <span
-                key={idx}
-                className={`h-4 w-2 rounded-xs transition-colors ${
-                  idx < Math.min(counts.reversed, 12)
-                    ? "bg-red-400 dark:bg-red-500"
-                    : "bg-slate-100 dark:bg-zinc-800"
-                }`}
-              />
-            ))}
+          <div className="mt-3 flex items-end gap-1.5 h-6">
+            {Array.from({ length: 10 }).map((_, idx) => {
+              const isActive = idx < Math.min(counts.reversed, 10);
+              return (
+                <span
+                  key={idx}
+                  className={`w-2.5 rounded-xs transition-all ${
+                    isActive
+                      ? "h-6 bg-rose-500 dark:bg-rose-400"
+                      : "h-3 bg-slate-200/80 dark:bg-slate-800/80"
+                  }`}
+                />
+              );
+            })}
           </div>
         </div>
       </div>
@@ -616,6 +625,7 @@ export function PromotionsHub({ onNew, onOpenRun }: PromotionsHubProps) {
                         <StudentStack
                           count={r.studentCount || (r.studentIds?.length ?? 0)}
                           studentIds={r.studentIds}
+                          students={r.students}
                         />
                       </td>
 

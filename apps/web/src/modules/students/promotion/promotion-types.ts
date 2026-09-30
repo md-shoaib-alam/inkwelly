@@ -7,6 +7,13 @@ export type RunScope =
   | "custom-list"
   | "single-student";
 
+export interface PromotionStudentPreview {
+  id: string;
+  name: string;
+  avatar?: string | null;
+  className?: string | null;
+}
+
 export interface PromotionRun {
   id: string;
   status: RunStatus;
@@ -16,6 +23,7 @@ export interface PromotionRun {
   scope: RunScope;
   studentIds: string[];
   studentCount: number;
+  students?: PromotionStudentPreview[];
   remarks: string | null;
   createdAt: string;
   updatedAt: string;

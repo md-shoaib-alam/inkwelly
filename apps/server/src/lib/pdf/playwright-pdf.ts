@@ -59,6 +59,7 @@ async function getBrowser(): Promise<Browser> {
 
 export interface GeneratePdfOptions {
   html: string;
+  format?: 'A4' | 'Letter';
   margin?: {
     top?: string;
     bottom?: string;
@@ -68,35 +69,37 @@ export interface GeneratePdfOptions {
 }
 
 /**
- * Generates an A4 vector PDF directly from an HTML string using Playwright (Chromium Skia/PDF).
+ * Generates an A4 or Letter vector PDF directly from an HTML string using Playwright (Chromium Skia/PDF).
  */
-export async function generatePdfFromHtml({ html, margin }: GeneratePdfOptions): Promise<Buffer> {
+export async function generatePdfFromHtml({ html, format = 'A4', margin }: GeneratePdfOptions): Promise<Buffer> {
   const browser = await getBrowser();
+  const paperFormat = format === 'Letter' ? 'Letter' : 'A4';
+  const viewport = paperFormat === 'Letter'
+    ? { width: 816, height: 1056 }
+    : { width: 794, height: 1123 };
+
   const context = await browser.newContext({
-    viewport: { width: 794, height: 1123 },
+    viewport,
     deviceScaleFactor: 2,
   });
 
   const page = await context.newPage();
 
   try {
-    // Set HTML content and wait for network/images to finish loading
     await page.setContent(html, {
       waitUntil: 'load',
       timeout: 15000,
     });
 
-    // Generate A4 PDF with exact print background colors
+    const defaultMargin = paperFormat === 'Letter'
+      ? { top: '6mm', bottom: '6mm', left: '10mm', right: '10mm' }
+      : { top: '8mm', bottom: '8mm', left: '10mm', right: '10mm' };
+
     const pdfUint8 = await page.pdf({
-      format: 'A4',
+      format: paperFormat,
       printBackground: true,
       preferCSSPageSize: true,
-      margin: margin || {
-        top: '10mm',
-        bottom: '10mm',
-        left: '12mm',
-        right: '12mm',
-      },
+      margin: margin || defaultMargin,
     });
 
     return Buffer.from(pdfUint8);

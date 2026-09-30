@@ -282,6 +282,39 @@ promotionsRoutes
         if (r.status in counts) counts[r.status] = (counts[r.status] ?? 0) + 1;
       }
 
+      // Collect preview student IDs across returned runs (up to 8 per run)
+      const previewStudentIds = Array.from(
+        new Set(rows.flatMap((r) => (r.studentIds ?? []).slice(0, 8)))
+      );
+
+      const studentMap = new Map<string, { id: string; name: string; avatar: string | null; className: string | null }>();
+      if (previewStudentIds.length > 0) {
+        const studentRecords = await db.query.students.findMany({
+          where: inArray(schema.students.id, previewStudentIds),
+          with: { user: true, class: true },
+        });
+
+        for (const s of studentRecords) {
+          const rawClass = s.class?.name || '';
+          const section = s.class?.section || 'A';
+          let formattedClass: string | null = null;
+          if (rawClass) {
+            formattedClass = rawClass.toLowerCase().startsWith('class') || rawClass.toLowerCase().startsWith('grade')
+              ? `${rawClass} - ${section}`
+              : `Class ${rawClass} - ${section}`;
+          }
+
+          const fullName = [s.firstName, s.lastName].filter(Boolean).join(' ').trim() || s.user?.name || 'Student';
+
+          studentMap.set(s.id, {
+            id: s.id,
+            name: fullName,
+            avatar: s.user?.avatar || null,
+            className: formattedClass,
+          });
+        }
+      }
+
       return {
         items: rows.map((r) => ({
           id: r.id,
@@ -292,6 +325,9 @@ promotionsRoutes
           scope: r.scope,
           studentIds: r.studentIds ?? [],
           studentCount: (r.studentIds ?? []).length,
+          students: (r.studentIds ?? []).slice(0, 8).map((id) => {
+            return studentMap.get(id) || { id, name: `Student #${id.slice(0, 5)}`, avatar: null, className: null };
+          }),
           remarks: r.remarks,
           createdAt: r.createdAt.toISOString(),
           updatedAt: r.updatedAt.toISOString(),
