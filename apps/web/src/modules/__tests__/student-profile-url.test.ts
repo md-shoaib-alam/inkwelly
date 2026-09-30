@@ -5,6 +5,8 @@ import {
   studentProfileTail,
   studentRefFromPathname,
   studentRefOf,
+  updateInfoPathOf,
+  updateInfoRefFromPathname,
 } from "@/modules/students/students/student-ref";
 import {
   DEFAULT_TAB,
@@ -44,6 +46,14 @@ test("the profile URL round-trips back to the roster URL", () => {
   expect(rosterPathOf(profile, true)).toBe("/demo-academy/2026-27/students/list");
   expect(profilePathOf(rosterPathOf(profile, true), "STU2026120")).toBe(profile);
   expect(rosterPathOf("/demo-academy/2026-27/students/list", false)).toBe("/demo-academy/2026-27/students/list");
+});
+
+test("the update information URL round-trips back to the roster and profile URL", () => {
+  const updateUrl = "/demo-academy/2026-27/students/list/STU2026120/update-information";
+  expect(rosterPathOf(updateUrl, true)).toBe("/demo-academy/2026-27/students/list");
+  expect(updateInfoRefFromPathname(updateUrl)).toBe("STU2026120");
+  expect(updateInfoPathOf("/demo-academy/2026-27/students/list", "STU2026120")).toBe(updateUrl);
+  expect(profilePathOf(rosterPathOf(updateUrl, true), "STU2026120")).toBe("/demo-academy/2026-27/students/list/STU2026120");
 });
 
 test("a ref with a space is encoded into the path and read back out", () => {

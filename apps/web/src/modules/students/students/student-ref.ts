@@ -22,15 +22,46 @@ export function studentRefFromPathname(pathname: string, moduleKey = "students")
   return decode(ref);
 }
 
+/** The tail segment that turns a profile URL into the full-page correction form. */
+const UPDATE_INFO_TAIL = "update-information";
+
+/**
+ * The correction form's own address: one tail segment past the profile it edits, the
+ * same shape the shipped product uses. It is parsed separately from the profile ref
+ * because the profile parser refuses any deeper path on purpose — a fifth segment is
+ * this screen, not a broken profile link.
+ */
+export function updateInfoRefFromPathname(pathname: string, moduleKey = "students"): string | null {
+  const segments = pathname.split("/").filter(Boolean);
+  const at = segments.indexOf(moduleKey);
+  if (at === -1) return null;
+  const screen = segments[at + 1];
+  const ref = segments[at + 2];
+  if (!screen || !ROSTER_SCREEN_KEYS.has(screen) || !ref) return null;
+  if (segments.length !== at + 4 || segments[at + 3] !== UPDATE_INFO_TAIL) return null;
+  return decode(ref);
+}
+
+/** The correction form's address, built off the roster so the year travels with it. */
+export function updateInfoPathOf(rosterPath: string, ref: string): string {
+  return `${profilePathOf(rosterPath, ref)}/${UPDATE_INFO_TAIL}`;
+}
+
 /**
  * The roster's own address, with the profile ref dropped. The profile is a full-page
  * replace rather than a dialog, so Back has to land on the roster URL and not on a
  * second copy of the profile.
  */
-export function rosterPathOf(pathname: string, hasRef: boolean): string {
-  if (!hasRef) return pathname;
-  const cut = pathname.lastIndexOf("/");
-  return cut > 0 ? pathname.slice(0, cut) : "/";
+export function rosterPathOf(pathname: string, hasRef?: boolean, moduleKey = "students"): string {
+  const cleanPath = pathname.split("?")[0].split("#")[0];
+  const segments = cleanPath.split("/").filter(Boolean);
+  const at = segments.indexOf(moduleKey);
+  if (at !== -1 && segments[at + 1] && ROSTER_SCREEN_KEYS.has(segments[at + 1])) {
+    return "/" + segments.slice(0, at + 2).join("/");
+  }
+  if (!hasRef) return cleanPath;
+  const cut = cleanPath.lastIndexOf("/");
+  return cut > 0 ? cleanPath.slice(0, cut) : "/";
 }
 
 /** The profile URL for one ref, built off the roster's address so the year travels with it. */

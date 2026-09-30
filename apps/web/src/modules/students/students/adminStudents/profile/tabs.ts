@@ -38,6 +38,14 @@ export const PROFILE_TABS: ProfileTabDef[] = [
 
 export const DEFAULT_TAB: ProfileTabId = "summary";
 
+/**
+ * The query cache is persisted to localStorage, so a returning admin is served whatever
+ * shape was stored before this deploy. Bump the version whenever a tab payload changes
+ * shape; the server cache version alone does not protect the client. Prefix invalidation
+ * matches on this first element, so call sites must import it instead of retyping it.
+ */
+export const PROFILE_QUERY_KEY = "student-profile:v2";
+
 const BY_ID = new Map(PROFILE_TABS.map((t) => [t.id, t]));
 
 export const tabDefOf = (id: ProfileTabId): ProfileTabDef => BY_ID.get(id) ?? BY_ID.get(DEFAULT_TAB)!;

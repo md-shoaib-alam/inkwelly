@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { useAppStore } from "@/store/use-app-store";
-import type { ProfileTabId } from "./tabs";
+import { PROFILE_QUERY_KEY, type ProfileTabId } from "./tabs";
 
 /**
  * The profile is read one tab per request, so the header and the visible tab are two
@@ -30,12 +30,13 @@ export interface ProfileCounts {
 }
 
 export interface GuardianCard {
-  relation: "father" | "mother";
+  relation: "father" | "mother" | "guardian" | string;
   name: string | null;
   mobile: string | null;
   occupation: string | null;
   education: string | null;
   workAddress: string | null;
+  annualIncome?: string | null;
   isPrimary: boolean;
 }
 
@@ -57,7 +58,12 @@ export interface SummaryPayload {
     category: string | null;
     admissionDate: string | null;
   };
-  contact: { mobile: string | null; email: string | null; address: string | null };
+  contact: {
+    mobile: string | null;
+    email: string | null;
+    address: string | null;
+    primaryContact: { name: string | null; relation: string; mobile: string | null } | null;
+  };
   identifiers: {
     studentId: string | null;
     admissionNo: string | null;
@@ -81,17 +87,27 @@ export interface FamilyPayload {
   siblings: SiblingRow[];
 }
 
+export interface AcademicPlacement {
+  academicYear: string | null;
+  className: string | null;
+  grade: string | null;
+  rollNumber: string | null;
+  registrationNo: string | null;
+  status: string | null;
+  joiningDate: string | null;
+}
+
+export interface SessionRow {
+  academicYear: string | null;
+  className: string | null;
+  status: string | null;
+  joinedOn: string | null;
+  isCurrent: boolean;
+}
+
 export interface AcademicPayload {
-  enrolment: {
-    className: string | null;
-    grade: string | null;
-    rollNumber: string | null;
-    academicYear: string | null;
-    admissionNo: string | null;
-    admissionDate: string | null;
-    joiningDate: string | null;
-    status: string | null;
-  };
+  placement: AcademicPlacement;
+  sessions: SessionRow[];
 }
 
 export interface AddressesPayload {
@@ -124,7 +140,7 @@ async function fetchProfile(ref: string, tab?: ProfileTabId): Promise<ProfilePay
 export function useProfileHeader(ref: string | null) {
   const { currentTenantId } = useAppStore();
   return useQuery({
-    queryKey: ["student-profile", currentTenantId, ref, "header"],
+    queryKey: [PROFILE_QUERY_KEY, currentTenantId, ref, "header"],
     enabled: Boolean(ref && currentTenantId),
     staleTime: 60_000,
     queryFn: () => fetchProfile(ref as string) as Promise<{ header: ProfileHeader; counts: ProfileCounts }>,
@@ -134,7 +150,7 @@ export function useProfileHeader(ref: string | null) {
 export function useProfileTab(ref: string | null, tab: ProfileTabId, live: boolean) {
   const { currentTenantId } = useAppStore();
   return useQuery({
-    queryKey: ["student-profile", currentTenantId, ref, tab],
+    queryKey: [PROFILE_QUERY_KEY, currentTenantId, ref, tab],
     enabled: Boolean(ref && currentTenantId && live),
     staleTime: 60_000,
     queryFn: () => fetchProfile(ref as string, tab) as Promise<ProfilePayload>,

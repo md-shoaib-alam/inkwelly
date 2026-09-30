@@ -10,6 +10,7 @@ import {
   isTab,
   keySafeRef,
   refConditions,
+  sessionsOf,
   summaryOf,
   type StudentRow,
 } from "./profile.routes";
@@ -217,16 +218,54 @@ describe("tab payloads", () => {
     ]);
   });
 
+  test("the contact block names a primary guardian only when the parent login matches", () => {
+    const r = row({ fatherFirstName: "Rahul", fatherMobile: "9000000090", parentAccountName: "rahul" });
+    expect(summaryOf(r).contact.primaryContact).toMatchObject({
+      name: "Rahul",
+      relation: "Father",
+      mobile: "9000000090",
+    });
+    // No parent account is no primary contact, rather than a guessed one.
+    expect(summaryOf(row({ fatherFirstName: "Rahul" })).contact.primaryContact).toBeNull();
+  });
+
   test("only the family tab returns guardians", () => {
     expect(summaryOf(row())).not.toHaveProperty("guardians");
     expect(academicOf(row())).not.toHaveProperty("guardians");
     expect(addressesOf(row())).not.toHaveProperty("guardians");
   });
 
-  test("academic returns the enrolment and nothing else", () => {
+  test("academic answers the placement and the sessions, nothing else", () => {
     const payload = academicOf(row({ classId: "c1", className: "Five", classSection: "A" }));
-    expect(Object.keys(payload)).toEqual(["enrolment"]);
-    expect(payload.enrolment.className).toBe("Five - A");
+    expect(Object.keys(payload)).toEqual(["placement", "sessions"]);
+    expect(payload.placement.className).toBe("Five - A");
+    expect(payload.sessions).toHaveLength(1);
+    expect(sessionsOf(row())).toEqual([]);
+  });
+
+  test("placement and the session list give the same joining date for the same seat", () => {
+    // A school that records an admission date but no joining date would otherwise show a
+    // dash under "Current Placement" and a date one section below it.
+    const admitted = row({
+      classId: "c1",
+      className: "Five",
+      joiningDate: null,
+      admissionDate: "2024-06-01",
+    });
+    const payload = academicOf(admitted);
+    expect(payload.placement.joiningDate).toBe("2024-06-01");
+    expect(payload.sessions[0]?.joinedOn).toBe("2024-06-01");
+
+    const joined = row({ classId: "c1", className: "Five", joiningDate: "2025-04-02", admissionDate: "2024-06-01" });
+    expect(academicOf(joined).placement.joiningDate).toBe("2025-04-02");
+  });
+
+  test("the academic badge counts exactly the sessions the tab lists", () => {
+    // The heading reads "n sessions on file", so a badge that counted differently would
+    // contradict the list underneath it.
+    const seated = row({ classId: "c1", className: "Five", classSection: "A" });
+    expect(countsOf(seated, [], []).academic).toBe(academicOf(seated).sessions.length);
+    expect(countsOf(row(), [], []).academic).toBe(academicOf(row()).sessions.length);
   });
 
   test("addresses returns trimmed entries, and none when the field is blank", () => {

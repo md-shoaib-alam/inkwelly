@@ -67,11 +67,11 @@ export function ProfileSwitcher({
       <PopoverTrigger asChild>
         <Button
           type="button"
-          variant="ghost"
-          className="h-9 gap-1.5 rounded-lg px-2 text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-100"
+          variant="outline"
+          className="h-9 gap-1.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3.5 text-xs font-semibold text-slate-700 dark:text-zinc-200 shadow-xs hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer"
         >
-          <ChevronDown className="size-4" />
-          <span className="text-[13px] font-medium">Switch profile</span>
+          <span>Switch profile</span>
+          <ChevronDown className="size-3.5 text-slate-500 dark:text-zinc-400" />
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[360px] rounded-xl p-0">
