@@ -136,6 +136,39 @@ export const students = pgTable('Student', {
   classStatusIdx: index('Student_classId_status_idx').on(table.classId, table.status),
 }));
 
+/**
+ * A student's addresses as separate records, because a school keeps more than one and
+ * needs to say which one it writes to.
+ *
+ * Only `line1` is NOT NULL. The form marks city, state, country and postal code as
+ * required, and the route enforces that — but this table starts life by absorbing the
+ * old single free-text `User.address`, which can only ever supply one line. A column
+ * that is NOT NULL in the database and empty for every backfilled row teaches the next
+ * reader nothing except that the constraint was a guess.
+ *
+ * `tenantId` is stored rather than reached through Student -> User, so a query that
+ * forgets its join cannot hand one school another school's addresses.
+ */
+export const studentAddresses = pgTable('StudentAddress', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  tenantId: text('tenantId').default('master').notNull(),
+  studentId: text('studentId').notNull(),
+  addressType: text('addressType').default('current').notNull(),
+  line1: text('line1').notNull(),
+  line2: text('line2'),
+  city: text('city'),
+  state: text('state'),
+  country: text('country'),
+  postalCode: text('postalCode'),
+  landmark: text('landmark'),
+  isPrimary: boolean('isPrimary').default(false).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+}, (table) => ({
+  tenantIdIdx: index('StudentAddress_tenantId_idx').on(table.tenantId),
+  studentIdIdx: index('StudentAddress_studentId_idx').on(table.studentId),
+}));
+
 export const teachers = pgTable('Teacher', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   userId: text('userId').notNull().unique(),
@@ -238,6 +271,30 @@ export const attendance = pgTable('Attendance', {
   tenantDateStudentIdx: index('Attendance_tenantId_date_studentId_idx').on(table.tenantId, table.date, table.studentId),
   studentDateIdx: index('Attendance_studentId_date_idx').on(table.studentId, table.date),
   tenantClassDateIdx: index('Attendance_tenantId_classId_date_idx').on(table.tenantId, table.classId, table.date),
+}));
+
+/**
+ * How the Students Attendance module judges a day, one row per tenant.
+ *
+ * Its own table for the reason `StudentIdSetting` has one: `Tenant.settings` is a single
+ * JSON text blob that `PUT /tenant-settings` overwrites wholesale, so a save from any
+ * other settings screen would silently drop these two values.
+ *
+ * `cutoffTime` is a `HH:MM` string in the school's local clock, not an instant — the
+ * register compares it against wall time, and a tenant's timezone is not stored here.
+ * `targetRate` is the percentage the dashboard measures every rate against, so the
+ * calendar bands and the Good/Watch/Critical thresholds are derived from it rather than
+ * hardcoded in the screen.
+ */
+export const attendanceSettings = pgTable('AttendanceSetting', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  tenantId: text('tenantId').notNull(),
+  cutoffTime: text('cutoffTime').default('09:00').notNull(),
+  targetRate: integer('targetRate').default(92).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+}, (table) => ({
+  tenantIdUq: uniqueIndex('AttendanceSetting_tenantId_uq').on(table.tenantId),
 }));
 
 export const grades = pgTable('Grade', {

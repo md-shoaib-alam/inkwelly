@@ -120,6 +120,20 @@
       "when": 1790719216518,
       "tag": "0016_yummy_sentry",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790726768376,
+      "tag": "0017_attendance_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790728424182,
+      "tag": "0018_student_addresses",
+      "breakpoints": true
     }
   ]
 }
