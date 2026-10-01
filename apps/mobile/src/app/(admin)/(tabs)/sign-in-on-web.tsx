@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Platform, Pressable,
+  ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Pressable,
   StyleSheet, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
@@ -231,7 +231,7 @@ export default function SignInOnWebScreen() {
   // ── Code entry sheet over camera ─────────────────────────────────────
   if (mode === 'code') {
     return (
-      <KeyboardAvoidingView style={[styles.screen, { backgroundColor: colors.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={[styles.screen, { backgroundColor: colors.background }]} behavior="padding">
         {permission?.granted && (
           <CameraView style={StyleSheet.absoluteFill} facing="back" barcodeScannerSettings={{ barcodeTypes: ['qr'] }} onBarcodeScanned={busy ? undefined : onScanned} />
         )}
@@ -274,7 +274,7 @@ export default function SignInOnWebScreen() {
   // ── Confirm bottom sheet ─────────────────────────────────────────────
   if (mode === 'confirm') {
     return (
-      <KeyboardAvoidingView style={[styles.screen, { backgroundColor: colors.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={[styles.screen, { backgroundColor: colors.background }]} behavior="padding">
         {permission?.granted && (
           <CameraView style={StyleSheet.absoluteFill} facing="back" barcodeScannerSettings={{ barcodeTypes: ['qr'] }} />
         )}
@@ -339,7 +339,7 @@ export default function SignInOnWebScreen() {
 
   // ── Camera / Scan mode ───────────────────────────────────────────────
   return (
-    <KeyboardAvoidingView style={[styles.screen, { backgroundColor: colors.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={[styles.screen, { backgroundColor: colors.background }]} behavior="padding">
       {renderHeader()}
       <View style={styles.cameraContainer}>
         {!permission ? (
