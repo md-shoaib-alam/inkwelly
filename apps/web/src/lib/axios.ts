@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { env } from './env';
-import { getValidTokenOrRefresh } from './api';
+import { getValidTokenOrRefresh, getToken } from './api';
 
 const API_BASE = env.NEXT_PUBLIC_API_URL;
 
@@ -14,7 +14,7 @@ const axiosInstance = axios.create({
 // Request interceptor for Auth and Tenant IDs
 axiosInstance.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('school_token');
+    const token = getToken();
     const tenantId = localStorage.getItem('schoolsaas_tenant_id');
 
     if (token) {

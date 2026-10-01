@@ -1,11 +1,12 @@
 import { env } from '../env';
 import { triggerGlobalRefresh } from '../query-client';
+import { getToken, getRefreshToken, sessionIsPersisted, setToken, setRefreshToken } from '@/lib/api';
 const API_BASE = env.NEXT_PUBLIC_API_URL;
 const GRAPHQL_ENDPOINT = typeof window !== 'undefined' ? '/graphql-proxy' : `${API_BASE}/graphql`;
 
 function getStoredToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('school_token');
+  return getToken();
 }
 
 function getStoredTenantId(): string | null {
@@ -15,7 +16,7 @@ function getStoredTenantId(): string | null {
 
 function getStoredRefreshToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('school_refresh_token');
+  return getRefreshToken();
 }
 
 // ── GraphQL-level refresh interceptor ──
@@ -47,11 +48,17 @@ async function refreshForGraphQL(): Promise<string> {
 
   if (!refreshRes.ok) throw new Error('Refresh failed');
   const data = await refreshRes.json();
-  localStorage.setItem('school_token', data.token);
-  localStorage.setItem('school_refresh_token', data.refreshToken);
-  if (typeof document !== 'undefined') {
-    const d = new Date(); d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000);
-    document.cookie = `school_token=${data.token};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+  
+  if (sessionIsPersisted()) {
+    localStorage.setItem('school_token', data.token);
+    localStorage.setItem('school_refresh_token', data.refreshToken);
+    if (typeof document !== 'undefined') {
+      const d = new Date(); d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000);
+      document.cookie = `school_token=${data.token};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+    }
+  } else {
+    setToken(data.token, false);
+    setRefreshToken(data.refreshToken, false);
   }
   return data.token;
 }

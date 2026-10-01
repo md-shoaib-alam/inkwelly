@@ -21,7 +21,10 @@ function getToken(): string | null {
 function setToken(token: string, persist = true): void {
   if (typeof window === 'undefined') return;
   if (persist) localStorage.setItem('school_token', token);
-  else memoryToken = token;
+  else {
+    localStorage.removeItem('school_token');
+    memoryToken = token;
+  }
 }
 
 function getRefreshToken(): string | null {
@@ -32,7 +35,10 @@ function getRefreshToken(): string | null {
 function setRefreshToken(token: string, persist = true): void {
   if (typeof window === 'undefined') return;
   if (persist) localStorage.setItem('school_refresh_token', token);
-  else memoryRefreshToken = token;
+  else {
+    localStorage.removeItem('school_refresh_token');
+    memoryRefreshToken = token;
+  }
 }
 
 /** Called by logout so an in-memory session cannot outlive the sign-out. */
@@ -410,7 +416,7 @@ export async function apiFetch(path: string, init?: RequestInit, attempt: number
 }
 
 // Re-export helpers for use in login screen
-export { setToken, setRefreshToken, getToken, getRefreshToken };
+export { setToken, setRefreshToken, getToken, getRefreshToken, sessionIsPersisted };
 
 export { API_BASE };
 
