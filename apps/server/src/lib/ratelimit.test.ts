@@ -4,6 +4,7 @@ import {
   getAccountLoginAttempts,
   registerFailedLogin,
   clearLoginAttempts,
+  hitLimit,
   LOGIN_MAX_ATTEMPTS,
   LOGIN_IP_MAX_ATTEMPTS,
 } from './ratelimit';
@@ -64,4 +65,10 @@ describe('login failure budgets', () => {
     expect((await getAccountLoginAttempts('')).count).toBe(0);
     await clearLoginAttempts(a, '');
   });
+});
+
+test('hitLimit counts up inside its window', async () => {
+  const key = `test:hitlimit:${crypto.randomUUID()}`;
+  expect(await hitLimit(key, 60)).toBe(1);
+  expect(await hitLimit(key, 60)).toBe(2);
 });

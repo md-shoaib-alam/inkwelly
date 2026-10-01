@@ -188,12 +188,24 @@ export const requireTenant = new Elysia({ name: 'requireTenant' })
 /**
  * Guard: Require specific user roles.
  * E.g.: requireRoles(['admin', 'super_admin'])
+ *
+ * `{ as: 'scoped' }` for the same reason `requireSuperAdmin` carries it: a local
+ * hook covers only routes declared on this instance, and this instance declares
+ * none — mounted as a plugin it would enforce nothing. Proven empirically:
+ * local → anonymous and wrong-role both reach the handler (200); scoped → 401/403.
  */
 export const requireRoles = (allowedRoles: string[]) =>
   new Elysia({ name: `requireRoles:${allowedRoles.join(',')}` })
     .use(requireAuth)
-    .onBeforeHandle(({ user, set }) => {
-      if (!user || !allowedRoles.includes(user.role)) {
+    .onBeforeHandle({ as: 'scoped' }, ({ user, set }: any) => {
+      // Spelled out like requireSuperAdmin: an absent caller is unauthenticated
+      // (401 keeps the client's silent token refresh working), a
+      // present-but-wrong-role caller is forbidden.
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+      if (!allowedRoles.includes(user.role)) {
         set.status = 403;
         return { error: 'Access denied: insufficient permissions' };
       }

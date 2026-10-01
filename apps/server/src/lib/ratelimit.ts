@@ -55,6 +55,22 @@ export function localClear(key: string): void {
   localStore.delete(key);
 }
 
+/**
+ * One fixed-window hit against Redis, or against process RAM when Redis is down, so an
+ * endpoint's limiter cannot silently become "no limiter" during an outage. Returns the
+ * running count for the window, including this call.
+ */
+export async function hitLimit(key: string, windowSeconds: number): Promise<number> {
+  if (redis.status === 'ready') {
+    try {
+      return await incrWithWindow(`ratelimit:${key}`, windowSeconds);
+    } catch {
+      // Fall through to the local counter.
+    }
+  }
+  return localHit(key, windowSeconds * 1000);
+}
+
 // ─── Login attempt limiter (Redis primary, local fallback) ────────────────
 // Two independent budgets. A school's users all leave through one NAT address,
 // so an IP-only budget of LOGIN_MAX_ATTEMPTS would be spent by five unrelated

@@ -12,6 +12,7 @@ import { logoutRoute } from './logout';
 import { meRoute } from './me';
 import { profileRoute } from './profile';
 import { passwordRoute } from './password';
+import { challengeApproveRoutes, challengePublicRoutes } from './challenge';
 
 export const authRoutes = new Elysia({ prefix: '/auth' })
   .derive(({ request }) => {
@@ -22,6 +23,7 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
   // Public routes
   .use(loginRoute)
   .use(refreshRoute)
+  .use(challengePublicRoutes)
   .post('/reset-password', async ({ body, set }) => {
     try {
       const { email, phone } = body;
@@ -56,6 +58,7 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
   
   // Protected routes
   .use(requireAuth)
+  .use(challengeApproveRoutes)
   .use(meRoute)
   .use(profileRoute)
   .use(passwordRoute);
