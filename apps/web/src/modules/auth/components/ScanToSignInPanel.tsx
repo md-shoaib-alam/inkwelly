@@ -123,38 +123,59 @@ export function ScanToSignInPanel() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Have the app?</p>
-      <h3 className="text-lg font-semibold text-slate-900">Scan to sign in</h3>
-      <p className="max-w-[30ch] text-center text-xs text-slate-500">
-        No OTP to wait for. Your phone confirms it&apos;s you.
+    <div className="flex flex-col gap-4">
+      {/* Eyebrow */}
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+        HAVE THE APP?
       </p>
 
-      <img src={qrSrc} alt="Sign-in QR code" className="size-44 rounded-lg border border-slate-200 bg-white p-1" />
+      {/* Headline */}
+      <h3 className="text-lg font-semibold text-slate-900">
+        Scan to sign in.
+      </h3>
 
-      <div className="text-center">
-        <p className="text-[11px] uppercase tracking-wide text-slate-400">Or type this code</p>
-        <p className="font-mono text-xl font-semibold tracking-[0.2em] text-slate-900">{code}</p>
+      {/* QR code with corner brackets */}
+      <div className="relative inline-flex self-center">
+        {/* Corner brackets - four L-shaped marks */}
+        <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-slate-700" />
+        <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-slate-700" />
+        <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-slate-700" />
+        <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-slate-700" />
+        
+        <img
+          src={qrSrc}
+          alt="Sign-in QR code"
+          className="size-44 rounded-lg border border-slate-200 bg-white p-1"
+        />
       </div>
 
-      <ol className="w-full space-y-1 text-[11px] text-slate-500">
-        <li>1. Open the app and sign in</li>
-        <li>2. Tap More, then &quot;Sign in on web&quot;</li>
-        <li>3. Scan the code, or type the 5 characters</li>
+      {/* Steps */}
+      <ol className="space-y-1 text-[11px] text-slate-500">
+        <li>1  Open the Inkwellly app on your phone</li>
+        <li>2  Tap Sign in on web</li>
+        <li>3  Point it at this code and confirm</li>
       </ol>
 
-      <label className="flex w-full items-start gap-2 rounded-lg border border-slate-200 p-2.5">
-        <input type="checkbox" checked={shared} onChange={(e) => toggleShared(e.target.checked)} className="mt-0.5" />
+      {/* Code box with label */}
+      <div className="flex items-center justify-between rounded-lg border border-slate-200 p-3">
+        <span className="text-xs text-slate-600">Camera not working? Enter in the app</span>
+        <span className="font-mono text-lg font-semibold tracking-wider text-slate-900">{code}</span>
+      </div>
+
+      {/* Shared computer checkbox */}
+      <label className="flex items-start gap-2 rounded-lg border border-slate-200 p-2.5 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={shared}
+          onChange={(e) => toggleShared(e.target.checked)}
+          className="mt-0.5"
+        />
         <span className="text-[11px] leading-snug text-slate-600">
           <span className="font-medium text-slate-800">This is a shared computer</span>
           <br />
-          Signs out after 12 hours and leaves nothing on this machine. Reloading the page signs you out.
+          Reloading the page signs you out.
         </span>
       </label>
-
-      <p className="text-[10px] text-slate-400">
-        {shared ? 'Shared computer · ' : ''}Code lives for 90 seconds.
-      </p>
     </div>
   );
 }
