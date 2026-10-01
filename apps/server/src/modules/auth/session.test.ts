@@ -1,9 +1,10 @@
 // apps/server/src/modules/auth/session.test.ts
-import { afterAll, beforeAll, expect, test } from 'bun:test';
+import { afterAll, beforeAll, expect, spyOn, test } from 'bun:test';
 import { and, eq, gte } from 'drizzle-orm';
 import { db } from '../../lib/db';
 import * as schema from '../../db/schema';
 import { verifyJWT } from '../../lib/jwt';
+import logger from '../../lib/logger';
 import { issueSession } from './session';
 
 /**
@@ -82,4 +83,42 @@ test('shared mode issues a 12-hour row, not the 7-day default', async () => {
   const hoursOut = (row.expiresAt.getTime() - before) / 3_600_000;
   expect(hoursOut).toBeGreaterThan(11.9);
   expect(hoursOut).toBeLessThan(12.1);
+});
+
+/**
+ * The 'Session issued' line is the audit trail for every sign-in (password and, from
+ * Task 3, scan-approve). It has to land on the caller's per-request child logger so it
+ * keeps the `reqId` binding that ties an issuance back to the request that caused it.
+ */
+test('issueSession routes the audit line through an injected per-request logger', async () => {
+  const calls: Array<{ fields: unknown; msg: string | undefined }> = [];
+  await issueSession(await loadAdmin(), {
+    ip: '203.0.113.9',
+    userAgent: 'SessionTest/1.0',
+    log: {
+      info: (fields: unknown, msg?: string) => {
+        calls.push({ fields, msg });
+      },
+    },
+  });
+
+  const issued = calls.find((c) => c.msg === 'Session issued');
+  expect(issued).toBeDefined();
+  // Same message and fields as before ({ userId, shared }) — only the sink changes.
+  expect(issued!.fields).toEqual({ userId: admin.id, shared: false });
+});
+
+test('issueSession falls back to the module logger when no log is injected', async () => {
+  const info = spyOn(logger, 'info');
+  try {
+    await issueSession(await loadAdmin(), {
+      ip: '203.0.113.9',
+      userAgent: 'SessionTest/1.0',
+    });
+    const issued = info.mock.calls.find((c: unknown[]) => c[1] === 'Session issued');
+    expect(issued).toBeDefined();
+    expect(issued![0]).toEqual({ userId: admin.id, shared: false });
+  } finally {
+    info.mockRestore();
+  }
 });

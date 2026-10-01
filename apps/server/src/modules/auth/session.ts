@@ -20,6 +20,14 @@ export interface LoginUserRecord {
   customRole: { id: string; name: string; color: string | null; permissions: string | null } | null;
 }
 
+/**
+ * Anything that logs in the pino call order the whole app already uses:
+ * `log.info({ fields }, 'message')`. Callers hand in their per-request child logger
+ * (which carries `reqId`) so the security-relevant 'Session issued' line stays tied to
+ * the request that produced it; `issueSession` defaults to the module logger otherwise.
+ */
+export type SessionLogger = { info: (fields: unknown, msg?: string) => void };
+
 /** The `user` object every client reads out of `POST /auth/login`. */
 export interface SessionUser {
   id: string;
@@ -44,8 +52,9 @@ export interface SessionUser {
  */
 export async function issueSession(
   user: LoginUserRecord,
-  ctx: { ip: string; userAgent: string | null; shared?: boolean },
+  ctx: { ip: string; userAgent: string | null; shared?: boolean; log?: SessionLogger },
 ): Promise<{ token: string; refreshToken: string; user: SessionUser }> {
+  const log: SessionLogger = ctx.log ?? logger;
   const tenantId = user.tenant?.id || null;
   // Generated first: the access token has to carry it, because a later request can only
   // name "this device" from its own bearer.
@@ -100,7 +109,7 @@ export async function issueSession(
     } : null,
   };
 
-  logger.info({ userId: user.id, shared: ctx.shared ?? false }, 'Session issued');
+  log.info({ userId: user.id, shared: ctx.shared ?? false }, 'Session issued');
 
   posthog.capture({
     distinctId: user.id,

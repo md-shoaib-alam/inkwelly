@@ -103,6 +103,7 @@ export const loginRoute = new Elysia()
       const session = await issueSession(user, {
         ip,
         userAgent: request.headers.get('user-agent') || null,
+        log,
       });
 
       return { success: true, ...session };
