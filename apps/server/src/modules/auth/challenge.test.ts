@@ -4,7 +4,15 @@ import { SignJWT } from 'jose';
 import { and, eq, gte } from 'drizzle-orm';
 import { db } from '../../lib/db';
 import * as schema from '../../db/schema';
-import { challengeApproveRoutes, challengePublicRoutes } from './challenge';
+import { redis } from '../../lib/redis';
+import { getClientIp } from '../../lib/ip';
+import { hitLimit, localClear } from '../../lib/ratelimit';
+import {
+  challengeApproveRoutes,
+  challengePublicRoutes,
+  localChallengeStore,
+  sweepLocalChallenges,
+} from './challenge';
 
 /**
  * A login challenge is a 90-second secret that must burn on use: a code that can be used
@@ -43,11 +51,31 @@ const approve = (id: string, code: string, token: string) =>
     body: JSON.stringify({ code }),
   }));
 
+/**
+ * The limiters are real state keyed on this admin (approve) and on this test
+ * process's peer address (create, which resolves to no peer under `.handle()`);
+ * one suite run spends 9 of the admin's 10 approvals per 60 s. Deleting exactly
+ * these two keys — not flushing `ratelimit:challenge:*` — makes the file
+ * re-runnable inside the same minute while keeping the budgets themselves live.
+ */
+function testLimiterKeys(adminId: string) {
+  const testIp = getClientIp(new Request('http://localhost/login-challenge'));
+  return {
+    approve: { redis: `ratelimit:challenge:approve:${adminId}`, local: `challenge:approve:${adminId}` },
+    create: { redis: `ratelimit:challenge:create:${testIp}`, local: `challenge:create:${testIp}` },
+  };
+}
+
 beforeAll(async () => {
   const a = await tokenFor('admin');
   adminToken = a.jwt;
   adminId = a.id;
   teacherToken = (await tokenFor('teacher')).jwt;
+
+  const keys = testLimiterKeys(adminId);
+  await redis.del(keys.approve.redis, keys.create.redis);
+  localClear(keys.approve.local);
+  localClear(keys.create.local);
 });
 
 afterAll(async () => {
@@ -121,6 +149,18 @@ test('the right code approves once and the poll delivers the session once', asyn
   const second = await poll(body.challengeId);
   expect(second.status).toBe(410);
   expect((await second.json() as any).status).toBe('consumed');
+
+  // The burned record must not leave live credentials readable from the store for
+  // the remainder of the ≤90 s TTL: re-read what is actually stored, not what the
+  // route chose to answer with.
+  const stored = await redis.get(`login_challenge:${body.challengeId}`);
+  expect(stored).not.toBeNull();
+  const burned = JSON.parse(stored!) as any;
+  expect(burned.status).toBe('consumed');
+  expect(burned.token).toBeUndefined();
+  expect(burned.refreshToken).toBeUndefined();
+  expect(burned.user).toBeUndefined();
+  expect(stored).not.toContain(first.token);
 });
 
 test('the minted row describes the browser, not the phone that approved', async () => {
@@ -145,4 +185,36 @@ test('approve by code alone resolves the same challenge', async () => {
   }));
   expect(res.status).toBe(200);
   expect((await res.json() as any).status).toBe('approved');
+});
+
+test('a rate-limited create is 429 and still carries no-store', async () => {
+  const keys = testLimiterKeys(adminId);
+  // Walk the create limiter past its cap through the same hitLimit path the handler
+  // uses (31 calls guarantee count > 30 regardless of this window's earlier suite
+  // traffic), so the test is agnostic to Redis-vs-local backing.
+  for (let i = 0; i < 31; i++) await hitLimit(keys.create.local, 15 * 60);
+
+  const { res } = await create();
+  expect(res.status).toBe(429);
+  expect(res.headers.get('cache-control')).toBe('no-store');
+
+  await redis.del(keys.create.redis);
+  localClear(keys.create.local);
+});
+
+test('the fallback sweep drops expired local entries', () => {
+  // The 60 s interval's callback is this exact exported function; drive it with an
+  // already-expired entry rather than making the suite sleep for a minute.
+  const key = 'login_challenge:sweep-probe';
+  localChallengeStore.seed(key, -1);
+  expect(localChallengeStore.has(key)).toBe(true);
+  expect(sweepLocalChallenges()).toBe(1);
+  expect(localChallengeStore.has(key)).toBe(false);
+
+  // Control: a live entry survives the same sweep, so the deletion is expiry-driven,
+  // not the sweep simply emptying the map.
+  localChallengeStore.seed(key, 60_000);
+  expect(sweepLocalChallenges()).toBe(0);
+  expect(localChallengeStore.has(key)).toBe(true);
+  localChallengeStore.drop(key);
 });

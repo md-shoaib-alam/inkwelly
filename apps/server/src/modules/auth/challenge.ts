@@ -47,6 +47,37 @@ interface ChallengeState {
  */
 const localChallenges = new Map<string, { value: string; expiry: number }>();
 
+/**
+ * Mirrors the localStore sweep in lib/ratelimit.ts:27-34. Without it, a fallback entry
+ * that is never re-read after expiry (created during a Redis outage, never polled)
+ * leaks until restart; readState only deletes the key it happens to look up. Returns
+ * the number of entries swept; the unref() keeps the timer from holding the process —
+ * or a test runner — open.
+ */
+export function sweepLocalChallenges(): number {
+  const now = Date.now();
+  let swept = 0;
+  for (const [key, entry] of localChallenges.entries()) {
+    if (now > entry.expiry) {
+      localChallenges.delete(key);
+      swept += 1;
+    }
+  }
+  return swept;
+}
+
+setInterval(sweepLocalChallenges, 60_000).unref();
+
+/**
+ * Test seam for the sweep proof: the fallback map itself stays private, same accessor
+ * style as the localPeek/localClear helpers exported over localStore in ratelimit.ts.
+ */
+export const localChallengeStore = {
+  seed: (key: string, ttlMs: number) => localChallenges.set(key, { value: '{}', expiry: Date.now() + ttlMs }),
+  has: (key: string) => localChallenges.has(key),
+  drop: (key: string) => localChallenges.delete(key),
+};
+
 async function readState<T>(key: string): Promise<T | null> {
   if (redis.status === 'ready') {
     try {
@@ -84,6 +115,18 @@ function remainingTtl(challenge: ChallengeState): number {
   return (challenge.expiresAt - Date.now()) / 1000;
 }
 
+/**
+ * A burned challenge must not keep live credentials readable from the store for the
+ * remainder of its TTL: poll has already delivered the session, so drop the token
+ * material before writing the `consumed` state.
+ */
+function markConsumed(challenge: ChallengeState): void {
+  challenge.status = 'consumed';
+  delete challenge.token;
+  delete challenge.refreshToken;
+  delete challenge.user;
+}
+
 function newChallengeId(): string {
   return Buffer.from(crypto.getRandomValues(new Uint8Array(18))).toString('base64url').slice(0, 24);
 }
@@ -107,6 +150,8 @@ function noStore(set: any) {
 
 export const challengePublicRoutes = new Elysia()
   .post('/login-challenge', async ({ body, request, server, set }) => {
+    // Unconditional: a create response carries a challenge code, rate-limited or not.
+    noStore(set);
     const ip = getClientIp(request, server);
     if (await hitLimit(`challenge:create:${ip}`, CREATE_WINDOW_SEC) > CREATE_MAX_PER_IP) {
       set.status = 429;
@@ -131,7 +176,6 @@ export const challengePublicRoutes = new Elysia()
     // The code-only route resolves the same challenge through this index.
     await writeState(codeKey(normalizeCode(code)), challengeId, CHALLENGE_TTL_SEC);
 
-    noStore(set);
     return { challengeId, code, expiresAt: new Date(state.expiresAt).toISOString() };
   }, { body: t.Object({ shared: t.Optional(t.Boolean()) }) })
 
@@ -153,7 +197,7 @@ export const challengePublicRoutes = new Elysia()
       };
       // Single delivery: burn it now, so the next poll of the same id is a consumed 410
       // rather than a second copy of a live session.
-      challenge.status = 'consumed';
+      markConsumed(challenge);
       await writeState(challengeKey(params.id), challenge, remainingTtl(challenge));
       return session;
     }
@@ -189,7 +233,7 @@ async function approveChallenge(
   }
 
   if (challenge.wrongAttempts >= MAX_WRONG_ATTEMPTS) {
-    challenge.status = 'consumed';
+    markConsumed(challenge);
     await writeState(challengeKey(keyId), challenge, remainingTtl(challenge));
     return { status: 410 as const, body: { status: 'consumed' as const, error: 'Too many failed attempts' } };
   }
@@ -197,7 +241,7 @@ async function approveChallenge(
   if (normalizeCode(presentedCode) !== normalizeCode(challenge.code)) {
     challenge.wrongAttempts += 1;
     if (challenge.wrongAttempts >= MAX_WRONG_ATTEMPTS) {
-      challenge.status = 'consumed';
+      markConsumed(challenge);
       await writeState(challengeKey(keyId), challenge, remainingTtl(challenge));
       return { status: 410 as const, body: { status: 'consumed' as const, error: 'Too many failed attempts' } };
     }
