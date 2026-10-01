@@ -138,10 +138,8 @@ export const students = pgTable('Student', {
   rollNumberIdx: index('Student_rollNumber_idx').on(table.rollNumber),
   statusIdx: index('Student_status_idx').on(table.status),
   classStatusIdx: index('Student_classId_status_idx').on(table.classId, table.status),
-  tenantClassYearStatusIdx: index('Student_tenantId_classId_academicYear_status_idx')
-    .on(table.tenantId, table.classId, table.academicYear, table.status),
-  tenantYearCreatedIdx: index('Student_tenantId_academicYear_createdAt_idx')
-    .on(table.tenantId, table.academicYear, table.createdAt),
+  classYearStatusIdx: index('Student_classId_academicYear_status_idx').on(table.classId, table.academicYear, table.status),
+  yearCreatedIdx: index('Student_academicYear_createdAt_idx').on(table.academicYear, table.createdAt),
 }));
 
 /**
@@ -213,7 +211,6 @@ export const parentContacts = pgTable('ParentContact', {
   relationshipIdx: index('ParentContact_relationship_idx').on(table.relationship),
   mobileIdx: index('ParentContact_mobile_idx').on(table.mobile),
 }));
-});
 
 export const classes = pgTable('Class', {
   id: text('id').primaryKey().$defaultFn(() => createId()),

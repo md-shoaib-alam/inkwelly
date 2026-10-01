@@ -41,5 +41,6 @@ CREATE INDEX "Grade_tenantId_academicYear_idx" ON "Grade" ("tenantId", "academic
 CREATE INDEX "Grade_studentId_academicYear_idx" ON "Grade" ("studentId", "academicYear");
 
 -- Step 10: Add critical composite index for Student roster queries
-CREATE INDEX "Student_tenantId_classId_academicYear_status_idx" ON "Student" ("tenantId", "classId", "academicYear", "status");
-CREATE INDEX "Student_tenantId_academicYear_createdAt_idx" ON "Student" ("tenantId", "academicYear", "createdAt");
+-- Note: Student table doesn't have tenantId (it's on User), so we index classId + academicYear + status
+CREATE INDEX "Student_classId_academicYear_status_idx" ON "Student" ("classId", "academicYear", "status");
+CREATE INDEX "Student_academicYear_createdAt_idx" ON "Student" ("academicYear", "createdAt");
