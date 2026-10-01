@@ -13,7 +13,7 @@ import logger from '../../lib/logger';
 
 const CHALLENGE_TTL_SEC = 90;
 const CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
-const CODE_LENGTH = 5;
+const CODE_LENGTH = 6;
 const MAX_WRONG_ATTEMPTS = 5;
 const CREATE_MAX_PER_IP = 30;
 const CREATE_WINDOW_SEC = 15 * 60;

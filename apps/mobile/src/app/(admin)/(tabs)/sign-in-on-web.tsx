@@ -18,7 +18,7 @@ import {
 } from '@/lib/api';
 
 const CHALLENGE_PREFIX = 'inkwelly://login?c=';
-const CODE_PATTERN = /^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{2}-?[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{3}$/i;
+const CODE_PATTERN = /^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{3}-?[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{3}$/i;
 
 type Mode = 'camera' | 'code' | 'confirm';
 
