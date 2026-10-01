@@ -290,8 +290,10 @@ async function request<T = unknown>(
     }
 
     let errorMessage = `HTTP error! status: ${response.status}`;
+    let errorBody: any = undefined;
     try {
       const errorData = await response.json();
+      errorBody = errorData;
       if (errorData && errorData.error) {
         errorMessage = errorData.error;
       } else if (errorData && errorData.message) {
@@ -303,8 +305,9 @@ async function request<T = unknown>(
 
     // Attach the HTTP status to the error so callers can distinguish
     // a definitive auth failure (401/404) from a transient server error.
-    const err = new Error(errorMessage) as Error & { status: number };
+    const err = new Error(errorMessage) as Error & { status: number; body?: any };
     err.status = response.status;
+    if (errorBody) err.body = errorBody;
     throw err;
   }
 
