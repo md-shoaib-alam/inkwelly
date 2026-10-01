@@ -90,6 +90,13 @@ export function SidebarFooter({
         <KeyRound className="size-4 text-orange-500" />
         Change Password
       </DropdownMenuItem>
+      <DropdownMenuItem 
+        className="cursor-pointer gap-2"
+        onClick={() => window.dispatchEvent(new Event('open-signed-in-devices'))}
+      >
+        <KeyRound className="size-4 text-orange-500" />
+        Signed-in devices
+      </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem
         className="cursor-pointer gap-2 text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20"

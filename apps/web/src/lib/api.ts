@@ -504,3 +504,22 @@ export async function pollLoginChallenge(challengeId: string): Promise<Challenge
   }
 }
 
+// ── Signed-in devices / sessions ──
+
+export interface SignedInDevice {
+  id: string;
+  device: string;
+  browser: string;
+  ip: string | null;
+  signedInAt: string;
+  lastSeenAt: string;
+  expiresAt: string;
+  isShared: boolean;
+  current: boolean;
+  known: boolean;
+}
+
+export const listSessions = () => api.get<SignedInDevice[]>('/auth/sessions');
+export const revokeSession = (ref: string) => api.del<{ revoked: number }>(`/auth/sessions/${ref}`);
+export const revokeAllSessions = () => api.post<{ revoked: boolean }>('/auth/sessions/revoke-all');
+

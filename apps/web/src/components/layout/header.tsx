@@ -355,6 +355,10 @@ export function Header({
                 <KeyRound className="size-4 text-orange-500" />
                 Change Password
               </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-200" onClick={() => window.dispatchEvent(new Event('open-signed-in-devices'))}>
+                <KeyRound className="size-4 text-orange-500" />
+                Signed-in devices
+              </DropdownMenuItem>
               <DropdownMenuSeparator className="my-1" />
               <DropdownMenuItem className="cursor-pointer gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/30" onClick={() => { logout(); window.location.href = "/"; }}>
                 <LogOut className="size-4" />

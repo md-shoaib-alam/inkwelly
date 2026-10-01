@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useTenantResolution } from "@/lib/graphql/hooks/platform.hooks";
 import { hasPermission, isRootAdmin } from "@/lib/permissions";
 import { ChangePasswordModal } from "@/components/modals/change-password-modal";
+import { SignedInDevicesModal } from "@/components/modals/SignedInDevicesModal";
 import { Sidebar } from "./sidebar";
 import { ModuleSidebar } from "./sidebar/module-sidebar";
 import type { PanelMode } from "./sidebar/panel-mode";
@@ -313,6 +314,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { push } = useRouter();
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [isDevicesOpen, setIsDevicesOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [panelMode, setPanelMode] = useState<PanelMode>("shown");
 
@@ -390,6 +392,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     };
     window.addEventListener("open-change-password", handleOpenPasswordModal);
     return () => window.removeEventListener("open-change-password", handleOpenPasswordModal);
+  }, []);
+
+  // Listen for open-signed-in-devices events from account affordances
+  useEffect(() => {
+    const handleOpenDevicesModal = () => {
+      setIsDevicesOpen(true);
+    };
+    window.addEventListener("open-signed-in-devices", handleOpenDevicesModal);
+    return () => window.removeEventListener("open-signed-in-devices", handleOpenDevicesModal);
   }, []);
 
   if (!currentUser) {
@@ -487,6 +498,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           open={isChangePasswordOpen}
           onOpenChange={setIsChangePasswordOpen}
         />
+        <SignedInDevicesModal open={isDevicesOpen} onOpenChange={setIsDevicesOpen} />
       </div>
     </NotificationProvider>
   );
