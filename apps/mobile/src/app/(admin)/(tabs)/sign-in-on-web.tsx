@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Alert, Dimensions, KeyboardAvoidingView, Linking, Platform, Pressable,
+  ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Platform, Pressable,
   StyleSheet, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
@@ -339,13 +339,10 @@ export default function SignInOnWebScreen() {
   }
 
   // ── Camera / Scan mode ───────────────────────────────────────────────
-  const windowHeight = Dimensions.get('window').height;
-  const cameraHeight = windowHeight - insets.top - 80;
-
   return (
     <KeyboardAvoidingView style={[styles.screen, { backgroundColor: NAVY }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {renderHeader()}
-      <View style={[styles.cameraContainer, { height: cameraHeight }]}>
+      <View style={styles.cameraContainer}>
         {!permission ? (
           <View style={styles.cameraPlaceholder}>
             <ActivityIndicator size="large" color="#fff" />
@@ -411,7 +408,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
 
-  cameraContainer: { marginHorizontal: 16, marginTop: 8, borderRadius: 28, overflow: 'hidden', position: 'relative' },
+  cameraContainer: { flex: 1, minHeight: 240, marginHorizontal: 16, marginTop: 8, borderRadius: 28, overflow: 'hidden', position: 'relative' },
   scanFrameOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   scanFrame: { width: 230, height: 230, borderRadius: 26, borderWidth: 5, borderColor: 'rgba(255,255,255,0.95)' },
   busyTint: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.35)' },

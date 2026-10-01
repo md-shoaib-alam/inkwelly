@@ -1,6 +1,5 @@
 import { Tabs, useRouter } from 'expo-router';
 import { BottomNavigation } from 'react-native-paper';
-import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/theme';
 import { useSettings } from '@/store/settings-context';
 import { TouchableOpacity } from 'react-native';
@@ -49,6 +48,11 @@ export default function AdminTabLayout() {
         },
       }}
       tabBar={({ navigation, state, descriptors, insets }) => {
+        // Full-screen screens (scan, devices) opt out of the bar via tabBarStyle;
+        // the custom bar below would otherwise render over them.
+        const { options: focusedOptions } = descriptors[state.routes[state.index].key];
+        if ((focusedOptions as any).tabBarStyle?.display === 'none') return null;
+
         const filteredRoutes = state.routes.filter((route) => {
           const { options } = descriptors[route.key];
           return (
@@ -390,6 +394,14 @@ export default function AdminTabLayout() {
         name="sign-in-on-web"
         options={{
           title: 'Sign in on web',
+          headerShown: false,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="signed-in-devices"
+        options={{
+          title: 'Security & devices',
           headerShown: false,
           tabBarStyle: { display: 'none' },
         }}
