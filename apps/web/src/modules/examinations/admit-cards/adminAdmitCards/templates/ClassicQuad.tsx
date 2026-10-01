@@ -39,7 +39,7 @@ export const ClassicQuadAdmitCard = memo(function ClassicQuadAdmitCard({ card }:
         <div className="bg-amber-500/5 border-b border-amber-400/20 px-5 py-1 flex items-center justify-between">
           <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-500">
             <School className="size-2.5 inline mr-1" />
-            Class: {card.class.classLevel}, {card.class.name} ({card.class.section})
+            Class: {card.class.classLevel} ({card.class.section})
           </p>
           <p className="text-[10px] text-muted-foreground flex items-center gap-1">
             <Calendar className="size-2.5" />
@@ -72,7 +72,7 @@ export const ClassicQuadAdmitCard = memo(function ClassicQuadAdmitCard({ card }:
               </div>
               <div>
                 <p className="text-[9px] text-zinc-400 uppercase font-medium">Class</p>
-                <p className="font-bold text-zinc-900">{card.class.classLevel} - {card.class.name}</p>
+                <p className="font-bold text-zinc-900">{card.class.classLevel}</p>
               </div>
               <div>
                 <p className="text-[9px] text-zinc-400 uppercase font-medium">D.O.B</p>

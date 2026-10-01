@@ -42,7 +42,7 @@ export function ClassSelector({
                 <SelectItem key={c.id} value={c.id}>
                   <span className="flex items-center gap-2">
                     <GraduationCap className="size-3.5" />
-                    {c.classLevel}, {c.name} (Section {c.section})
+                    {c.name} (Section {c.section})
                   </span>
                 </SelectItem>
               ))}

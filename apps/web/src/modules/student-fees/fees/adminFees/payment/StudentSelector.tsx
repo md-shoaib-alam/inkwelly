@@ -40,7 +40,7 @@ export function StudentSelector({
           <Select value={classFilter} onValueChange={v => { setClassFilter(v); setStudentSearch(''); }}>
             <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Select Class..." /></SelectTrigger>
             <SelectContent>
-              {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}-{c.section} (Class {c.classLevel})</SelectItem>)}
+              {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}-{c.section}</SelectItem>)}
             </SelectContent>
           </Select>
           <div className="relative flex-1">

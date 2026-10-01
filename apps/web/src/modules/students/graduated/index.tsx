@@ -163,7 +163,7 @@ export function StudentsGraduated() {
                 <SelectContent>
                   {sortedClasses.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.name}-{c.section} (Class {c.classLevel})
+                      {c.name}-{c.section}
                       {typeof c.studentCount === "number" ? `, ${c.studentCount} students` : ""}
                     </SelectItem>
                   ))}

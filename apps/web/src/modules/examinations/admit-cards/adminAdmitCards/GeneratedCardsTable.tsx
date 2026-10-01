@@ -63,7 +63,7 @@ export function GeneratedCardsTable({
                     </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
-                    {card.class.classLevel}, {card.class.name} ({card.class.section})
+                    {card.class.name} ({card.class.section})
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <div className="flex flex-wrap gap-1">

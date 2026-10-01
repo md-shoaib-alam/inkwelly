@@ -95,7 +95,7 @@ export function TransportDialogs({
               <Select value={assignmentData.classId} onValueChange={v => setAssignmentData((prev: any) => ({...prev, classId: v, studentId: ''}))} disabled={isEditingAssignment}>
                 <SelectTrigger className="w-full"><SelectValue placeholder="Select class first..." /></SelectTrigger>
                 <SelectContent>
-                  {classes.map((c: ClassOption) => <SelectItem key={c.id} value={c.id}>{c.name}-{c.section} (Class {c.classLevel})</SelectItem>)}
+                  {classes.map((c: ClassOption) => <SelectItem key={c.id} value={c.id}>{c.name}-{c.section}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
