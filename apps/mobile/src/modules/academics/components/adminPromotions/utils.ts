@@ -11,9 +11,9 @@ export function getCurrentAcademicYear(): string {
   }
 }
 
-export function getNumericGrade(gradeStr: string): number {
-  if (!gradeStr) return 0;
-  const cleaned = String(gradeStr).replace(/[^0-9]/g, '');
+export function getNumericLevel(classLevel: string): number {
+  if (!classLevel) return 0;
+  const cleaned = String(classLevel).replace(/[^0-9]/g, '');
   const parsed = parseInt(cleaned, 10);
   return isNaN(parsed) ? 0 : parsed;
 }
@@ -22,11 +22,11 @@ export function getNextClass(fromClassId: string, classes: ClassOption[]): Class
   const currentClass = classes.find(c => c.id === fromClassId);
   if (!currentClass) return null;
 
-  const currentGradeNum = getNumericGrade(currentClass.grade);
-  const targetGradeNum = currentGradeNum + 1;
+  const currentLevelNum = getNumericLevel(currentClass.classLevel);
+  const targetLevelNum = currentLevelNum + 1;
 
-  // Find classes matching target grade and same section
-  const nextClasses = classes.filter(c => getNumericGrade(c.grade) === targetGradeNum);
+  // Find classes matching the target level and same section
+  const nextClasses = classes.filter(c => getNumericLevel(c.classLevel) === targetLevelNum);
   if (nextClasses.length === 0) return null;
 
   const sameSection = nextClasses.find(c => c.section.toLowerCase() === currentClass.section.toLowerCase());
@@ -37,10 +37,10 @@ export function isLastClass(classId: string, classes: ClassOption[]): boolean {
   const currentClass = classes.find(c => c.id === classId);
   if (!currentClass) return false;
 
-  const currentGradeNum = getNumericGrade(currentClass.grade);
-  const maxGradeNum = Math.max(...classes.map(c => getNumericGrade(c.grade)), 0);
+  const currentLevelNum = getNumericLevel(currentClass.classLevel);
+  const maxLevelNum = Math.max(...classes.map(c => getNumericLevel(c.classLevel)), 0);
 
-  return currentGradeNum >= maxGradeNum && maxGradeNum > 0;
+  return currentLevelNum >= maxLevelNum && maxLevelNum > 0;
 }
 
 export const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {

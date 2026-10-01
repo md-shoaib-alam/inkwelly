@@ -470,7 +470,7 @@ export function PromotionsComponent() {
   }, [state.formStudents, studentSearch]);
 
   const classPickerOptions = useMemo(() => {
-    return state.classes.map(c => ({ id: c.id, name: `${c.name}-${c.section} (Grade ${c.grade})` }));
+    return state.classes.map(c => ({ id: c.id, name: `${c.name}-${c.section} (Class ${c.classLevel})` }));
   }, [state.classes]);
 
   // Animated slide offset for tab switching

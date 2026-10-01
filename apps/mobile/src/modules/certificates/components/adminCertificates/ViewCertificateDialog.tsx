@@ -91,7 +91,7 @@ export function ViewCertificateDialog({
                       <View style={styles.certGridCell}>
                         <ThemedText style={styles.certGridLabel}>Class / Grade</ThemedText>
                         <ThemedText style={styles.certGridVal}>
-                          {certificate.content?.class ? `${certificate.content.class.grade} - ${certificate.content.class.name}` : '  '}
+                          {certificate.content?.class ? `${certificate.content.class.classLevel} - ${certificate.content.class.name}` : '  '}
                         </ThemedText>
                       </View>
                     </View>

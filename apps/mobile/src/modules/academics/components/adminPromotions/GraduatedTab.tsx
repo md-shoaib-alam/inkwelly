@@ -118,7 +118,7 @@ export const GraduatedTab: React.FC<GraduatedTabProps> = ({
           onPress={onOpenClassPicker}
         >
           <ThemedText style={{ color: classObj ? colors.text : colors.textSecondary, fontSize: 14 }}>
-            {classObj ? `${classObj.name}-${classObj.section} (Grade ${classObj.grade})` : 'Select class to graduate from'}
+            {classObj ? `${classObj.name}-${classObj.section} (Class ${classObj.classLevel})` : 'Select class to graduate from'}
           </ThemedText>
           <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
         </TouchableOpacity>

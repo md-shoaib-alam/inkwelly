@@ -61,7 +61,7 @@ export function ClassDetailDialog({
                   </ThemedText>
                   <View style={[styles.roleBadge, { backgroundColor: '#D1FAE5' }]}>
                     <ThemedText style={{ color: '#047857', fontSize: 11, fontWeight: '700' }}>
-                      Grade {selectedClass.grade} • Section {selectedClass.section}
+                      Class {selectedClass.classLevel} • Section {selectedClass.section}
                     </ThemedText>
                   </View>
                 </View>
@@ -102,8 +102,8 @@ export function ClassDetailDialog({
               <View style={[styles.detailBoxCard, { backgroundColor: activeTheme === 'dark' ? '#1E1E1E' : '#F9FAFB', borderColor: colors.backgroundSelected }]}>
                 <Ionicons name="ribbon-outline" size={18} color="#10B981" style={{ marginRight: 12 }} />
                 <View style={{ flex: 1 }}>
-                  <ThemedText style={styles.detailBoxLabel}>GRADE RANGE</ThemedText>
-                  <ThemedText style={[styles.detailBoxValue, { color: colors.text }]}>Grade {selectedClass.grade}</ThemedText>
+                  <ThemedText style={styles.detailBoxLabel}>CLASS LEVEL</ThemedText>
+                  <ThemedText style={[styles.detailBoxValue, { color: colors.text }]}>Class {selectedClass.classLevel}</ThemedText>
                 </View>
               </View>
             </View>

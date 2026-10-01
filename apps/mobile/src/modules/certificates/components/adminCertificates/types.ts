@@ -8,7 +8,7 @@ export interface CertificateRecord {
     studentName?: string;
     rollNumber?: string;
     class?: {
-      grade: string;
+      classLevel: string;
       name: string;
       section: string;
     };
@@ -63,7 +63,7 @@ export const getBodyText = (cert: CertificateRecord, tenantDetails: any, userRol
   const studentName = cert.content?.studentName || cert.student?.user?.name || '  ';
   const classInfo = cert.content?.class;
   const className = classInfo
-    ? `${classInfo.grade} - ${classInfo.name} (${classInfo.section})`
+    ? `${classInfo.classLevel} - ${classInfo.name} (${classInfo.section})`
     : '  ';
   const schoolName = tenantDetails.tenantName || userRoleOrName || '';
 

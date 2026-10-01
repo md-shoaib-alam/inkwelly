@@ -36,7 +36,6 @@ export function SchoolSettingsModal({ visible, onDismiss }: SchoolSettingsModalP
   const [enableTabulationPreview, setEnableTabulationPreview] = useState(false);
   const [enableMarksheetPreview, setEnableMarksheetPreview] = useState(false);
   const [enableAdmitCardPreview, setEnableAdmitCardPreview] = useState(false);
-  const [enableGradeSelection, setEnableGradeSelection] = useState(false);
   
   const [templateId, setTemplateId] = useState('classic');
   const [templateVisible, setTemplateVisible] = useState(false);
@@ -54,7 +53,6 @@ export function SchoolSettingsModal({ visible, onDismiss }: SchoolSettingsModalP
           setEnableTabulationPreview(!!res.enableModalTabulationPreview);
           setEnableMarksheetPreview(!!res.enableModalMarksheetPreview);
           setEnableAdmitCardPreview(!!res.enableModalAdmitCardPreview);
-          setEnableGradeSelection(res.enableGradeSelection === true);
           if (res.defaultMarksheetTemplateId) {
             setTemplateId(res.defaultMarksheetTemplateId);
           }
@@ -95,7 +93,6 @@ export function SchoolSettingsModal({ visible, onDismiss }: SchoolSettingsModalP
         enableModalTabulationPreview: enableTabulationPreview,
         enableModalMarksheetPreview: enableMarksheetPreview,
         enableModalAdmitCardPreview: enableAdmitCardPreview,
-        enableGradeSelection: enableGradeSelection,
       };
 
       await api.put('/tenant-settings', { settings });
@@ -203,16 +200,6 @@ export function SchoolSettingsModal({ visible, onDismiss }: SchoolSettingsModalP
                 <Switch 
                   value={enableAdmitCardPreview}
                   onValueChange={setEnableAdmitCardPreview}
-                  trackColor={{ false: '#767577', true: '#34C759' }}
-                  thumbColor="#FFF"
-                />
-              </View>
-
-              <View style={styles.switchRow}>
-                <ThemedText style={{ color: colors.text, fontSize: 14 }}>Enable Grade Selection</ThemedText>
-                <Switch 
-                  value={enableGradeSelection}
-                  onValueChange={setEnableGradeSelection}
                   trackColor={{ false: '#767577', true: '#34C759' }}
                   thumbColor="#FFF"
                 />

@@ -34,7 +34,6 @@ export default function SchoolSettingsScreen() {
   const [enableTabulationPreview, setEnableTabulationPreview] = useState(false);
   const [enableMarksheetPreview, setEnableMarksheetPreview] = useState(false);
   const [enableAdmitCardPreview, setEnableAdmitCardPreview] = useState(false);
-  const [enableGradeSelection, setEnableGradeSelection] = useState(false);
   
   const [templateId, setTemplateId] = useState('classic');
   const [templateVisible, setTemplateVisible] = useState(false);
@@ -50,7 +49,6 @@ export default function SchoolSettingsScreen() {
         setEnableTabulationPreview(!!res.enableModalTabulationPreview);
         setEnableMarksheetPreview(!!res.enableModalMarksheetPreview);
         setEnableAdmitCardPreview(!!res.enableModalAdmitCardPreview);
-        setEnableGradeSelection(res.enableGradeSelection === true);
         if (res.defaultMarksheetTemplateId) {
           setTemplateId(res.defaultMarksheetTemplateId);
         }
@@ -99,7 +97,6 @@ export default function SchoolSettingsScreen() {
         enableModalTabulationPreview: enableTabulationPreview,
         enableModalMarksheetPreview: enableMarksheetPreview,
         enableModalAdmitCardPreview: enableAdmitCardPreview,
-        enableGradeSelection: enableGradeSelection,
       };
 
       await api.put('/tenant-settings', { settings });
@@ -230,21 +227,6 @@ export default function SchoolSettingsScreen() {
               <Switch 
                 value={enableAdmitCardPreview}
                 onValueChange={setEnableAdmitCardPreview}
-                trackColor={{ false: '#767577', true: '#10B981' }}
-                thumbColor="#FFF"
-              />
-            </View>
-
-            <View style={[styles.divider, { backgroundColor: colors.backgroundSelected }]} />
-
-            <View style={styles.switchRow}>
-              <View style={{ flex: 1, paddingRight: 8 }}>
-                <ThemedText style={{ color: colors.text, fontSize: 14, fontWeight: '500' }}>Enable Grade Selection</ThemedText>
-                <ThemedText style={{ color: colors.textSecondary, fontSize: 11, marginTop: 2 }}>Show grade selectors on class setup forms.</ThemedText>
-              </View>
-              <Switch 
-                value={enableGradeSelection}
-                onValueChange={setEnableGradeSelection}
                 trackColor={{ false: '#767577', true: '#10B981' }}
                 thumbColor="#FFF"
               />

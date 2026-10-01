@@ -6,10 +6,10 @@ export interface PromotionRecord {
   rollNumber: string;
   fromClassId: string;
   fromClassName: string;
-  fromClassGrade: string;
+  fromClassLevel: string;
   toClassId: string;
   toClassName: string;
-  toClassGrade: string;
+  toClassLevel: string;
   academicYear: string;
   status: 'pending' | 'approved' | 'rejected' | string;
   remarks: string | null;
@@ -21,7 +21,7 @@ export interface ClassOption {
   id: string;
   name: string;
   section: string;
-  grade: string;
+  classLevel: string;
   capacity?: number;
   studentCount?: number;
   classTeacher?: string;

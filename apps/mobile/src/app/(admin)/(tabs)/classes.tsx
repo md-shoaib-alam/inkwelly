@@ -11,7 +11,7 @@ import { useSettings } from '@/store/settings-context';
 import { useRouter } from 'expo-router';
 
 // Subcomponents
-import { Class, TeacherInfo, getMappedGradeFromName } from '@/modules/academics/components/adminClasses/types';
+import { Class, TeacherInfo } from '@/modules/academics/components/adminClasses/types';
 import { ClassCard } from '@/modules/academics/components/adminClasses/ClassCard';
 import { AddClassDialog } from '@/modules/academics/components/adminClasses/AddClassDialog';
 import { ClassDetailDialog } from '@/modules/academics/components/adminClasses/ClassDetailDialog';
@@ -31,7 +31,6 @@ export default function ClassesScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
-  const [enableGradeSelection, setEnableGradeSelection] = useState(false);
 
   const [search, setSearch] = useState('');
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
@@ -43,9 +42,10 @@ export default function ClassesScreen() {
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [name, setName] = useState('');
+  // There is no `name` state: the server derives the class name from the level, so
+  // the level picker is the only control that identifies the class.
+  const [classLevel, setClassLevel] = useState('');
   const [section, setSection] = useState('A');
-  const [grade, setGrade] = useState('');
   const [capacity, setCapacity] = useState('40');
   const [classTeacherId, setClassTeacherId] = useState('');
 
@@ -92,20 +92,8 @@ export default function ClassesScreen() {
     }
   };
 
-  const fetchSettings = async () => {
-    try {
-      const res = await api.get<any>('/tenant-settings');
-      if (res) {
-        setEnableGradeSelection(res.enableGradeSelection === true);
-      }
-    } catch (error) {
-      console.error('Failed to fetch settings:', error);
-    }
-  };
-
   useEffect(() => {
     fetchTeachers();
-    fetchSettings();
   }, []);
 
   useEffect(() => {
@@ -123,9 +111,8 @@ export default function ClassesScreen() {
   const handleOpenCreate = () => {
     setDialogMode('create');
     setEditingClass(null);
-    setName('');
     setSection('A');
-    setGrade('');
+    setClassLevel('');
     setCapacity('40');
     setClassTeacherId('');
     setDialogVisible(true);
@@ -134,28 +121,27 @@ export default function ClassesScreen() {
   const handleOpenEdit = (cls: Class) => {
     setDialogMode('edit');
     setEditingClass(cls);
-    setName(cls.name);
     setSection(cls.section || 'A');
-    setGrade(cls.grade || '');
+    setClassLevel(cls.classLevel || '');
     setCapacity(String(cls.capacity || 40));
     setClassTeacherId(cls.classTeacherId || '');
     setDialogVisible(true);
   };
 
   const handleSubmit = async () => {
-    const finalGrade = enableGradeSelection ? grade.trim() : getMappedGradeFromName(name);
-    if (!name.trim() || !finalGrade) {
-      setErrorMsg(enableGradeSelection ? 'Please fill in Name and Grade fields.' : 'Please select a Class Name.');
+    if (!classLevel.trim()) {
+      setErrorMsg('Please select a class level.');
       setErrorVisible(true);
       return;
     }
 
     try {
       setIsSubmitting(true);
+      // `name` and `slug` are absent on purpose: CreateClassSchema takes the level and
+      // the server derives the name from it, so a client cannot disagree with that rule.
       const payload = {
-        name: name.trim(),
         section: section.trim() || 'A',
-        grade: finalGrade,
+        classLevel: classLevel.trim(),
         capacity: parseInt(capacity) || 40,
         classTeacherId: classTeacherId || null,
       };
@@ -165,13 +151,13 @@ export default function ClassesScreen() {
         const q = search.trim().toLowerCase();
         const className = (item.name || '').toLowerCase();
         const classSec = (item.section || '').toLowerCase();
-        const classGrade = (item.grade !== undefined && item.grade !== null ? String(item.grade) : '').toLowerCase();
-        return className.includes(q) || classSec.includes(q) || classGrade.includes(q);
+        const classLevelText = (item.classLevel !== undefined && item.classLevel !== null ? String(item.classLevel) : '').toLowerCase();
+        return className.includes(q) || classSec.includes(q) || classLevelText.includes(q);
       };
 
       if (dialogMode === 'create') {
         const newClass: any = await api.post('/classes', payload);
-        setSuccessMsg(`Class "${name.trim()}" created successfully!`);
+        setSuccessMsg(`Class "${newClass?.name ?? classLevel.trim()}" created successfully!`);
         if (newClass && newClass.id) {
           if (matchesSearch(newClass)) {
             setClasses(prev => [...prev, newClass]);
@@ -182,16 +168,10 @@ export default function ClassesScreen() {
       } else {
         const targetId = editingClass?.id;
         await api.put('/classes', { id: targetId, ...payload });
-        setSuccessMsg(`Class "${name.trim()}" updated successfully!`);
-        if (targetId) {
-          const updatedItem = { ...editingClass, ...payload };
-          setClasses(prev => {
-            if (!matchesSearch(updatedItem)) {
-              return prev.filter(c => c.id !== targetId);
-            }
-            return prev.map(c => c.id === targetId ? { ...c, ...payload } : c);
-          });
-        }
+        setSuccessMsg('Class updated successfully!');
+        // A level change renames the class on the server, and the name is no longer
+        // something this screen holds — so reload rather than merge the row locally.
+        if (targetId) fetchClasses();
       }
       setDialogVisible(false);
       setSuccessVisible(true);
@@ -318,18 +298,15 @@ export default function ClassesScreen() {
         colors={colors}
         activeTheme={activeTheme}
         dialogMode={dialogMode}
-        name={name}
-        setName={setName}
         section={section}
         setSection={setSection}
-        grade={grade}
-        setGrade={setGrade}
+        classLevel={classLevel}
+        setClassLevel={setClassLevel}
         capacity={capacity}
         setCapacity={setCapacity}
         classTeacherId={classTeacherId}
         setClassTeacherId={setClassTeacherId}
         teachers={teachers}
-        enableGradeSelection={enableGradeSelection}
         isSubmitting={isSubmitting}
         onSubmit={handleSubmit}
       />

@@ -3,7 +3,7 @@ import { StyleSheet, View, ScrollView, TextInput, TouchableOpacity, useWindowDim
 import { Portal, Dialog, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/themed-text';
-import { TeacherInfo, getMappedGradeFromName } from './types';
+import { TeacherInfo } from './types';
 
 interface AddClassDialogProps {
   visible: boolean;
@@ -11,18 +11,15 @@ interface AddClassDialogProps {
   colors: any;
   activeTheme: string;
   dialogMode: 'create' | 'edit';
-  name: string;
-  setName: (val: string) => void;
   section: string;
   setSection: (val: string) => void;
-  grade: string;
-  setGrade: (val: string) => void;
+  classLevel: string;
+  setClassLevel: (val: string) => void;
   capacity: string;
   setCapacity: (val: string) => void;
   classTeacherId: string;
   setClassTeacherId: (val: string) => void;
   teachers: TeacherInfo[];
-  enableGradeSelection: boolean;
   isSubmitting: boolean;
   onSubmit: () => void;
 }
@@ -33,18 +30,15 @@ export function AddClassDialog({
   colors,
   activeTheme,
   dialogMode,
-  name,
-  setName,
   section,
   setSection,
-  grade,
-  setGrade,
+  classLevel,
+  setClassLevel,
   capacity,
   setCapacity,
   classTeacherId,
   setClassTeacherId,
   teachers,
-  enableGradeSelection,
   isSubmitting,
   onSubmit,
 }: AddClassDialogProps) {
@@ -52,9 +46,8 @@ export function AddClassDialog({
   const isSmallDevice = width <= 375; // Fits standard small devices like iPhone SE (375px or less)
 
   const [teacherPickerVisible, setTeacherPickerVisible] = useState(false);
-  const [classNamePickerVisible, setClassNamePickerVisible] = useState(false);
   const [sectionPickerVisible, setSectionPickerVisible] = useState(false);
-  const [gradePickerVisible, setGradePickerVisible] = useState(false);
+  const [classLevelPickerVisible, setClassLevelPickerVisible] = useState(false);
 
   const getSelectedTeacherName = () => {
     if (!classTeacherId) return 'Select Class Teacher';
@@ -87,19 +80,20 @@ export function AddClassDialog({
           
           <Dialog.ScrollArea style={{ borderColor: colors.backgroundSelected, paddingHorizontal: 0 }}>
             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16 }}>
-              {/* Row for Class Name and Section side by side */}
+              {/* Row for Class Level and Section side by side. There is no name field:
+                  the server derives the class name from the level. */}
               <View style={{ flexDirection: isSmallDevice ? 'column' : 'row', gap: 12, marginBottom: 12 }}>
                 <View style={{ flex: isSmallDevice ? undefined : 1 }}>
                   <View style={styles.labelWithIcon}>
                     <Ionicons name="school-outline" size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
-                    <ThemedText style={[styles.fieldLabel, { color: colors.textSecondary }]}>Class Name *</ThemedText>
+                    <ThemedText style={[styles.fieldLabel, { color: colors.textSecondary }]}>Class level *</ThemedText>
                   </View>
                   <TouchableOpacity
                     style={[styles.pickerTrigger, { borderColor: colors.backgroundSelected, backgroundColor: colors.background }]}
-                    onPress={() => setClassNamePickerVisible(true)}
+                    onPress={() => setClassLevelPickerVisible(true)}
                   >
-                    <ThemedText style={{ color: name ? colors.text : colors.textSecondary, fontSize: 14 }} numberOfLines={1}>
-                      {name || 'Select Class'}
+                    <ThemedText style={{ color: classLevel ? colors.text : colors.textSecondary, fontSize: 14 }} numberOfLines={1}>
+                      {classLevel ? (isNaN(Number(classLevel)) ? classLevel : `Class ${classLevel}`) : 'Select class level'}
                     </ThemedText>
                     <Ionicons name="chevron-down-outline" size={16} color={colors.textSecondary} />
                   </TouchableOpacity>
@@ -122,24 +116,20 @@ export function AddClassDialog({
                 </View>
               </View>
 
-
-              {enableGradeSelection && (
-                <View style={{ marginBottom: 12 }}>
-                  <View style={styles.labelWithIcon}>
-                    <Ionicons name="ribbon-outline" size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
-                    <ThemedText style={[styles.fieldLabel, { color: colors.textSecondary }]}>Grade *</ThemedText>
-                  </View>
-                  <TouchableOpacity
-                    style={[styles.pickerTrigger, { borderColor: colors.backgroundSelected, backgroundColor: colors.background }]}
-                    onPress={() => setGradePickerVisible(true)}
-                  >
-                    <ThemedText style={{ color: grade ? colors.text : colors.textSecondary, fontSize: 14 }}>
-                      {grade ? (isNaN(Number(grade)) ? grade : `Grade ${grade}`) : 'Select Grade'}
-                    </ThemedText>
-                    <Ionicons name="chevron-down-outline" size={16} color={colors.textSecondary} />
-                  </TouchableOpacity>
+              <View style={{ marginBottom: 12 }}>
+                <View style={styles.labelWithIcon}>
+                  <Ionicons name="people-outline" size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
+                  <ThemedText style={[styles.fieldLabel, { color: colors.textSecondary }]}>Capacity *</ThemedText>
                 </View>
-              )}
+                <TextInput
+                  placeholder="40"
+                  placeholderTextColor={colors.textSecondary}
+                  value={capacity}
+                  onChangeText={setCapacity}
+                  keyboardType="numeric"
+                  style={[styles.formInput, { color: colors.text, backgroundColor: colors.background, borderColor: colors.backgroundSelected }]}
+                />
+              </View>
 
               <View style={{ marginBottom: 12 }}>
                 <View style={styles.labelWithIcon}>
@@ -155,21 +145,6 @@ export function AddClassDialog({
                   </ThemedText>
                   <Ionicons name="chevron-down-outline" size={16} color={colors.textSecondary} />
                 </TouchableOpacity>
-              </View>
-
-              <View style={{ marginBottom: 12 }}>
-                <View style={styles.labelWithIcon}>
-                  <Ionicons name="people-outline" size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
-                  <ThemedText style={[styles.fieldLabel, { color: colors.textSecondary }]}>Capacity *</ThemedText>
-                </View>
-                <TextInput
-                  placeholder="40"
-                  placeholderTextColor={colors.textSecondary}
-                  value={capacity}
-                  onChangeText={setCapacity}
-                  keyboardType="numeric"
-                  style={[styles.formInput, { color: colors.text, backgroundColor: colors.background, borderColor: colors.backgroundSelected }]}
-                />
               </View>
 
               {/* Stacked Action Buttons */}
@@ -235,45 +210,6 @@ export function AddClassDialog({
           </Dialog.Actions>
         </Dialog>
 
-        {/* Class Name Selector Dialog */}
-        <Dialog
-          visible={classNamePickerVisible}
-          onDismiss={() => setClassNamePickerVisible(false)}
-          style={{ backgroundColor: colors.backgroundElement }}
-        >
-          <Dialog.Title style={{ color: colors.text }}>Select Class Name</Dialog.Title>
-          <Dialog.ScrollArea style={{ borderColor: colors.backgroundSelected, paddingHorizontal: 0, maxHeight: 350 }}>
-            <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 8 }}>
-              {[
-                "Pre-Nursery", "Nursery", "LKG", "UKG",
-                "Class 1", "Class 2", "Class 3", "Class 4", "Class 5", "Class 6",
-                "Class 7", "Class 8", "Class 9", "Class 10", "Class 11", "Class 12",
-              ].map((item) => (
-                <TouchableOpacity
-                  key={item}
-                  style={[styles.pickerRow, { borderColor: colors.backgroundSelected }]}
-                  onPress={() => {
-                    setName(item);
-                    setClassNamePickerVisible(false);
-                    const autoGrade = getMappedGradeFromName(item);
-                    if (autoGrade) {
-                      setGrade(autoGrade);
-                    }
-                  }}
-                >
-                  <ThemedText style={{ fontWeight: '500', fontSize: 14, color: colors.text }}>{item}</ThemedText>
-                  {name === item && (
-                    <Ionicons name="checkmark" size={18} color="#10B981" />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </Dialog.ScrollArea>
-          <Dialog.Actions>
-            <Button textColor={colors.textSecondary} onPress={() => setClassNamePickerVisible(false)}>Cancel</Button>
-          </Dialog.Actions>
-        </Dialog>
-
         {/* Section Selector Dialog */}
         <Dialog
           visible={sectionPickerVisible}
@@ -305,13 +241,13 @@ export function AddClassDialog({
           </Dialog.Actions>
         </Dialog>
 
-        {/* Grade Selector Dialog */}
+        {/* Class Level Selector Dialog */}
         <Dialog
-          visible={gradePickerVisible}
-          onDismiss={() => setGradePickerVisible(false)}
+          visible={classLevelPickerVisible}
+          onDismiss={() => setClassLevelPickerVisible(false)}
           style={{ backgroundColor: colors.backgroundElement }}
         >
-          <Dialog.Title style={{ color: colors.text }}>Select Grade Level</Dialog.Title>
+          <Dialog.Title style={{ color: colors.text }}>Select Class Level</Dialog.Title>
           <Dialog.ScrollArea style={{ borderColor: colors.backgroundSelected, paddingHorizontal: 0, maxHeight: 350 }}>
             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 8 }}>
               {[
@@ -322,14 +258,14 @@ export function AddClassDialog({
                   key={item}
                   style={[styles.pickerRow, { borderColor: colors.backgroundSelected }]}
                   onPress={() => {
-                    setGrade(item);
-                    setGradePickerVisible(false);
+                    setClassLevel(item);
+                    setClassLevelPickerVisible(false);
                   }}
                 >
                   <ThemedText style={{ fontWeight: '500', fontSize: 14, color: colors.text }}>
-                    {isNaN(Number(item)) ? item : `Grade ${item}`}
+                    {isNaN(Number(item)) ? item : `Class ${item}`}
                   </ThemedText>
-                  {grade === item && (
+                  {classLevel === item && (
                     <Ionicons name="checkmark" size={18} color="#10B981" />
                   )}
                 </TouchableOpacity>
@@ -337,7 +273,7 @@ export function AddClassDialog({
             </ScrollView>
           </Dialog.ScrollArea>
           <Dialog.Actions>
-            <Button textColor={colors.textSecondary} onPress={() => setGradePickerVisible(false)}>Cancel</Button>
+            <Button textColor={colors.textSecondary} onPress={() => setClassLevelPickerVisible(false)}>Cancel</Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>
