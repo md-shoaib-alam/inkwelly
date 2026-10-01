@@ -12,7 +12,7 @@
 
 import { db } from '../../lib/db';
 import * as schema from '../../db/schema';
-import { eq, and, ne, or, desc, inArray, count, ilike, isNull, sql, exists } from 'drizzle-orm';
+import { eq, and, ne, or, desc, inArray, count, ilike, isNull, sql, exists, gt } from 'drizzle-orm';
 import { dataCache } from '../../lib/cache';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -25,6 +25,7 @@ export interface StudentListParams {
   gender?: string;     // 'male' | 'female' | 'all'
   page?: number;
   limit?: number;
+  cursor?: string;     // Base64-encoded last seen ID for cursor-based pagination
   /** Only include students with no parent linked */
   unlinkedOnly?: boolean;
   /** Caller user — used for parent-role scoping */
@@ -57,11 +58,31 @@ export interface StudentListResult {
   total: number;
   page: number;
   totalPages: number;
+  nextCursor?: string | null; // For cursor-based pagination
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const MAX_STUDENT_LIMIT = 100;
+
+/**
+ * Parse cursor from request. Cursor is base64-encoded last seen ID.
+ */
+function decodeCursor(cursor?: string): string | undefined {
+  if (!cursor) return undefined;
+  try {
+    return Buffer.from(cursor, 'base64').toString('utf-8');
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Encode next cursor from last item's ID.
+ */
+function encodeCursor(id: string): string {
+  return Buffer.from(id).toString('base64');
+}
 
 function normalizePagination(page?: number, limit?: number) {
   const safePageValue = Number(page);
@@ -148,10 +169,14 @@ export const StudentService = {
   async list(params: StudentListParams): Promise<StudentListResult> {
     const { tenantId } = params;
     const { page, limit, skip } = normalizePagination(params.page, params.limit);
+    
+    // Support cursor-based pagination if cursor is provided
+    const cursorId = decodeCursor(params.cursor);
+    const useCursor = !!cursorId;
 
     const statusFilter = params.status || 'active';
     const cacheKey = [
-      'students:v1',
+      'students:v2', // Bump cache version due to cursor support
       tenantId,
       params.classId || 'all',
       params.search || '',
@@ -160,16 +185,23 @@ export const StudentService = {
       params.unlinkedOnly ? '1' : '0',
       params.callerRole || '',
       params.callerUserId || '',
-      page,
+      useCursor ? `cursor:${cursorId}` : `page:${page}`,
       limit,
     ].join(':');
 
     return dataCache.getOrSet(
       cacheKey,
       async () => {
+        let whereCondition = buildWhereConditions(tenantId, params, 'students');
+        
+        // Add cursor condition if using cursor-based pagination
+        if (useCursor) {
+          whereCondition = and(whereCondition!, gt(schema.students.id, cursorId));
+        }
+
         const [rows, totalRows] = await Promise.all([
           db.query.students.findMany({
-            where: buildWhereConditions(tenantId, params, 'students'),
+            where: whereCondition,
             with: {
               user: { columns: { name: true, username: true, email: true, phone: true } },
               class: { columns: { name: true, section: true } },
@@ -177,13 +209,27 @@ export const StudentService = {
               transport: true,
             },
             orderBy: [desc(schema.students.rollNumber), desc(schema.students.id)],
-            offset: skip,
-            limit,
+            offset: useCursor ? undefined : skip,
+            limit: limit + 1, // Fetch one extra to check if more exist
           }),
-          db.select({ count: count() }).from(schema.students).where(
-            buildWhereConditions(tenantId, params, 'Student')
-          ),
+          // Total count only needed for page-based pagination
+          useCursor 
+            ? Promise.resolve([{ count: 0 }]) 
+            : db.select({ count: count() }).from(schema.students).where(
+                buildWhereConditions(tenantId, params, 'Student')
+              ),
         ]);
+
+        // Check if there are more items
+        const hasNextPage = rows.length > limit;
+        if (hasNextPage) {
+          rows.pop(); // Remove the extra item
+        }
+
+        // Calculate next cursor
+        const nextCursor = hasNextPage && rows.length > 0 
+          ? encodeCursor(rows[rows.length - 1].id) 
+          : null;
 
         const total = Number(totalRows[0]?.count || 0);
 
@@ -209,7 +255,8 @@ export const StudentService = {
           })),
           total,
           page,
-          totalPages: Math.ceil(total / limit),
+          totalPages: useCursor ? undefined : Math.ceil(total / limit),
+          nextCursor,
         };
       },
       300_000,

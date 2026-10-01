@@ -191,23 +191,28 @@ export const parents = pgTable('Parent', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   userId: text('userId').notNull().unique(),
   occupation: text('occupation'),
-  fatherTitle: text('fatherTitle'),
-  fatherFirstName: text('fatherFirstName'),
-  fatherMiddleName: text('fatherMiddleName'),
-  fatherLastName: text('fatherLastName'),
-  fatherMobile: text('fatherMobile'),
-  fatherEducation: text('fatherEducation'),
-  fatherWorkAddress: text('fatherWorkAddress'),
-  motherTitle: text('motherTitle'),
-  motherFirstName: text('motherFirstName'),
-  motherMiddleName: text('motherMiddleName'),
-  motherLastName: text('motherLastName'),
-  motherMobile: text('motherMobile'),
-  motherOccupation: text('motherOccupation'),
-  motherEducation: text('motherEducation'),
-  motherWorkAddress: text('motherWorkAddress'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+});
+
+export const parentContacts = pgTable('ParentContact', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  parentId: text('parentId').notNull().references(() => parents.id, { onDelete: 'cascade' }),
+  relationship: text('relationship').notNull(), // 'father' | 'mother' | 'guardian'
+  title: text('title'),
+  firstName: text('firstName').notNull(),
+  middleName: text('middleName'),
+  lastName: text('lastName'),
+  mobile: text('mobile'),
+  education: text('education'),
+  workAddress: text('workAddress'),
+  isPrimary: boolean('isPrimary').default(false).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+}, (table) => ({
+  parentIdIdx: index('ParentContact_parentId_idx').on(table.parentId),
+  relationshipIdx: index('ParentContact_relationship_idx').on(table.relationship),
+  mobileIdx: index('ParentContact_mobile_idx').on(table.mobile),
+}));
 });
 
 export const classes = pgTable('Class', {
@@ -339,6 +344,7 @@ export const assignments = pgTable('Assignment', {
   subjectId: text('subjectId').notNull(),
   classId: text('classId').notNull(),
   teacherId: text('teacherId').notNull(),
+  academicYear: text('academicYear').notNull(),
   title: text('title').notNull(),
   description: text('description'),
   dueDate: text('dueDate').notNull(),
@@ -354,6 +360,7 @@ export const assignments = pgTable('Assignment', {
   dueDateIdx: index('Assignment_dueDate_idx').on(table.dueDate),
   statusIdx: index('Assignment_status_idx').on(table.status),
   modeIdx: index('Assignment_mode_idx').on(table.mode),
+  tenantYearIdx: index('Assignment_tenantId_academicYear_idx').on(table.tenantId, table.academicYear),
 }));
 
 export const submissions = pgTable('Submission', {
@@ -361,6 +368,7 @@ export const submissions = pgTable('Submission', {
   tenantId: text('tenantId').default('master').notNull(),
   assignmentId: text('assignmentId').notNull(),
   studentId: text('studentId').notNull(),
+  academicYear: text('academicYear').notNull(),
   content: text('content'),
   status: text('status').default('submitted').notNull(),
   submittedAt: timestamp('submittedAt').defaultNow().notNull(),
@@ -371,12 +379,14 @@ export const submissions = pgTable('Submission', {
   assignmentIdIdx: index('Submission_assignmentId_idx').on(table.assignmentId),
   studentIdIdx: index('Submission_studentId_idx').on(table.studentId),
   statusIdx: index('Submission_status_idx').on(table.status),
+  tenantYearIdx: index('Submission_tenantId_academicYear_idx').on(table.tenantId, table.academicYear),
 }));
 
 export const fees = pgTable('Fee', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   tenantId: text('tenantId').default('master').notNull(),
   studentId: text('studentId').notNull(),
+  academicYear: text('academicYear').notNull(),
   feeCategoryId: text('feeCategoryId'),
   amount: numeric('amount', { precision: 12, scale: 2, mode: 'number' }).notNull(),
   type: text('type').notNull(),
@@ -403,6 +413,7 @@ export const fees = pgTable('Fee', {
   tenantDueDateIdx: index('Fee_tenantId_dueDate_idx').on(table.tenantId, table.dueDate),
   studentStatusIdx: index('Fee_studentId_status_idx').on(table.studentId, table.status, table.dueDate, table.feeCategoryId),
   tenantPaidDateIdx: index('Fee_tenantId_paidDate_idx').on(table.tenantId, table.paidDate),
+  tenantYearIdx: index('Fee_tenantId_academicYear_idx').on(table.tenantId, table.academicYear),
 }));
 
 export const feeCategories = pgTable('FeeCategory', {
