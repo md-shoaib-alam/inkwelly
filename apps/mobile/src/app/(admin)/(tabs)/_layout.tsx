@@ -73,7 +73,9 @@ export default function AdminTabLayout() {
             route.name !== 'attendance-teachers' &&
             route.name !== 'attendance-staff' &&
             route.name !== 'calendar' &&
-            route.name !== 'promotions'
+            route.name !== 'promotions' &&
+            route.name !== 'sign-in-on-web' &&
+            route.name !== 'signed-in-devices'
           );
         });
 
@@ -382,6 +384,14 @@ export default function AdminTabLayout() {
             <TabIcon name="calendar-outline" size={size} color={color} focused={focused} />
           ),
           headerLeft: renderHeaderLeft,
+        }}
+      />
+      <Tabs.Screen
+        name="sign-in-on-web"
+        options={{
+          title: 'Sign in on web',
+          headerShown: false,
+          tabBarStyle: { display: 'none' },
         }}
       />
       <Tabs.Screen
