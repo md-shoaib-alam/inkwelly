@@ -207,7 +207,7 @@ export const academicTypeDefs = `#graphql
     subjects: Int!
     offerings: Int!
     taught: Int!
-    grades: Int!
+    classLevels: Int!
     classesWithOfferings: Int!
     ratio: Float!
     ratioLabel: String!

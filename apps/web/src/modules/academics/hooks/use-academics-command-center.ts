@@ -18,7 +18,7 @@ export type AcademicsStats = {
   subjects: number;
   offerings: number;
   taught: number;
-  grades: number;
+  classLevels: number;
   classesWithOfferings: number;
   ratio: number;
   ratioLabel: string;
@@ -74,7 +74,7 @@ const GET_COMMAND_CENTER = `
         subjects
         offerings
         taught
-        grades
+        classLevels
         classesWithOfferings
         ratio
         ratioLabel

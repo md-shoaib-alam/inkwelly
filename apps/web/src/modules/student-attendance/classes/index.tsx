@@ -202,7 +202,7 @@ export function AdminAttendance() {
           id: cls.id,
           name: cls.name,
           section: cls.section,
-          grade: cls.grade,
+          classLevel: cls.classLevel,
           slug,
           studentCount: cls.studentCount ?? 25,
           todayMarked: isMarked,

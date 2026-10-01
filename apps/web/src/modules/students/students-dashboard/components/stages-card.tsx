@@ -8,7 +8,7 @@ import type { StudentsStage } from "../../hooks/use-students-command-center";
 const BAR = "#0D9488";
 
 /**
- * The NEP 2020 stages, read off `Class.grade`. Drawn as one bar per stage against the
+ * The NEP 2020 stages, read off `Class.classLevel`. Drawn as one bar per stage against the
  * largest stage rather than against the whole roll, which is what makes the four rows
  * comparable at a glance.
  */

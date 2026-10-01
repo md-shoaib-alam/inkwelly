@@ -58,7 +58,7 @@ export function SelectionControls({
               </SelectTrigger>
               <SelectContent className="max-h-60">
                 {classes.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.grade} - {c.section}</SelectItem>
+                  <SelectItem key={c.id} value={c.id}>{c.classLevel} - {c.section}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

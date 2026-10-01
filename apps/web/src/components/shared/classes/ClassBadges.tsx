@@ -41,10 +41,10 @@ export function MediumBadge({ medium }: { medium: string }) {
   );
 }
 
-export function GradeBadge({ grade }: { grade: string }) {
+export function ClassLevelBadge({ classLevel }: { classLevel: string }) {
   return (
     <span className="inline-flex items-center rounded-full bg-[#E6F7F5] px-3 py-1 text-xs font-medium text-[#0D9488] dark:bg-teal-950/40 dark:text-teal-400">
-      {grade}
+      {classLevel}
     </span>
   );
 }

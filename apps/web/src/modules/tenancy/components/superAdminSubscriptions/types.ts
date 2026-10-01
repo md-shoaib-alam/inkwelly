@@ -24,7 +24,7 @@ export interface SubscriptionRecord {
     students: {
       id: string;
       user: { name: string };
-      class: { name: string; section: string; grade: number } | null;
+      class: { name: string; section: string; classLevel: string } | null;
     }[];
   };
 }

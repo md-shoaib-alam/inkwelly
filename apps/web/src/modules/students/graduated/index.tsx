@@ -43,8 +43,8 @@ interface RosterStudent {
   classId: string;
 }
 
-const numericGrade = (grade: string) => {
-  const n = parseInt(String(grade).replace(/\D/g, ""), 10);
+const numericLevel = (level: string) => {
+  const n = parseInt(String(level).replace(/\D/g, ""), 10);
   return Number.isNaN(n) ? -1 : n;
 };
 
@@ -137,7 +137,7 @@ export function StudentsGraduated() {
     promise.finally(() => setSubmitting(false));
   };
 
-  const sortedClasses = [...classes].sort((a, b) => numericGrade(b.grade) - numericGrade(a.grade));
+  const sortedClasses = [...classes].sort((a, b) => numericLevel(b.classLevel) - numericLevel(a.classLevel));
 
   return (
     <div className="space-y-6">
@@ -163,7 +163,7 @@ export function StudentsGraduated() {
                 <SelectContent>
                   {sortedClasses.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.name}-{c.section} (Class {c.grade})
+                      {c.name}-{c.section} (Class {c.classLevel})
                       {typeof c.studentCount === "number" ? `, ${c.studentCount} students` : ""}
                     </SelectItem>
                   ))}

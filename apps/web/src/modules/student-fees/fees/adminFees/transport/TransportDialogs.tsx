@@ -9,6 +9,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { parseISO } from "date-fns";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import type { ClassOption } from "../types";
 
 export const formatVehicleType = (type: string) => {
   if (!type) return "";
@@ -29,7 +30,7 @@ interface TransportDialogsProps {
   onAssignOpenChange: (open: boolean) => void;
   assignmentData: any;
   setAssignmentData: (v: any) => void;
-  classes: any[];
+  classes: ClassOption[];
   students: any[];
   routes: any[];
   onAssignSubmit: () => void;
@@ -94,7 +95,7 @@ export function TransportDialogs({
               <Select value={assignmentData.classId} onValueChange={v => setAssignmentData((prev: any) => ({...prev, classId: v, studentId: ''}))} disabled={isEditingAssignment}>
                 <SelectTrigger className="w-full"><SelectValue placeholder="Select class first..." /></SelectTrigger>
                 <SelectContent>
-                  {classes.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}-{c.section} (Grade {c.grade})</SelectItem>)}
+                  {classes.map((c: ClassOption) => <SelectItem key={c.id} value={c.id}>{c.name}-{c.section} (Class {c.classLevel})</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

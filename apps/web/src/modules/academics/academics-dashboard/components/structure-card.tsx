@@ -12,7 +12,7 @@ const STAGE_TINT: Record<string, string> = {
   unclassified: "#94A3B8",
 };
 
-/** Bands from NEP 2020, read off `Class.grade`. A grade that does not parse is listed
+/** Bands from NEP 2020, read off `Class.classLevel`. A level that does not parse is listed
  *  as Unclassified rather than silently dropped from the totals. */
 export function StructureCard({
   classes,

@@ -152,7 +152,7 @@ export const SUBJECTS = `
 export const CLASSES = `
   query Classes($tenantId: String, $page: Int, $limit: Int) {
     classes(tenantId: $tenantId, page: $page, limit: $limit) {
-      classes { id name section grade capacity studentCount classTeacher }
+      classes { id name section classLevel capacity studentCount classTeacher }
       total page totalPages
     }
   }
@@ -165,17 +165,17 @@ export const CLASSES = `
  */
 export const CLASSES_FILTERED = `
   query ClassesFiltered(
-    $tenantId: String, $grade: String, $section: String, $medium: String,
+    $tenantId: String, $classLevel: String, $section: String, $medium: String,
     $vocational: Boolean, $status: String, $search: String,
     $sortBy: String, $sortDir: String, $page: Int, $limit: Int
   ) {
     classes(
-      tenantId: $tenantId, grade: $grade, section: $section, medium: $medium,
+      tenantId: $tenantId, classLevel: $classLevel, section: $section, medium: $medium,
       vocational: $vocational, status: $status, search: $search,
       sortBy: $sortBy, sortDir: $sortDir, page: $page, limit: $limit
     ) {
       classes {
-        id name slug section grade medium isVocational isActive
+        id name slug section classLevel medium isVocational isActive
         capacity studentCount profileCompletePercent classTeacher classTeacherId
         teachers { id name avatar isPrimary }
       }
@@ -193,7 +193,7 @@ export const CLASS_STATS = `
 
 export const CLASS_FILTER_OPTIONS = `
   query ClassFilterOptions($tenantId: String) {
-    classFilterOptions(tenantId: $tenantId) { grades sections mediums }
+    classFilterOptions(tenantId: $tenantId) { classLevels sections mediums }
   }
 `
 

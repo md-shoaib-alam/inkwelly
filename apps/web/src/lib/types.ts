@@ -53,7 +53,7 @@ export interface ClassInfo {
   name: string;
   slug?: string | null;
   section: string;
-  grade: string;
+  classLevel: string;
   medium: string;
   isVocational: boolean;
   isActive: boolean;
@@ -70,12 +70,6 @@ export interface ClassStats {
   total: number;
   active: number;
   enrolled: number;
-}
-
-export interface ClassFilterOptions {
-  grades: string[];
-  sections: string[];
-  mediums: string[];
 }
 
 export interface SubjectInfo {

@@ -114,7 +114,7 @@ export function StatCards({
         label="Classes"
         tint="text-teal-600 dark:text-teal-400"
         value={stats.classes}
-        caption={`${stats.grades} class level${stats.grades === 1 ? "" : "s"}`}
+        caption={`${stats.classLevels} class level${stats.classLevels === 1 ? "" : "s"}`}
       />
 
       <Tile

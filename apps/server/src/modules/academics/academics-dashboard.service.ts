@@ -189,7 +189,7 @@ export const AcademicsDashboardService = {
     const classesWithStudents = classIds.filter((id) => (studentsByClass.get(id) ?? 0) > 0).length;
     const classesWithTimetable = timetableClasses.length;
     const classesWithOfferings = offeringClassRows.length;
-    const grades = new Set(
+    const classLevels = new Set(
       classRows
         .map((c) => Number.parseInt(c.classLevel, 10))
         .filter((g) => Number.isFinite(g)),
@@ -340,7 +340,7 @@ export const AcademicsDashboardService = {
         subjects,
         offerings,
         taught,
-        grades,
+        classLevels,
         classesWithOfferings,
         ratio: Math.round(ratio * 10) / 10,
         ratioLabel: teachers > 0 ? `1:${Math.round(ratio)}` : '—',

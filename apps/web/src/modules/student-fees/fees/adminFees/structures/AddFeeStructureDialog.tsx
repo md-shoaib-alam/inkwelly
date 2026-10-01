@@ -52,7 +52,7 @@ export function AddFeeStructureDialog({
               <Label>Class *</Label>
               <Select value={form.classId} onValueChange={v => setForm((p: any) => ({ ...p, classId: v }))}>
                 <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
-                <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}-{c.section} (Grade {c.grade})</SelectItem>)}</SelectContent>
+                <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}-{c.section} (Class {c.classLevel})</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">

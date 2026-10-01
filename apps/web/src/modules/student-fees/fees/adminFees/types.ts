@@ -22,7 +22,7 @@ export interface FeeStructure {
   feeCategoryStatus?: string;
   classId: string;
   className: string;
-  classGrade: string;
+  classLevel: string;
   amount: number;
   academicYear: string;
   createdAt: string;
@@ -70,7 +70,7 @@ export interface FeeItem {
   studentId: string;
   studentName: string;
   className: string;
-  classGrade: string;
+  classLevel: string;
   feeCategoryId: string | null;
   feeCategoryName: string | null;
   feeCategoryCode: string | null;
@@ -100,7 +100,7 @@ export interface ClassOption {
   id: string;
   name: string;
   section: string;
-  grade: string;
+  classLevel: string;
 }
 
 export interface TransportAssignment {
@@ -116,7 +116,7 @@ export interface TransportAssignment {
   studentPhone: string;
   classId: string | null;
   className: string | null;
-  classGrade: string | null;
+  classLevel: string | null;
   classSection: string | null;
 }
 

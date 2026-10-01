@@ -4,14 +4,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, Pencil, Trash2, Users } from "lucide-react";
 import {
-  GradeBadge,
+  ClassLevelBadge,
   MediumBadge,
   SectionChip,
   StatusBadge,
   TeacherStack,
   YesNoBadge,
 } from "@/components/shared/classes/ClassBadges";
-import { formatGradeLabel } from "@/lib/class-options";
+import { formatClassLevelLabel } from "@/lib/class-options";
 import type { ClassInfo } from "@/lib/types";
 
 interface ClassesTableViewProps {
@@ -74,7 +74,7 @@ export function ClassesTableView({
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3.5"><GradeBadge grade={formatGradeLabel(cls.grade)} /></td>
+                <td className="px-4 py-3.5"><ClassLevelBadge classLevel={formatClassLevelLabel(cls.classLevel)} /></td>
                 <td className="px-4 py-3.5"><SectionChip section={cls.section} /></td>
                 <td className="px-4 py-3.5"><TeacherStack cls={cls} /></td>
                 <td className="px-4 py-3.5"><MediumBadge medium={cls.medium} /></td>

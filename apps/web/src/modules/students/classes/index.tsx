@@ -13,7 +13,7 @@ import { useTenantHref } from "../hooks/use-tenant-href";
 import { ClassRosterTable } from "./ClassRosterTable";
 import { useAppStore } from "@/store/use-app-store";
 import { useClassFilterOptions, useClassStats, useClassesFiltered } from "@/lib/graphql/hooks";
-import { ALL, defaultClassFilters, filtersAreDefault, formatGradeLabel, type ClassFilters } from "@/lib/class-options";
+import { ALL, defaultClassFilters, filtersAreDefault, formatClassLevelLabel, type ClassFilters } from "@/lib/class-options";
 import type { ClassInfo } from "@/lib/types";
 import { classRefFromPathname } from "./class-ref";
 import { ClassDetail } from "./ClassDetail";
@@ -148,10 +148,10 @@ function ClassList() {
           inputClassName="rounded-xl bg-white dark:bg-zinc-900 border-slate-200/80 dark:border-zinc-800 h-10 text-sm placeholder:text-slate-400 pl-9 shadow-2xs"
         />
         <RosterSelect
-          value={filters.grade ?? ALL}
-          onChange={(v) => applyFilters({ grade: v })}
+          value={filters.classLevel ?? ALL}
+          onChange={(v) => applyFilters({ classLevel: v })}
           allLabel="All classes"
-          options={(optionData?.grades ?? []).map((g) => ({ value: g, label: formatGradeLabel(g) }))}
+          options={(optionData?.classLevels ?? []).map((g) => ({ value: g, label: formatClassLevelLabel(g) }))}
         />
         <RosterSelect
           value={filters.section ?? ALL}

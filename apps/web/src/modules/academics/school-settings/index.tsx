@@ -18,7 +18,6 @@ import { WorkingDaysSettingsCard } from "./adminSchoolSettings/working-days-card
 import { MarksheetSettingsCard } from "./adminSchoolSettings/marksheet-settings-card";
 import { PrintSheetSettingsCard } from "./adminSchoolSettings/print-sheet-settings-card";
 import { AdmitCardSettingsCard } from "./adminSchoolSettings/admit-card-settings-card";
-import { ClassSettingsCard } from "./adminSchoolSettings/class-settings-card";
 
 export function AdminSchoolSettings() {
   const { currentTenantId } = useAppStore();
@@ -70,10 +69,6 @@ export function AdminSchoolSettings() {
     dispatch({ type: "TOGGLE_ADMIT_CARD_PREVIEW", checked });
   };
 
-  const handleToggleGradeSelection = (checked: boolean) => {
-    dispatch({ type: "TOGGLE_GRADE_SELECTION", checked });
-  };
-
   const handleSave = async () => {
     if (!currentTenantId) return;
     if (state.workingDays.size === 0) {
@@ -90,7 +85,6 @@ export function AdminSchoolSettings() {
         enableModalTabulationPreview: state.enableModalTabulationPreview,
         enableModalMarksheetPreview: state.enableModalMarksheetPreview,
         enableModalAdmitCardPreview: state.enableModalAdmitCardPreview,
-        enableGradeSelection: state.enableGradeSelection,
       };
 
       const res = await apiFetch("/api/tenant-settings", {
@@ -112,7 +106,6 @@ export function AdminSchoolSettings() {
           enableModalTabulationPreview: state.enableModalTabulationPreview,
           enableModalMarksheetPreview: state.enableModalMarksheetPreview,
           enableModalAdmitCardPreview: state.enableModalAdmitCardPreview,
-          enableGradeSelection: state.enableGradeSelection,
         },
       });
       toast.success("School settings saved successfully.");
@@ -172,12 +165,6 @@ export function AdminSchoolSettings() {
       <AdmitCardSettingsCard
         enableModalAdmitCardPreview={state.enableModalAdmitCardPreview}
         onToggleAdmitCardPreview={handleToggleAdmitCardPreview}
-      />
-
-      {/* Class Settings Card */}
-      <ClassSettingsCard
-        enableGradeSelection={state.enableGradeSelection}
-        onToggleGradeSelection={handleToggleGradeSelection}
       />
 
       {/* Summary and Save - Dashboard Page Level Footer */}

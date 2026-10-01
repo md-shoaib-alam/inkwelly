@@ -37,7 +37,7 @@ export interface ClassInfo {
   id: string;
   name: string;
   section: string;
-  grade: string;
+  classLevel: string;
 }
 
 export interface StudentFormData {

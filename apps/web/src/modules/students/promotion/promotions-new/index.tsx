@@ -272,7 +272,7 @@ function SelectionStep({
     return () => clearTimeout(t);
   }, [studentSearch]);
 
-  const { data: classes = [] } = useQuery<{ id: string; name: string; section: string; grade: string }[]>({
+  const { data: classes = [] } = useQuery<{ id: string; name: string; section: string; classLevel: string }[]>({
     queryKey: ["classes", "min", "promotion-wizard"],
     queryFn: async () => {
       const res = await apiFetch("/api/classes?mode=min");

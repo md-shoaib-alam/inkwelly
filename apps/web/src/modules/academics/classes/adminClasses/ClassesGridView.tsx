@@ -69,7 +69,7 @@ export function ClassesGridView({
                       )}
                     </div>
 
-                    {/* Class name and grade badge */}
+                    {/* Class name and class level badge */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="space-y-1">
                         <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">

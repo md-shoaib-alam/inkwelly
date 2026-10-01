@@ -38,7 +38,7 @@ export const MinimalTicketAdmitCard = memo(function MinimalTicketAdmitCard({ car
             </div>
             <div>
               <span className="text-[7px] text-zinc-400 uppercase font-semibold block">CLASS & SEC</span>
-              <span className="font-bold text-zinc-700 block truncate">{card.class.grade} - {card.class.section}</span>
+              <span className="font-bold text-zinc-700 block truncate">{card.class.classLevel} - {card.class.section}</span>
             </div>
           </div>
 
@@ -108,7 +108,7 @@ export const MinimalTicketAdmitCard = memo(function MinimalTicketAdmitCard({ car
             </div>
             <div>
               <span className="text-[6.5px] text-zinc-400 uppercase font-semibold block">CLASS & SEC</span>
-              <span className="font-bold text-zinc-600 block">{card.class.grade} - {card.class.section}</span>
+              <span className="font-bold text-zinc-600 block">{card.class.classLevel} - {card.class.section}</span>
             </div>
           </div>
         </div>

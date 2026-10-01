@@ -26,7 +26,7 @@ export function AcademicTab({ data }: { data: AcademicPayload }) {
           <FieldGrid>
             <Field icon={CalendarRange} label="Session" value={display(placement.academicYear)} />
             <Field icon={Building2} label="Class" value={display(placement.className)} />
-            <Field icon={GraduationCap} label="Class level" value={display(placement.grade)} />
+            <Field icon={GraduationCap} label="Class level" value={display(placement.classLevel)} />
             <Field icon={Hash} label="Roll number" value={display(placement.rollNumber)} mono />
             <Field
               icon={PenLine}

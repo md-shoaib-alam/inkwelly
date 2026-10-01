@@ -2,13 +2,13 @@
 
 import { ChevronRight, GraduationCap, School, Users } from "lucide-react";
 import { StatusBadge, TeacherStack } from "@/components/shared/classes/ClassBadges";
-import { formatGradeLabel } from "@/lib/class-options";
+import { formatClassLevelLabel } from "@/lib/class-options";
 import type { ClassInfo } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 /**
  * Students > Classes. Deliberately not the Academics table: this one reports how
- * full and how complete each class is, so the grade and medium read as plain text,
+ * full and how complete each class is, so the class level and medium read as plain text,
  * the teachers read as faces, and occupancy gives way to profile completion.
  */
 
@@ -59,7 +59,7 @@ function RosterRow({ cls, onOpen }: { cls: ClassInfo; onOpen: () => void }) {
           </button>
         </div>
       </td>
-      <td className="px-4 py-3.5 text-[13px] text-slate-500 dark:text-zinc-400">{formatGradeLabel(cls.grade)}</td>
+      <td className="px-4 py-3.5 text-[13px] text-slate-500 dark:text-zinc-400">{formatClassLevelLabel(cls.classLevel)}</td>
       <td className="px-4 py-3.5">
         <span className="inline-flex min-w-[26px] justify-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">
           {cls.section}

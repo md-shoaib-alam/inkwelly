@@ -48,7 +48,7 @@ export interface ClassOption {
   id: string;
   name: string;
   section: string;
-  grade: string;
+  classLevel: string;
 }
 
 export interface SubjectOption {

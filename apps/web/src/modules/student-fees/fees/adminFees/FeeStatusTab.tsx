@@ -130,7 +130,7 @@ export function FeeStatusTab() {
               <Select value={classFilter} onValueChange={v => { setClassFilter(v); setStudentSearch(''); }}>
                 <SelectTrigger className="w-full sm:w-48 h-9"><SelectValue placeholder="Select Class..." /></SelectTrigger>
                 <SelectContent>
-                  {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}-{c.section} (Grade {c.grade})</SelectItem>)}
+                  {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}-{c.section} (Class {c.classLevel})</SelectItem>)}
                 </SelectContent>
               </Select>
               <div className="relative flex-1">

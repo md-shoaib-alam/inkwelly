@@ -90,7 +90,7 @@ export interface FamilyPayload {
 export interface AcademicPlacement {
   academicYear: string | null;
   className: string | null;
-  grade: string | null;
+  classLevel: string | null;
   rollNumber: string | null;
   registrationNo: string | null;
   status: string | null;

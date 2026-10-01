@@ -76,7 +76,7 @@ export interface Class {
   id: string;
   name: string;
   section: string;
-  grade: string;
+  classLevel: string;
   capacity: number;
   studentCount: number;
 }

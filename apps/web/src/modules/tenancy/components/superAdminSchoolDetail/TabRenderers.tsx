@@ -295,7 +295,7 @@ export function TableCells({ activeTab, item, index = 0 }: { activeTab: TabType;
           </TableCell>
           <TableCell className={cellClasses}>
             <div className="flex items-center gap-1.5">
-              <Badge variant="outline" className="text-[11px] font-medium border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300">Class {c.grade}</Badge>
+              <Badge variant="outline" className="text-[11px] font-medium border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300">Class {c.classLevel}</Badge>
               <Badge variant="outline" className="text-[11px] font-medium border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300">Sec {c.section}</Badge>
             </div>
           </TableCell>

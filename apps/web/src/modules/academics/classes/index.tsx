@@ -246,7 +246,7 @@ export function AdminClasses() {
           filters={filters}
           onChange={applyFilters}
           options={{
-            grades: optionData?.grades ?? [],
+            classLevels: optionData?.classLevels ?? [],
             sections: optionData?.sections ?? [],
             mediums: optionData?.mediums ?? [],
           }}

@@ -8,7 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { formatGradeLabel, CLASS_GRADES } from "@/lib/class-options";
+import { formatClassLevelLabel, CLASS_LEVELS } from "@/lib/class-options";
 import type { ClassInfo } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -22,22 +22,22 @@ interface ClassSwitcherProps {
   onAllClasses: () => void;
 }
 
-// One row per grade, its sections as chips — the shape the reference uses, because a
+// One row per class level, its sections as chips — the shape the reference uses, because a
 // school thinks in "1st, section A" rather than in a flat list of fourteen strings.
-const GRADE_ORDER = new Map(CLASS_GRADES.map((g, i) => [g, i]));
+const LEVEL_ORDER = new Map(CLASS_LEVELS.map((g, i) => [g, i]));
 
 export function ClassSwitcher({ classes, classCount, currentId, onPick, onAllClasses }: ClassSwitcherProps) {
   const groups = useMemo(() => {
-    const byGrade = new Map<string, ClassInfo[]>();
+    const byLevel = new Map<string, ClassInfo[]>();
     for (const cls of classes) {
-      const list = byGrade.get(cls.grade);
+      const list = byLevel.get(cls.classLevel);
       if (list) list.push(cls);
-      else byGrade.set(cls.grade, [cls]);
+      else byLevel.set(cls.classLevel, [cls]);
     }
-    return [...byGrade.entries()]
-      .sort((a, b) => (GRADE_ORDER.get(a[0]) ?? 99) - (GRADE_ORDER.get(b[0]) ?? 99))
-      .map(([grade, sections]) => ({
-        grade,
+    return [...byLevel.entries()]
+      .sort((a, b) => (LEVEL_ORDER.get(a[0]) ?? 99) - (LEVEL_ORDER.get(b[0]) ?? 99))
+      .map(([classLevel, sections]) => ({
+        classLevel,
         sections: [...sections].sort((a, b) => a.section.localeCompare(b.section)),
       }));
   }, [classes]);
@@ -61,9 +61,9 @@ export function ClassSwitcher({ classes, classCount, currentId, onPick, onAllCla
         </div>
         <div className="max-h-[320px] overflow-y-auto p-2">
           {groups.map((group) => (
-            <div key={group.grade} className="flex items-start gap-2 px-2 py-1.5">
+            <div key={group.classLevel} className="flex items-start gap-2 px-2 py-1.5">
               <span className="w-24 shrink-0 pt-1 text-[12.5px] font-medium text-slate-600 dark:text-zinc-300">
-                {formatGradeLabel(group.grade)}
+                {formatClassLevelLabel(group.classLevel)}
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {group.sections.map((cls) => (

@@ -22,20 +22,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  CLASS_GRADES,
+  CLASS_LEVELS,
   CLASS_MEDIUMS,
   CLASS_SECTIONS,
-  autoClassName,
-  formatGradeLabel,
+  formatClassLevelLabel,
 } from "@/lib/class-options";
 import type { ClassInfo } from "@/lib/types";
 
 export interface ClassFormPayload {
   id?: string;
-  name: string;
   section: string;
-  grade: string;
-  slug: string;
+  classLevel: string;
   medium: string;
   capacity: number;
   isVocational: boolean;
@@ -52,80 +49,47 @@ interface ClassFormDialogProps {
 }
 
 const emptyForm = {
-  grade: "",
+  classLevel: "",
   section: "",
-  name: "",
-  slug: "",
   medium: "English",
   capacity: "",
   isVocational: false,
   isActive: true,
 };
 
-/** `("9","A") -> "class-9-a"`. Mirrors the server's generator so the preview matches. */
-function previewSlug(name: string, section: string) {
-  return [name, section]
-    .join(" ")
-    .normalize("NFKD")
-    .replace(/[^\p{L}\p{N}]+/gu, "-")
-    .replace(/^-+|-+$/g, "")
-    .toLowerCase();
-}
-
 export function ClassFormDialog({ open, onOpenChange, initial, busy, onSubmit }: ClassFormDialogProps) {
   const isEdit = !!initial;
   // The parent gives this dialog a fresh key on every open, so it remounts and the
   // draft is seeded here from `initial`. Copying the props into state from an
   // effect would instead re-run while the admin is typing and wipe their edits.
+  // The server owns `name` and `slug` (derived from classLevel + section), so the
+  // form no longer carries them and cannot disagree with that derivation.
   const [form, setForm] = useState(() => initial ? {
-    grade: initial.grade,
+    classLevel: initial.classLevel,
     section: initial.section,
-    name: initial.name,
-    slug: initial.slug ?? "",
     medium: initial.medium || "English",
     capacity: String(initial.capacity ?? ""),
     isVocational: initial.isVocational,
     isActive: initial.isActive,
   } : emptyForm);
-  // The name auto-fills from the grade until the admin types over it, after which
-  // their text wins. Slug and name are derived separately: a section change moves
-  // the slug but must not rewrite a name the admin has already written.
-  const [nameTouched, setNameTouched] = useState(isEdit);
-  const [slugTouched, setSlugTouched] = useState(isEdit);
 
   const set = (patch: Partial<typeof form>) => setForm((prev) => ({ ...prev, ...patch }));
 
-  const onGradeChange = (grade: string) => {
-    // The name follows the grade alone; the section only ever joins the slug.
-    const name = nameTouched ? form.name : autoClassName(grade);
-    set({ grade, name, slug: slugTouched ? form.slug : previewSlug(name, form.section) });
-  };
-
-  const onSectionChange = (section: string) => {
-    set({ section, slug: slugTouched ? form.slug : previewSlug(form.name, section) });
-  };
-
-  const onNameChange = (name: string) => {
-    setNameTouched(true);
-    set({ name, slug: slugTouched ? form.slug : previewSlug(name, form.section) });
-  };
+  const onClassLevelChange = (classLevel: string) => set({ classLevel });
+  const onSectionChange = (section: string) => set({ section });
 
   const capacity = form.capacity.trim() === "" ? 40 : Number(form.capacity);
   const valid =
-    !!form.grade.trim() &&
+    !!form.classLevel.trim() &&
     !!form.section.trim() &&
-    !!form.name.trim() &&
-    !!form.slug.trim() &&
     Number.isFinite(capacity) && capacity >= 1;
 
   const submit = () => {
     if (!valid) return;
     onSubmit({
       id: initial?.id,
-      name: form.name.trim(),
       section: form.section.trim(),
-      grade: form.grade.trim(),
-      slug: form.slug.trim(),
+      classLevel: form.classLevel.trim(),
       medium: form.medium,
       capacity,
       isVocational: form.isVocational,
@@ -153,17 +117,17 @@ export function ClassFormDialog({ open, onOpenChange, initial, busy, onSubmit }:
         <div className="grid gap-4 py-1">
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="class-grade">
+              <Label htmlFor="class-level">
                 Class level <span className="text-red-500">*</span>
               </Label>
-              <Select value={form.grade || undefined} onValueChange={onGradeChange}>
-                <SelectTrigger id="class-grade">
+              <Select value={form.classLevel || undefined} onValueChange={onClassLevelChange}>
+                <SelectTrigger id="class-level">
                   <SelectValue placeholder="Select class level" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CLASS_GRADES.map((grade) => (
-                    <SelectItem key={grade} value={grade}>
-                      {formatGradeLabel(grade)}
+                  {CLASS_LEVELS.map((classLevel) => (
+                    <SelectItem key={classLevel} value={classLevel}>
+                      {formatClassLevelLabel(classLevel)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -187,39 +151,6 @@ export function ClassFormDialog({ open, onOpenChange, initial, busy, onSubmit }:
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="class-name">
-              Class name <span className="text-red-500">*</span>
-              <span className="ml-2 text-[11px] font-normal text-slate-500 dark:text-zinc-400">
-                Auto-filled from the class level. Edit it to override.
-              </span>
-            </Label>
-            <Input
-              id="class-name"
-              value={form.name}
-              onChange={(e) => onNameChange(e.target.value)}
-              placeholder="e.g., Class 1"
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="class-slug">
-              Slug <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="class-slug"
-              value={form.slug}
-              onChange={(e) => {
-                setSlugTouched(true);
-                set({ slug: e.target.value });
-              }}
-              placeholder="e.g., class-1-a"
-            />
-            <p className="text-[11px] text-slate-500 dark:text-zinc-400">
-              Auto-generated. Edit if needed. Must be unique in your school.
-            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

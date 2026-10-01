@@ -11,7 +11,7 @@ export interface ClassItem {
   id: string;
   name: string;
   section: string;
-  grade?: string;
+  classLevel?: string;
   slug?: string;
   studentCount?: number;
   todayMarked?: boolean;
@@ -42,7 +42,7 @@ export function ClassRegisterList({
         c.name.toLowerCase().includes(q) ||
         c.section.toLowerCase().includes(q) ||
         `${c.name} - ${c.section}`.toLowerCase().includes(q) ||
-        (c.grade && c.grade.toLowerCase().includes(q))
+        (c.classLevel && c.classLevel.toLowerCase().includes(q))
     );
   }, [classes, search]);
 

@@ -12,14 +12,14 @@ import {
   CLASS_SORT_OPTIONS,
   CLASS_STATUS_OPTIONS,
   CLASS_VOCATIONAL_OPTIONS,
-  formatGradeLabel,
+  formatClassLevelLabel,
   type ClassFilters,
 } from "@/lib/class-options";
 
 interface ClassesFilterPanelProps {
   filters: ClassFilters;
   onChange: (patch: Partial<ClassFilters>) => void;
-  options: { grades: string[]; sections: string[]; mediums: string[] };
+  options: { classLevels: string[]; sections: string[]; mediums: string[] };
 }
 
 function FilterField({ label, children }: { label: string; children: React.ReactNode }) {
@@ -71,12 +71,12 @@ export function ClassesFilterPanel({ filters, onChange, options }: ClassesFilter
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4 rounded-lg border border-slate-200/80 bg-[#F1F5F9] dark:bg-zinc-900/60 dark:border-zinc-800 mb-4">
       <FilterField label="Class Level">
         <FilterSelect
-          value={filters.grade ?? ALL}
-          onValueChange={(v) => onChange({ grade: v })}
+          value={filters.classLevel ?? ALL}
+          onValueChange={(v) => onChange({ classLevel: v })}
           placeholder="All Classes"
           options={[
             { value: ALL, label: "All Classes" },
-            ...options.grades.map((g) => ({ value: g, label: formatGradeLabel(g) })),
+            ...options.classLevels.map((g) => ({ value: g, label: formatClassLevelLabel(g) })),
           ]}
         />
       </FilterField>

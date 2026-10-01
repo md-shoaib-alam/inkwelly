@@ -26,7 +26,7 @@ export interface ExamSchedule {
 export interface AdmitCard {
   cardNumber: string;
   student: StudentInfo;
-  class: { id: string; name: string; section: string; grade: string };
+  class: { id: string; name: string; section: string; classLevel: string };
   school: {
     name: string;
     address: string | null;

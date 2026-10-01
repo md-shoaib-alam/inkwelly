@@ -49,7 +49,7 @@ export const DetailedDualAdmitCard = memo(function DetailedDualAdmitCard({ card 
               <div className="grid grid-cols-2 gap-1">
                 <div>
                   <span className="text-[8px] font-semibold text-zinc-400 uppercase block">Class</span>
-                  <span className="font-bold text-zinc-700 block">{card.class.grade}</span>
+                  <span className="font-bold text-zinc-700 block">{card.class.classLevel}</span>
                 </div>
                 <div>
                   <span className="text-[8px] font-semibold text-zinc-400 uppercase block">Section</span>

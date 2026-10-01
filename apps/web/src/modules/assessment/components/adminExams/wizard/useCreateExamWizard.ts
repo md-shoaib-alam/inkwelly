@@ -36,14 +36,14 @@ export function useCreateExamWizard({
     if (initialExam?.className) {
       return initialExam.className.replace(/^Class\s*/i, '');
     }
-    return classes[0]?.grade || classes[0]?.name || '';
+    return classes[0]?.classLevel || classes[0]?.name || '';
   });
 
   // Group classes by grade/level
   const gradeGroups: GradeGroup[] = useMemo(() => {
     const map = new Map<string, ClassOption[]>();
     classes.forEach((c) => {
-      const key = c.grade || c.name || 'Other';
+      const key = c.classLevel || c.name || 'Other';
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(c);
     });
@@ -57,8 +57,8 @@ export function useCreateExamWizard({
   const [selectedClassIds, setSelectedClassIds] = useState<string[]>(() => {
     if (initialExam?.classId) return [initialExam.classId];
     if (classes.length === 0) return [];
-    const firstKey = classes[0]?.grade || classes[0]?.name || '';
-    const matching = classes.filter((c) => (c.grade || c.name || '') === firstKey);
+    const firstKey = classes[0]?.classLevel || classes[0]?.name || '';
+    const matching = classes.filter((c) => (c.classLevel || c.name || '') === firstKey);
     return matching.length > 0 ? matching.map((c) => c.id) : [classes[0].id];
   });
 

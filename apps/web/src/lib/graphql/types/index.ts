@@ -125,7 +125,7 @@ export interface TenantDetailData {
     occupation: string | null; status: string
   }[]
   classes: {
-    id: string; name: string; section: string; grade: string
+    id: string; name: string; section: string; classLevel: string
     capacity: number; studentCount: number
   }[]
   notices: {
@@ -182,7 +182,7 @@ export interface ClassStatsResponse {
 }
 
 export interface ClassFilterOptionsResponse {
-  grades: string[]
+  classLevels: string[]
   sections: string[]
   mediums: string[]
 }

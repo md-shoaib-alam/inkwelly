@@ -19,7 +19,7 @@ import { apiFetch } from "@/lib/api";
 import { useAppStore } from "@/store/use-app-store";
 import { useModulePermissions } from "@/modules/access-control/hooks/use-permissions";
 import { useClassesFiltered } from "@/lib/graphql/hooks";
-import { defaultClassFilters, formatGradeLabel } from "@/lib/class-options";
+import { defaultClassFilters, formatClassLevelLabel } from "@/lib/class-options";
 import type { ClassInfo } from "@/lib/types";
 import { useTenantHref } from "../hooks/use-tenant-href";
 import { RosterTable } from "../students/adminStudents/RosterTable";
@@ -236,7 +236,7 @@ function ClassHeader({
       </div>
 
       <p className="text-[13px] text-slate-500 dark:text-zinc-400">
-        <span className="font-semibold text-slate-700 dark:text-zinc-200">{formatGradeLabel(cls.grade)}</span>
+        <span className="font-semibold text-slate-700 dark:text-zinc-200">{formatClassLevelLabel(cls.classLevel)}</span>
         {" · Section "}
         <span className="font-semibold text-slate-700 dark:text-zinc-200">{cls.section}</span>
         {" · "}
