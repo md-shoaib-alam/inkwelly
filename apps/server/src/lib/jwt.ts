@@ -19,6 +19,7 @@ export interface AccessTokenPayload {
   email: string;
   role: string;
   tenantId: string | null;
+  sid?: string;
   typ: 'access';
   jti: string;
   iat?: number;
@@ -76,6 +77,7 @@ export async function signAccessToken(
     email: string;
     role: string;
     tenantId: string | null;
+    sid?: string;
   },
   expiresIn: string = ACCESS_TOKEN_EXPIRY
 ): Promise<string> {

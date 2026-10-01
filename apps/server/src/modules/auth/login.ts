@@ -1,13 +1,13 @@
 import { Elysia, t } from 'elysia';
 import { db } from '../../lib/db';
-import { users, refreshTokens } from '../../db/schema';
+import { users } from '../../db/schema';
 import { or, eq, and } from 'drizzle-orm';
-import { signAccessToken, signRefreshToken, hashToken } from '../../lib/jwt';
 import { getLoginAttempts, getAccountLoginAttempts, registerFailedLogin, clearLoginAttempts, LOGIN_MAX_ATTEMPTS, LOGIN_IP_MAX_ATTEMPTS } from '../../lib/ratelimit';
-import { posthog, captureError } from '../../lib/monitoring/posthog';
+import { captureError } from '../../lib/monitoring/posthog';
 import logger from '../../lib/logger';
 import { getClientIp } from '../../lib/ip';
 import { hashPassword, verifyPassword } from '../../lib/passwords';
+import { issueSession } from './session';
 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -100,67 +100,12 @@ export const loginRoute = new Elysia()
           .catch((err) => log.warn({ err, userId: user.id }, 'password rehash failed — login unaffected'));
       }
 
-      const token = await signAccessToken({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        tenantId: user.tenant?.id || null,
-      });
-
-      // Issue refresh token and store in DB
-      const { token: refreshTokenRaw, jti: refreshJti } = await signRefreshToken({
-        userId: user.id,
-        tenantId: user.tenant?.id || null,
-      });
-
-      const hashedJti = hashToken(refreshJti);
-
-      await db.insert(refreshTokens).values({
-        token: hashedJti,
-        userId: user.id,
-        tenantId: user.tenant?.id || null,
+      const session = await issueSession(user, {
+        ip,
         userAgent: request.headers.get('user-agent') || null,
-        ipAddress: ip,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       });
 
-      log.info({ userId: user.id, email: user.email }, 'User logged in');
-
-      posthog.capture({
-        distinctId: user.id,
-        event: 'user_logged_in',
-        properties: {
-          email: user.email,
-          role: user.role,
-          tenantId: user.tenant?.id || null,
-          tenantName: user.tenant?.name || null
-        }
-      });
-
-      return {
-        success: true,
-        token,
-        refreshToken: refreshTokenRaw,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          avatar: user.avatar,
-          tenantId: user.tenant?.id || null,
-          tenantSlug: user.tenant?.slug || null,
-          tenantName: user.tenant?.name || null,
-          tenantLogo: user.tenant?.logo || null,
-          phone: user.phone,
-          address: user.address,
-          customRole: user.customRole ? {
-            id: user.customRole.id,
-            name: user.customRole.name,
-            color: user.customRole.color,
-            permissions: JSON.parse(user.customRole.permissions || '{}'),
-          } : null,
-        },
-      };
+      return { success: true, ...session };
     } catch (error) {
       captureError(error, { method: 'POST', path: '/auth/login' });
       logger.error({ error }, 'Auth login error');
