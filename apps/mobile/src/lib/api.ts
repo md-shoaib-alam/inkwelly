@@ -481,3 +481,23 @@ export function approvalErrorMessage(err: unknown): string {
   if (e.status === 403) return 'Only a school admin can sign in a computer.';
   return e.body?.error || 'Could not sign the browser in. Check your connection.';
 }
+
+// ── Signed-in devices / sessions ───────────────────────────────────
+export interface SignedInDevice {
+  id: string;
+  device: string;
+  browser: string;
+  ip: string | null;
+  signedInAt: string;
+  lastSeenAt: string;
+  expiresAt: string;
+  isShared: boolean;
+  current: boolean;
+  known: boolean;
+}
+
+export const listSignedInDevices = () => api.get<SignedInDevice[]>('/auth/sessions');
+export const revokeSignedInDevice = (ref: string) =>
+  api.delete<{ revoked: number }>(`/auth/sessions/${encodeURIComponent(ref)}`);
+export const revokeAllSignedInDevices = () =>
+  api.post<{ revoked: boolean }>('/auth/sessions/revoke-all');
