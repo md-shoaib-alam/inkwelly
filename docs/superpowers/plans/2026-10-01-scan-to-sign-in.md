@@ -155,9 +155,9 @@ git commit -m "feat(db): track session family, last-seen and shared mode on Refr
 // apps/server/src/modules/auth/session.test.ts
 import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { and, eq, gte } from 'drizzle-orm';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
-import { verifyJWT } from '../lib/jwt';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
+import { verifyJWT } from '../../lib/jwt';
 import { issueSession } from './session';
 
 /**
@@ -530,8 +530,8 @@ test('labels a desktop Chrome and a mobile Safari', () => {
 import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { SignJWT } from 'jose';
 import { and, eq, gte } from 'drizzle-orm';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { challengeApproveRoutes, challengePublicRoutes } from './challenge';
 
 /**
@@ -1023,8 +1023,8 @@ git commit -m "feat(auth): login challenge endpoints with single-use burn and ad
 import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { SignJWT } from 'jose';
 import { and, eq, gte } from 'drizzle-orm';
-import { db } from '../lib/db';
-import * as schema from '../db/schema';
+import { db } from '../../lib/db';
+import * as schema from '../../db/schema';
 import { issueSession } from './session';
 import { sessionsRoutes } from './sessions';
 
@@ -1261,17 +1261,44 @@ export const sessionsRoutes = new Elysia()
   });
 ```
 
-- [ ] **Step 3: Carry the family through rotation**
+- [ ] **Step 3: Carry the family through rotation — row, token, and the shared cap**
 
-Read `apps/server/src/modules/auth/refresh.ts:110-150`. The rotation deletes the presented row and inserts a new one — which is exactly why a device list keyed on row ids would rename itself every few minutes. In that insert's `values({ … })`, add:
+Read `apps/server/src/modules/auth/refresh.ts:128-175`. The rotation deletes the presented row and inserts a new one — which is exactly why a device list keyed on row ids would rename itself every few minutes. `const existing = deleted[0]` is already available after the `deleted.length !== 1` guard, and it carries the whole row (`.returning()` with no column list), so no selection extension is needed — verify that by reading the delete, do not assume it.
+
+**(a) The new row keeps the family, the shared flag, and the family's original sign-in instant.** In that insert's `values({ … })`, add:
 
 ```typescript
         sessionFamily: existing.sessionFamily ?? null,
         isShared: existing.isShared ?? false,
         lastSeenAt: new Date(),
+        createdAt: existing.createdAt,
 ```
 
-where `existing` is the row the preceding delete returned via `.returning()` (the rotation already reads it to authorise the refresh — use that variable's real name, and extend the `returning()` selection if it does not already carry these three columns). `expiresAt` keeps its existing computation: do not shorten a rotated session, and do not mint a new family here — a fresh family per rotation is the bug this column exists to prevent.
+`createdAt` is carried forward deliberately: the device list reads it as **`signedInAt`**, so letting each rotation stamp a fresh `createdAt` makes a laptop look like it signed in two minutes ago forever, and it destroys the only anchor a shared session's 12-hour deadline can be measured from. Do **not** mint a new family here — a fresh family per rotation is the bug this column exists to prevent. Pre-migration rows have `sessionFamily = NULL`, so `?? null` keeps them orphans rather than inventing a family mid-session.
+
+**(b) The rotated access token keeps `sid`.** `refresh.ts:148-153` calls `signAccessToken` with `{ id, email, role, tenantId }` only. Without `sid` there, every browser loses its "(this device)" marker about 15 minutes after sign-in — the first rotation — and `GET /auth/sessions` then reports `current: false` for the caller's own machine. The task-2 change made `sid` an optional claim, so this is a one-line carry:
+
+```typescript
+            newAccessToken = await signAccessToken({
+              id: user.id,
+              email: user.email,
+              role: user.role,
+              tenantId: user.tenant?.id || null,
+              sid: existing.sessionFamily ?? undefined,
+            });
+```
+
+**(c) A shared session must not grow past 12 hours.** The spec's shared-computer promise is "signs out after 12 hours and leaves nothing on this machine". If the rotated row keeps the plain 7-day `expiresAt`, a student who refreshes once at hour 11 on a school lab machine ends up with a server-side session valid until day 7 — the promise silently becomes the normal window. Cap it against the family's own deadline instead of shortening non-shared sessions:
+
+```typescript
+        expiresAt: existing.isShared
+          ? new Date(Math.min(existing.createdAt.getTime() + SHARED_SESSION_HOURS * 60 * 60 * 1000, Date.now() + 7 * 24 * 60 * 60 * 1000))
+          : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+```
+
+Import `SHARED_SESSION_HOURS` from `./session`. For a shared row this always resolves to the original sign-in + 12 h, because the delete's `gt(expiresAt, new Date())` guard already proved the presented row had not passed that deadline. Non-shared behaviour is unchanged.
+
+Then add a rotation test to `sessions.test.ts`: mint a shared session, rotate it, and assert the new row has the **same** `sessionFamily`, `isShared = true`, `createdAt` equal to the first row's, and `expiresAt` **no later than** the first row's. Rotate a non-shared session too and assert the family survives while `expiresAt` still extends — that pair is what proves the cap applies to shared mode only.
 
 - [ ] **Step 4: Mount the routes**
 
