@@ -13,6 +13,7 @@ import { meRoute } from './me';
 import { profileRoute } from './profile';
 import { passwordRoute } from './password';
 import { challengeApproveRoutes, challengePublicRoutes } from './challenge';
+import { sessionsRoutes } from './sessions';
 
 export const authRoutes = new Elysia({ prefix: '/auth' })
   .derive(({ request }) => {
@@ -59,6 +60,9 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
   // Protected routes
   .use(requireAuth)
   .use(challengeApproveRoutes)
+  // sessionsRoutes carries its own `requireAuth` (scoped hooks), same pattern as
+  // challengeApproveRoutes carrying requireRoles — the guard travels with the mount.
+  .use(sessionsRoutes)
   .use(meRoute)
   .use(profileRoute)
   .use(passwordRoute);

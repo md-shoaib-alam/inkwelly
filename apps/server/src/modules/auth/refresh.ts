@@ -8,6 +8,7 @@ import { incrWithWindow } from '../../lib/ratelimit';
 import { captureError } from '../../lib/monitoring/posthog';
 import logger from '../../lib/logger';
 import { getClientIp } from '../../lib/ip';
+import { SHARED_SESSION_HOURS } from './session';
 import { v4 as uuidv4 } from 'uuid';
 
 const MAX_REFRESH_ATTEMPTS = 30;
@@ -140,9 +141,15 @@ export const refreshRoute = new Elysia()
               .returning();
 
             // If no row was deleted, it has either expired or been claimed by a concurrent request.
-            if (deleted.length !== 1) {
+            // The `!existing` clause is type-narrowing for noUncheckedIndexedAccess, not a new
+            // runtime case: deleted.length === 1 already guarantees deleted[0] exists.
+            const existing = deleted[0];
+            if (deleted.length !== 1 || !existing) {
               throw new Error('CONCURRENCY_OR_REUSE');
             }
+
+            // The presented row, held after the guard: its family, shared flag, sign-in
+            // instant and deadline are what the new row must inherit — see the insert below.
 
             // Issue new access token
             newAccessToken = await signAccessToken({
@@ -150,6 +157,9 @@ export const refreshRoute = new Elysia()
               email: user.email,
               role: user.role,
               tenantId: user.tenant?.id || null,
+              // Carry the family so the browser keeps its "(this device)" marker past the
+              // first rotation (~15 min after sign-in); pre-migration rows stay orphans.
+              sid: existing.sessionFamily ?? undefined,
             });
 
             // Issue new refresh token
@@ -169,7 +179,26 @@ export const refreshRoute = new Elysia()
               tenantId: user.tenant?.id || null,
               userAgent: request.headers.get('user-agent') || null,
               ipAddress: ip,
-              expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+              // (c) A shared session must not outlive its 12-hour promise: cap the rotated
+              // row at the family's own sign-in + 12h. The delete's `gt(expiresAt, now)`
+              // guard already proved the presented row had not passed that deadline, so a
+              // shared row always resolves to sign-in + 12h. Non-shared keeps the 7-day window.
+              expiresAt: existing.isShared
+                ? new Date(Math.min(
+                    existing.createdAt.getTime() + SHARED_SESSION_HOURS * 60 * 60 * 1000,
+                    Date.now() + 7 * 24 * 60 * 60 * 1000,
+                  ))
+                : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+              // (a) The family survives rotation, but no NEW family is minted here — a fresh
+              // family per rotation is the bug this column exists to prevent. Pre-migration
+              // rows have `sessionFamily = NULL`, so `?? null` keeps them orphans.
+              sessionFamily: existing.sessionFamily ?? null,
+              isShared: existing.isShared ?? false,
+              // lastSeenAt has no DB default; every write path must stamp it.
+              lastSeenAt: new Date(),
+              // Carry the original sign-in instant: the device list publishes `createdAt`
+              // as `signedInAt`, and it is the anchor the shared deadline is measured from.
+              createdAt: existing.createdAt,
             });
           });
         } catch (err: any) {
