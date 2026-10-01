@@ -102,7 +102,7 @@ export const BulkPromoteTab: React.FC<BulkPromoteTabProps> = ({
             onPress={() => onOpenClassPicker('from')}
           >
             <ThemedText style={{ color: fromClassObj ? colors.text : colors.textSecondary, fontSize: 14 }} numberOfLines={1}>
-              {fromClassObj ? `${fromClassObj.name}-${fromClassObj.section} (Class ${fromClassObj.classLevel})` : 'Select class to promote from'}
+              {fromClassObj ? `${fromClassObj.name}-${fromClassObj.section}` : 'Select class to promote from'}
             </ThemedText>
             <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
           </TouchableOpacity>
@@ -133,7 +133,7 @@ export const BulkPromoteTab: React.FC<BulkPromoteTabProps> = ({
             onPress={() => onOpenClassPicker('to')}
           >
             <ThemedText style={{ color: toClassObj ? colors.text : colors.textSecondary, fontSize: 14 }} numberOfLines={1}>
-              {toClassObj ? `${toClassObj.name}-${toClassObj.section} (Class ${toClassObj.classLevel})` : 'Auto-detected or select manually'}
+              {toClassObj ? `${toClassObj.name}-${toClassObj.section}` : 'Auto-detected or select manually'}
             </ThemedText>
             <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
           </TouchableOpacity>
