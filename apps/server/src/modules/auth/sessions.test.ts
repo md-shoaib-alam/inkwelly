@@ -338,3 +338,36 @@ test('the routes resolve under both /api and /api/v1 through the real authRoutes
   const anon = await api.handle(new Request('http://localhost/api/auth/sessions'));
   expect(anon.status).toBe(401);
 });
+
+/**
+ * The worst thing a targeted revoke can do is sign out everybody else. When the victim's
+ * refresh token arrives and its row is simply gone — deleted by the revoke, or a shared row
+ * past its 12-hour cap while the JWT still reads 7 days — that is not evidence of theft.
+ * Only a rotation marker for that same jti proves the token was already spent. Last in the
+ * file because the bug it guards against bumps users.updatedAt, which would 401 every other
+ * test's bearer.
+ */
+test('a revoked family gets a plain 401 and leaves every other session alone', async () => {
+  const victim = await issueSession(await fullUser(admin.id) as any, {
+    ip: '198.51.100.30', userAgent: 'Mozilla/5.0 Chrome/126.0',
+  });
+  const victimFamily = (await newestRow(admin.id)).sessionFamily as string;
+
+  await issueSession(await fullUser(admin.id) as any, {
+    ip: '198.51.100.31', userAgent: 'Mozilla/5.0 Firefox/128.0',
+  });
+  const survivorFamily = (await newestRow(admin.id)).sessionFamily as string;
+  expect(survivorFamily).not.toBe(victimFamily);
+
+  expect((await del(victimFamily, adminJwt)).status).toBe(200);
+
+  const res = await rotate(victim.refreshToken);
+  expect(res.status).toBe(401);
+
+  expect(await db.query.refreshTokens.findFirst({
+    where: eq(schema.refreshTokens.sessionFamily, survivorFamily),
+  })).toBeTruthy();
+  // The whole-account lever: bumping updatedAt invalidates every live access token.
+  const after = await db.query.users.findFirst({ where: eq(schema.users.id, admin.id) });
+  expect(after!.updatedAt.getTime()).toBe(admin.updatedAt.getTime());
+});

@@ -212,19 +212,20 @@ export const refreshRoute = new Elysia()
 
             // Differentiate concurrency from confirmed token reuse
             let isRecentConcurrency = false;
+            let markerExists = false;
             if (redis.status === 'ready') {
               try {
                 const marker = await redis.get(markerCacheKey);
                 if (marker) {
+                  markerExists = true;
                   const markerData = JSON.parse(marker);
                   if (Date.now() - markerData.rotatedAt < 5000) {
                     isRecentConcurrency = true;
                   }
                 }
-                const lockExists = await redis.get(lockKey);
-                if (lockExists) {
-                  isRecentConcurrency = true;
-                }
+                // Deliberately no `lockKey` read here. This request took that lock itself,
+                // so it is always present, which made every absent-row case look like
+                // concurrency and answer 409.
               } catch (checkErr) {
                 log.error({ checkErr }, 'Failed to check concurrency state in Redis');
               }
@@ -251,7 +252,18 @@ export const refreshRoute = new Elysia()
               return { error: 'Refresh request already processed concurrently' };
             }
 
-            // Confirmed replay attack (not recent concurrency) — revoke all sessions (refresh + access)
+            // No marker means this jti was never successfully rotated, so an absent row is not
+            // a replay. The honest readings are: a device was revoked, a logout deleted the row,
+            // or a shared row passed its 12-hour cap while its JWT still reads 7 days. Refuse
+            // that session and stop; `denyAllRefreshTokens` here turned one device's revoke into
+            // a sign-out for every device on the account.
+            if (!markerExists) {
+              log.warn({ userId, jti }, 'Refresh row absent with no rotation marker — refusing this session only');
+              set.status = 401;
+              return { error: 'Invalid or expired refresh token' };
+            }
+
+            // Confirmed replay attack (this exact token was already rotated) — revoke all sessions
             log.warn({ userId, jti }, 'Confirmed refresh token reuse/replay attack! Invalidating all user sessions.');
             await denyAllRefreshTokens(userId);
             set.status = 401;
