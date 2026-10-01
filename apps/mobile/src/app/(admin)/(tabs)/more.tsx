@@ -131,6 +131,9 @@ export default function MoreScreen() {
       items: [
         { icon: 'person-circle-outline', label: 'Profile Settings', color: '#007AFF' },
         { icon: 'key-outline', label: 'Change Password', color: '#007AFF' },
+        ...(user?.role === 'admin' ? [
+          { icon: 'desktop-outline', label: 'Sign in on web', color: '#007AFF' },
+        ] : []),
       ]
     },
     ...(isAdmin ? [
@@ -345,6 +348,8 @@ export default function MoreScreen() {
                       router.push(`${rolePath}/tickets`);
                     } else if (item.label === 'Change Password') {
                       router.push('/change-password');
+                    } else if (item.label === 'Sign in on web') {
+                      router.push('/(admin)/(tabs)/sign-in-on-web');
                     } else if (item.label === 'Academic Calendar & Events') {
                       setCalendarVisible(true);
                     } else if (item.label === 'School Settings') {

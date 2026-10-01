@@ -439,3 +439,42 @@ export async function fetchAllStudents(params: {
   }
   return all;
 }
+
+// ── Scan-to-sign-in ────────────────────────────────────────────────
+export interface ChallengeRequestInfo {
+  device: string;
+  browser: string;
+  ip: string | null;
+  createdAt: string;
+}
+
+export interface ChallengeApproval {
+  status: 'approved';
+  user: { name: string; email: string };
+}
+
+/** Reads the pending challenge's captured browser so the approver sees what they approve. */
+export async function getChallengeRequest(challengeId: string): Promise<ChallengeRequestInfo> {
+  const body = await api.get<{ status: string; request?: ChallengeRequestInfo }>(
+    `/auth/login-challenge/${encodeURIComponent(challengeId)}`,
+  );
+  if (!body.request) throw new Error('That code is no longer valid.');
+  return body.request;
+}
+
+export const approveChallengeById = (challengeId: string, code: string) =>
+  api.post<ChallengeApproval>(`/auth/login-challenge/${encodeURIComponent(challengeId)}/approve`, { code });
+
+export const approveChallengeByCode = (code: string) =>
+  api.post<ChallengeApproval>('/auth/login-challenge/approve', { code });
+
+/** Turns the server's 410/400/403 shapes into what the admin should read. */
+export function approvalErrorMessage(err: unknown): string {
+  const e = err as { status?: number; body?: { error?: string; status?: string; remainingAttempts?: number } };
+  if (e.status === 410) return 'That code is no longer valid. Show a new one on the computer.';
+  if (e.status === 400 && typeof e.body?.remainingAttempts === 'number') {
+    return `Wrong code. ${e.body.remainingAttempts} attempts left.`;
+  }
+  if (e.status === 403) return 'Only a school admin can sign in a computer.';
+  return e.body?.error || 'Could not sign the browser in. Check your connection.';
+}
