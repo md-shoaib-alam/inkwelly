@@ -5,7 +5,8 @@ import { SignJWT, jwtVerify } from 'jose';
 import { and, eq, gte } from 'drizzle-orm';
 import { db } from '../../lib/db';
 import * as schema from '../../db/schema';
-import { hashToken } from '../../lib/jwt';
+import { hashToken, signRefreshToken } from '../../lib/jwt';
+import { randomUUID } from 'node:crypto';
 import { issueSession, SHARED_SESSION_HOURS } from './session';
 import { sessionsRoutes } from './sessions';
 import { refreshRoute } from './refresh';
@@ -128,6 +129,35 @@ test('revoke-all drops every row for the caller', async () => {
   expect(await db.query.refreshTokens.findFirst({ where: eq(schema.refreshTokens.userId, other.id) })).toBeUndefined();
 });
 
+test('revoke-all with a current family spares this device and revokes the rest', async () => {
+  await issueSession(await fullUser(admin.id) as any, {
+    ip: '198.51.100.20', userAgent: 'Mozilla/5.0 Chrome/126.0',
+  });
+  const rowA = await newestRow(admin.id);
+  await issueSession(await fullUser(admin.id) as any, {
+    ip: '198.51.100.21', userAgent: 'Mozilla/5.0 Firefox/128.0',
+  });
+  const rowB = await newestRow(admin.id);
+  expect(rowB.sessionFamily).not.toBe(rowA.sessionFamily);
+
+  const withSidA = await bearerFor(admin, { sid: rowA.sessionFamily });
+  const res = await sessionsRoutes.handle(new Request('http://localhost/sessions/revoke-all', {
+    method: 'POST', headers: { authorization: `Bearer ${withSidA}` },
+  }));
+  expect(res.status).toBe(200);
+
+  expect(await db.query.refreshTokens.findFirst({
+    where: eq(schema.refreshTokens.sessionFamily, rowA.sessionFamily as string),
+  })).toBeTruthy();
+  expect(await db.query.refreshTokens.findFirst({
+    where: eq(schema.refreshTokens.sessionFamily, rowB.sessionFamily as string),
+  })).toBeUndefined();
+  // The survivor must stay signed in: bumping users.updatedAt is what logs the whole
+  // account out, so revoke-all-with-sid must leave it untouched.
+  const after = await db.query.users.findFirst({ where: eq(schema.users.id, admin.id) });
+  expect(after!.updatedAt.getTime()).toBe(admin.updatedAt.getTime());
+});
+
 // ── Rotation carry-forward (amended Step 3): family, sign-in instant, shared cap, sid ──
 
 test('a shared rotation keeps the family, the sign-in instant, and holds the 12-hour deadline', async () => {
@@ -235,6 +265,53 @@ test('pre-migration orphan rows list with known:false instead of vanishing', asy
   expect(orphan.current).toBe(false);
   expect(orphan.browser).toBe('Safari');
   expect(orphan.ip).toBe('203.0.113.5');
+});
+
+test('a family-less session heals on rotation, so an old sign-in can name itself', async () => {
+  // A session minted before the sessionFamily column has no family, and rotation used to
+  // carry that NULL forward forever. With no family there is no `sid` claim, so the bearer
+  // cannot name "this device" and revoke-all has nothing to spare — which is how signing
+  // out of other devices also signed the phone out.
+  const signed = await signRefreshToken({ userId: admin.id, tenantId: admin.tenantId ?? null });
+  await db.insert(schema.refreshTokens).values({
+    token: hashToken(signed.jti), userId: admin.id, userAgent: 'okhttp/4.9.3',
+    ipAddress: '198.51.100.44', expiresAt: new Date(Date.now() + 5 * 24 * 3_600_000),
+    sessionFamily: null, lastSeenAt: null, isShared: false,
+  });
+
+  const res = await rotate(signed.token);
+  expect(res.status).toBe(200);
+  const body = await res.json() as any;
+
+  const rotated = await jwtVerify(body.refreshToken, secret);
+  const next = await db.query.refreshTokens.findFirst({
+    where: eq(schema.refreshTokens.token, hashToken(rotated.payload.jti as string)),
+  });
+  expect(next).toBeTruthy();
+  expect(next!.sessionFamily).toMatch(/^[0-9a-f-]{36}$/);   // a family was minted, not left NULL
+  const healedSid = (await jwtVerify(body.token, secret)).payload.sid;
+  expect(healedSid).toBe(next!.sessionFamily);              // and the access token names it
+
+  // The point of healing: this device is now the one revoke-all spares.
+  const otherFamily = randomUUID();
+  await db.insert(schema.refreshTokens).values({
+    token: hashToken(`heal-probe-${otherFamily}`), userId: admin.id, userAgent: 'Mozilla/5.0 Chrome/126.0',
+    ipAddress: '198.51.100.45', expiresAt: new Date(Date.now() + 5 * 24 * 3_600_000),
+    sessionFamily: otherFamily, lastSeenAt: new Date(), isShared: false,
+  });
+  const asHealed = await bearerFor(admin, { sid: healedSid as string });
+  expect((await sessionsRoutes.handle(new Request('http://localhost/sessions/revoke-all', {
+    method: 'POST', headers: { authorization: `Bearer ${asHealed}` },
+  }))).status).toBe(200);
+
+  expect(await db.query.refreshTokens.findFirst({
+    where: eq(schema.refreshTokens.sessionFamily, next!.sessionFamily as string),
+  })).toBeTruthy();
+  expect(await db.query.refreshTokens.findFirst({
+    where: eq(schema.refreshTokens.sessionFamily, otherFamily),
+  })).toBeUndefined();
+  const after = await db.query.users.findFirst({ where: eq(schema.users.id, admin.id) });
+  expect(after!.updatedAt.getTime()).toBe(admin.updatedAt.getTime()); // the whole-account lever stayed alone
 });
 
 test('the routes resolve under both /api and /api/v1 through the real authRoutes', async () => {

@@ -1,6 +1,6 @@
 // apps/server/src/modules/auth/sessions.ts
 import { Elysia, t } from 'elysia';
-import { and, eq, isNull, or, sql } from 'drizzle-orm';
+import { and, eq, isNull, ne, or, sql } from 'drizzle-orm';
 import { db } from '../../lib/db';
 import { refreshTokens } from '../../db/schema';
 import { denyAllRefreshTokens } from '../../lib/jwt';
@@ -119,9 +119,20 @@ export const sessionsRoutes = new Elysia()
   }, { params: t.Object({ ref: t.String({ minLength: 1, maxLength: 64 }) }) })
 
   .post('/sessions/revoke-all', async ({ user }) => {
-    // Deletes every row AND bumps users.updatedAt, which is why revoke-all is immediate
-    // while a single-device revoke is not: lib/auth.ts compares the JWT's iat to
-    // updatedAt, and that mechanism is whole-account by nature.
-    await denyAllRefreshTokens(user.id);
+    const current = (user as { sid?: string }).sid;
+    if (!current) {
+      // A token without an sid claim can't name this device, so nothing can be spared:
+      // this deletes every row AND bumps users.updatedAt, which is why it is immediate —
+      // lib/auth.ts compares the JWT's iat to updatedAt, and that is whole-account by nature.
+      await denyAllRefreshTokens(user.id);
+      return { revoked: true };
+    }
+    // Spare this device's family and leave users.updatedAt alone — that bump is the
+    // whole-account sign-out lever. Revoked devices lose refresh immediately; their
+    // access tokens die within 15 min (same semantics as a single-device revoke).
+    await db.delete(refreshTokens).where(and(
+      eq(refreshTokens.userId, user.id),
+      or(isNull(refreshTokens.sessionFamily), ne(refreshTokens.sessionFamily, current)),
+    ));
     return { revoked: true };
   });

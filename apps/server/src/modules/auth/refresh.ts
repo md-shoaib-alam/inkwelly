@@ -148,8 +148,12 @@ export const refreshRoute = new Elysia()
               throw new Error('CONCURRENCY_OR_REUSE');
             }
 
-            // The presented row, held after the guard: its family, shared flag, sign-in
-            // instant and deadline are what the new row must inherit — see the insert below.
+            // A row minted before the family column existed has none, and carrying that NULL
+            // forward would strand the session: no family means no `sid` claim, so the bearer
+            // can never name "this device" and revoke-all has nothing to spare. Rotation is
+            // the one moment this row is already being replaced, so heal it here. Everything
+            // else below — shared flag, sign-in instant, deadline — is inherited as it was.
+            const family = existing.sessionFamily ?? uuidv4();
 
             // Issue new access token
             newAccessToken = await signAccessToken({
@@ -158,8 +162,8 @@ export const refreshRoute = new Elysia()
               role: user.role,
               tenantId: user.tenant?.id || null,
               // Carry the family so the browser keeps its "(this device)" marker past the
-              // first rotation (~15 min after sign-in); pre-migration rows stay orphans.
-              sid: existing.sessionFamily ?? undefined,
+              // first rotation (~15 min after sign-in).
+              sid: family,
             });
 
             // Issue new refresh token
@@ -189,10 +193,11 @@ export const refreshRoute = new Elysia()
                     Date.now() + 7 * 24 * 60 * 60 * 1000,
                   ))
                 : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-              // (a) The family survives rotation, but no NEW family is minted here — a fresh
-              // family per rotation is the bug this column exists to prevent. Pre-migration
-              // rows have `sessionFamily = NULL`, so `?? null` keeps them orphans.
-              sessionFamily: existing.sessionFamily ?? null,
+              // (a) The family survives rotation, but no NEW family is minted for a row that
+              // already has one — a fresh family per rotation is the bug this column exists
+              // to prevent. `family` is the presented one, or a healed replacement for a
+              // pre-migration NULL.
+              sessionFamily: family,
               isShared: existing.isShared ?? false,
               // lastSeenAt has no DB default; every write path must stamp it.
               lastSeenAt: new Date(),
