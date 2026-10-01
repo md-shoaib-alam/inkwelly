@@ -91,6 +91,7 @@ export const gradesRoutes = new Elysia({ prefix: '/grades' })
       // SECURITY: Verify the student belongs to this tenant
       const student = await db.query.students.findFirst({
         where: eq(schema.students.id, data.studentId),
+        columns: { academicYear: true },
         with: { user: { columns: { tenantId: true } } }
       });
       if (!student || student.user.tenantId !== tenantId) {
@@ -122,6 +123,7 @@ export const gradesRoutes = new Elysia({ prefix: '/grades' })
         studentId: data.studentId,
         subjectId: data.subjectId,
         teacherId: resolvedTeacherId,
+        academicYear: student.academicYear,
         examType: data.examType,
         marks: data.marks,
         maxMarks: data.maxMarks,
@@ -186,18 +188,29 @@ export const gradesRoutes = new Elysia({ prefix: '/grades' })
         return { error: 'Access denied to this class' };
       }
 
-      // 2.5 Validate all student IDs belong to this tenant
+      // 2.5 Validate all student IDs belong to this tenant and get their academic years
       const studentIds = [...byStudent.keys()];
-      const validStudents = await db.select({ count: count() })
+      const validStudents = await db
+        .select({ 
+          id: schema.students.id, 
+          academicYear: schema.students.academicYear,
+          count: count() 
+        })
         .from(schema.students)
         .innerJoin(schema.users, eq(schema.students.userId, schema.users.id))
         .where(and(
           inArray(schema.students.id, studentIds),
           eq(schema.users.tenantId, tenantId!)
         ));
-      if ((validStudents[0]?.count || 0) !== studentIds.length) {
+      if (validStudents.length !== studentIds.length) {
         set.status = 403;
         return { error: 'Access denied: one or more students do not belong to your school' };
+      }
+
+      // Build a map of studentId -> academicYear for the insert
+      const studentAcademicYears = new Map<string, string>();
+      for (const s of validStudents) {
+        studentAcademicYears.set(s.id, s.academicYear);
       }
 
       // 3. SECURITY: Automatically resolve teacherId from active session
@@ -224,6 +237,7 @@ export const gradesRoutes = new Elysia({ prefix: '/grades' })
         studentId: r.studentId,
         subjectId,
         teacherId: resolvedTeacherId,
+        academicYear: studentAcademicYears.get(r.studentId) || '2024-2025',
         examType,
         marks: r.marks,
         maxMarks,

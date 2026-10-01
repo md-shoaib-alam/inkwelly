@@ -17,6 +17,24 @@ import { generateMonthlyRegisterExcel, type MonthlyRegisterReportData } from '..
 import { getSchoolLogoDataUri } from '../../lib/assets/school-logo';
 import { normalizeAttendanceStatus, type AttendanceStatus } from './attendance-status';
 
+/**
+ * Derive academic year from a date string (YYYY-MM-DD).
+ * Indian schools typically run April-March: 2024-04-01 → "2024-2025"
+ */
+function deriveAcademicYearFromDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // 1-indexed
+  
+  // April onwards belongs to current-starting academic year
+  if (month >= 4) {
+    return `${year}-${year + 1}`;
+  } else {
+    // Jan-Mar belongs to previous year's academic cycle
+    return `${year - 1}-${year}`;
+  }
+}
+
 async function getEligibilityReportData({
   tenantId,
   classId,
@@ -677,11 +695,14 @@ export const attendanceRoutes = new Elysia({ prefix: '/attendance' })
           .map(a => a.studentId)
       );
 
+      const academicYear = deriveAcademicYearFromDate(data.date);
+      
       await db.insert(schema.attendance).values(
         records.map((record) => ({
           tenantId: tenantId!, 
           studentId: record.studentId, 
           classId: data.classId, 
+          academicYear,
           date: data.date, 
           month: monthStr,
           status: record.status 
@@ -890,10 +911,14 @@ export const attendanceRoutes = new Elysia({ prefix: '/attendance' })
       }
 
       if (validRecords.length > 0) {
+        // Derive academic year from the first record's date (all records should be same period)
+        const academicYear = deriveAcademicYearFromDate(validRecords[0].date);
+        
         const insertValues = validRecords.map(r => ({
           tenantId: tenantId,
           studentId: r.studentId,
           classId: r.classId,
+          academicYear,
           date: r.date,
           month: r.date.substring(0, 7),
           status: r.status,

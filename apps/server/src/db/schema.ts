@@ -138,6 +138,10 @@ export const students = pgTable('Student', {
   rollNumberIdx: index('Student_rollNumber_idx').on(table.rollNumber),
   statusIdx: index('Student_status_idx').on(table.status),
   classStatusIdx: index('Student_classId_status_idx').on(table.classId, table.status),
+  tenantClassYearStatusIdx: index('Student_tenantId_classId_academicYear_status_idx')
+    .on(table.tenantId, table.classId, table.academicYear, table.status),
+  tenantYearCreatedIdx: index('Student_tenantId_academicYear_createdAt_idx')
+    .on(table.tenantId, table.academicYear, table.createdAt),
 }));
 
 /**
@@ -261,6 +265,7 @@ export const attendance = pgTable('Attendance', {
   tenantId: text('tenantId').default('master').notNull(),
   studentId: text('studentId').notNull(),
   classId: text('classId').notNull(),
+  academicYear: text('academicYear').notNull(),
   date: text('date').notNull(),
   month: text('month').default('').notNull(),
   status: text('status').default('present').notNull(),
@@ -268,13 +273,11 @@ export const attendance = pgTable('Attendance', {
   createdAt: timestamp('createdAt').defaultNow().notNull(),
 }, (table) => ({
   studentClassDateUnique: uniqueIndex('Attendance_studentId_classId_date_unique').on(table.studentId, table.classId, table.date),
-  tenantMonthIdx: index('Attendance_tenantId_month_idx').on(table.tenantId, table.month),
-  dateIdx: index('Attendance_date_idx').on(table.date),
-  statusIdx: index('Attendance_status_idx').on(table.status),
+  tenantYearMonthIdx: index('Attendance_tenantId_academicYear_month_idx').on(table.tenantId, table.academicYear, table.month),
+  tenantYearDateIdx: index('Attendance_tenantId_academicYear_date_idx').on(table.tenantId, table.academicYear, table.date),
+  tenantClassYearDateIdx: index('Attendance_tenantId_classId_academicYear_date_idx').on(table.tenantId, table.classId, table.academicYear, table.date),
   classDateStatusIdx: index('Attendance_classId_date_status_idx').on(table.classId, table.date, table.status),
   tenantDateStudentIdx: index('Attendance_tenantId_date_studentId_idx').on(table.tenantId, table.date, table.studentId),
-  studentDateIdx: index('Attendance_studentId_date_idx').on(table.studentId, table.date),
-  tenantClassDateIdx: index('Attendance_tenantId_classId_date_idx').on(table.tenantId, table.classId, table.date),
 }));
 
 /**
@@ -307,6 +310,7 @@ export const grades = pgTable('Grade', {
   studentId: text('studentId').notNull(),
   subjectId: text('subjectId').notNull(),
   teacherId: text('teacherId').notNull(),
+  academicYear: text('academicYear').notNull(),
   examType: text('examType').notNull(),
   marks: doublePrecision('marks').notNull(),
   maxMarks: doublePrecision('maxMarks').notNull(),
@@ -325,6 +329,8 @@ export const grades = pgTable('Grade', {
   tenantCreatedAtIdx: index('Grade_tenantId_createdAt_idx').on(table.tenantId, table.createdAt),
   studentExamTypeIdx: index('Grade_studentId_examType_idx').on(table.studentId, table.examType),
   tenantStudentIdx: index('Grade_tenantId_studentId_idx').on(table.tenantId, table.studentId),
+  tenantYearIdx: index('Grade_tenantId_academicYear_idx').on(table.tenantId, table.academicYear),
+  studentYearIdx: index('Grade_studentId_academicYear_idx').on(table.studentId, table.academicYear),
 }));
 
 export const assignments = pgTable('Assignment', {
