@@ -25,7 +25,6 @@ const CHALLENGE_PREFIX = 'inkwelly://login?c=';
 const CODE_PATTERN = /^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{3}-?[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{3}$/i;
 const CHALLENGE_TTL_MS = 90_000;
 
-const NAVY = '#0B1220';
 const TEAL = '#0D9488';
 
 type Mode = 'camera' | 'code' | 'confirm' | 'success';
@@ -189,11 +188,11 @@ export default function SignInOnWebScreen() {
   };
 
   const renderHeader = () => (
-    <View style={[styles.header, { paddingTop: insets.top }]}>
+    <View style={[styles.header, { paddingTop: insets.top, backgroundColor: colors.background }]}>
       <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} hitSlop={8}>
-        <Ionicons name="chevron-back" size={24} color="#fff" />
+        <Ionicons name="chevron-back" size={24} color={colors.text} />
       </TouchableOpacity>
-      <ThemedText type="title" style={styles.headerTitle}>Sign in on web</ThemedText>
+      <ThemedText type="title" style={[styles.headerTitle, { color: colors.text }]}>Sign in on web</ThemedText>
       <View style={{ width: 40 }} />
     </View>
   );
@@ -232,7 +231,7 @@ export default function SignInOnWebScreen() {
   // ── Code entry sheet over camera ─────────────────────────────────────
   if (mode === 'code') {
     return (
-      <KeyboardAvoidingView style={[styles.screen, { backgroundColor: NAVY }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={[styles.screen, { backgroundColor: colors.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {permission?.granted && (
           <CameraView style={StyleSheet.absoluteFill} facing="back" barcodeScannerSettings={{ barcodeTypes: ['qr'] }} onBarcodeScanned={busy ? undefined : onScanned} />
         )}
@@ -275,7 +274,7 @@ export default function SignInOnWebScreen() {
   // ── Confirm bottom sheet ─────────────────────────────────────────────
   if (mode === 'confirm') {
     return (
-      <KeyboardAvoidingView style={[styles.screen, { backgroundColor: NAVY }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={[styles.screen, { backgroundColor: colors.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {permission?.granted && (
           <CameraView style={StyleSheet.absoluteFill} facing="back" barcodeScannerSettings={{ barcodeTypes: ['qr'] }} />
         )}
@@ -340,18 +339,18 @@ export default function SignInOnWebScreen() {
 
   // ── Camera / Scan mode ───────────────────────────────────────────────
   return (
-    <KeyboardAvoidingView style={[styles.screen, { backgroundColor: NAVY }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={[styles.screen, { backgroundColor: colors.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {renderHeader()}
       <View style={styles.cameraContainer}>
         {!permission ? (
-          <View style={styles.cameraPlaceholder}>
-            <ActivityIndicator size="large" color="#fff" />
-            <ThemedText style={styles.cameraPlaceholderText}>Requesting camera…</ThemedText>
+          <View style={[styles.cameraPlaceholder, { backgroundColor: colors.backgroundElement }]}>
+            <ActivityIndicator size="large" color={colors.textSecondary} />
+            <ThemedText style={[styles.cameraPlaceholderText, { color: colors.textSecondary }]}>Requesting camera…</ThemedText>
           </View>
         ) : !permission.granted ? (
-          <View style={styles.cameraPlaceholder}>
-            <Ionicons name="camera-outline" size={48} color="rgba(255,255,255,0.3)" />
-            <ThemedText style={styles.cameraPlaceholderText}>
+          <View style={[styles.cameraPlaceholder, { backgroundColor: colors.backgroundElement }]}>
+            <Ionicons name="camera-outline" size={48} color={colors.textSecondary} />
+            <ThemedText style={[styles.cameraPlaceholderText, { color: colors.textSecondary }]}>
               {permission.canAskAgain
                 ? 'Camera access is turned off for this app.'
                 : 'Camera access is blocked. Allow it in Settings, then come back.'}
@@ -381,8 +380,8 @@ export default function SignInOnWebScreen() {
           </>
         )}
       </View>
-      <View style={[styles.cameraFooter, { paddingBottom: insets.bottom + 16 }]}>
-        <ThemedText style={styles.cameraCaption}>
+      <View style={[styles.cameraFooter, { paddingBottom: insets.bottom + 16, backgroundColor: colors.background }]}>
+        <ThemedText style={[styles.cameraCaption, { color: colors.textSecondary }]}>
           Open app.inkwelly.com on your computer and point the camera at the code it shows.
         </ThemedText>
         <TouchableOpacity onPress={() => setMode('code')} style={styles.codeLink}>
@@ -404,20 +403,20 @@ const styles = StyleSheet.create({
   spacer: { marginTop: 12 },
   disabled: { opacity: 0.6 },
 
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8, backgroundColor: NAVY },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8 },
   backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
+  headerTitle: { fontSize: 18, fontWeight: '700' },
 
   cameraContainer: { flex: 1, minHeight: 240, marginHorizontal: 16, marginTop: 8, borderRadius: 28, overflow: 'hidden', position: 'relative' },
   scanFrameOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   scanFrame: { width: 230, height: 230, borderRadius: 26, borderWidth: 5, borderColor: 'rgba(255,255,255,0.95)' },
   busyTint: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.35)' },
-  cameraPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, backgroundColor: 'rgba(0,0,0,0.2)' },
-  cameraPlaceholderText: { color: 'rgba(255,255,255,0.6)', fontSize: 14 },
+  cameraPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
+  cameraPlaceholderText: { fontSize: 14 },
   allowCameraBtn: { backgroundColor: TEAL, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 10 },
   allowCameraText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  cameraFooter: { paddingHorizontal: 24, paddingTop: 16, gap: 12, alignItems: 'center', backgroundColor: NAVY },
-  cameraCaption: { color: 'rgba(255,255,255,0.85)', fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  cameraFooter: { paddingHorizontal: 24, paddingTop: 16, gap: 12, alignItems: 'center' },
+  cameraCaption: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
   codeLink: { paddingVertical: 4 },
 
   scrim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
