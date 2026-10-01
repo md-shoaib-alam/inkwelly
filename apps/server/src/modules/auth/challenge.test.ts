@@ -50,18 +50,24 @@ const approve = (id: string, code: string, token: string) =>
     headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
     body: JSON.stringify({ code }),
   }));
+const infoByCode = (code: string, token: string) =>
+  challengeApproveRoutes.handle(new Request(
+    `http://localhost/login-challenge/by-code/${encodeURIComponent(code)}`, {
+      headers: { authorization: `Bearer ${token}` },
+    }));
 
 /**
- * The limiters are real state keyed on this admin (approve) and on this test
+ * The limiters are real state keyed on this admin (approve, info) and on this test
  * process's peer address (create, which resolves to no peer under `.handle()`);
  * one suite run spends 9 of the admin's 10 approvals per 60 s. Deleting exactly
- * these two keys — not flushing `ratelimit:challenge:*` — makes the file
+ * these three keys — not flushing `ratelimit:challenge:*` — makes the file
  * re-runnable inside the same minute while keeping the budgets themselves live.
  */
 function testLimiterKeys(adminId: string) {
   const testIp = getClientIp(new Request('http://localhost/login-challenge'));
   return {
     approve: { redis: `ratelimit:challenge:approve:${adminId}`, local: `challenge:approve:${adminId}` },
+    info: { redis: `ratelimit:challenge:info:${adminId}`, local: `challenge:info:${adminId}` },
     create: { redis: `ratelimit:challenge:create:${testIp}`, local: `challenge:create:${testIp}` },
   };
 }
@@ -73,8 +79,9 @@ beforeAll(async () => {
   teacherToken = (await tokenFor('teacher')).jwt;
 
   const keys = testLimiterKeys(adminId);
-  await redis.del(keys.approve.redis, keys.create.redis);
+  await redis.del(keys.approve.redis, keys.info.redis, keys.create.redis);
   localClear(keys.approve.local);
+  localClear(keys.info.local);
   localClear(keys.create.local);
 });
 
@@ -185,6 +192,35 @@ test('approve by code alone resolves the same challenge', async () => {
   }));
   expect(res.status).toBe(200);
   expect((await res.json() as any).status).toBe('approved');
+});
+
+test('an admin can read the pending request behind a typed code', async () => {
+  const { body } = await create();
+  const res = await infoByCode(body.code, adminToken);
+  expect(res.status).toBe(200);
+  expect(res.headers.get('cache-control')).toBe('no-store');
+  const info = await res.json() as any;
+  expect(info.status).toBe('pending');
+  expect(info.challengeId).toBe(body.challengeId);
+  expect(info.request.browser).toBeTypeOf('string');
+  expect(info.request.createdAt).toBeTypeOf('string');
+  // Reading is not approving: the lookup hands back no secret and no session, and the
+  // challenge stays pending for the confirm sheet's Yes to spend.
+  expect(info.code).toBeUndefined();
+  expect(info.token).toBeUndefined();
+  const stillPending = await poll(body.challengeId);
+  expect(stillPending.status).toBe(200);
+  expect((await stillPending.json() as any).status).toBe('pending');
+});
+
+test('the code lookup is admin-only and says nothing about an unknown code', async () => {
+  const anon = await challengeApproveRoutes.handle(new Request(
+    'http://localhost/login-challenge/by-code/ABC-DEF'));
+  expect(anon.status).toBe(401);
+  expect((await infoByCode('ABC-DEF', teacherToken)).status).toBe(403);
+  const missing = await infoByCode('ZZZ-ZZZ', adminToken);
+  expect(missing.status).toBe(410);
+  expect((await missing.json() as any).status).toBe('expired');
 });
 
 test('a rate-limited create is 429 and still carries no-store', async () => {

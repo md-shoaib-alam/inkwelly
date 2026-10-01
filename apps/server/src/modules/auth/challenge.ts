@@ -300,6 +300,32 @@ async function approveFromContext(keyId: string, presentedCode: string, userId: 
 export const challengeApproveRoutes = new Elysia()
   .use(requireRoles([...APPROVE_ROLES]))
 
+  // The typed-code path has no challenge id, so it reads the pending request through the
+  // code index. This lives on the guarded group, never on challengePublicRoutes: a 6-char
+  // code is a guessable key, and the public poll only ever accepts the 24-char id. The
+  // caller must already be an admin holding that code, which is the exact profile that
+  // `/login-challenge/approve` accepts — so this reveals nothing the caller could not
+  // already spend. It returns no code, no token, and does not touch the challenge.
+  .get('/login-challenge/by-code/:code', async ({ params, user, set }) => {
+    noStore(set);
+    if (await hitLimit(`challenge:info:${user.id}`, APPROVE_WINDOW_SEC) > APPROVE_MAX_PER_USER) {
+      set.status = 429;
+      return { error: 'Too many lookups. Try again in a minute.' };
+    }
+    const keyId = await readState<string>(codeKey(normalizeCode(params.code)));
+    const challenge = keyId ? await readState<ChallengeState>(challengeKey(keyId)) : null;
+    if (!challenge || Date.now() > challenge.expiresAt || challenge.status !== 'pending') {
+      set.status = 410;
+      return { status: 'expired' };
+    }
+    const { device, browser, os } = parseUserAgent(challenge.ua);
+    return {
+      status: 'pending',
+      challengeId: keyId,
+      request: { device, browser, os, ip: challenge.ip, createdAt: challenge.createdAt },
+    };
+  }, { params: t.Object({ code: t.String({ minLength: 3, maxLength: 12 }) }) })
+
   .post('/login-challenge/approve', async ({ body, user, set }) => {
     const keyId = await readState<string>(codeKey(normalizeCode(body.code)));
     if (!keyId) {
