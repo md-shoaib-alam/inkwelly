@@ -248,7 +248,7 @@ export async function backfillStudents(today: Date = new Date()): Promise<Backfi
   // The grade comes from `Class`, because a date of birth means nothing on its own — it is
   // only sensible against the grade the child sits in.
   const rows = await db
-    .select({ id: sql<string>`s.id`, grade: sql<string | null>`c.grade` })
+    .select({ id: sql<string>`s.id`, grade: sql<string | null>`c."classLevel"` })
     .from(sql`"Student" s`)
     .leftJoin(sql`"Class" c`, sql`c.id = s."classId"`)
     .orderBy(sql`s.id`);

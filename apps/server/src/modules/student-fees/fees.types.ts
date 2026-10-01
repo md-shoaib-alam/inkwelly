@@ -125,7 +125,7 @@ export interface StructureRow {
   feeCategoryStatus: string;
   classId: string;
   className: string;
-  classGrade: string | null;
+  classLevel: string | null;
   amount: number;
   academicYear: string;
   createdAt: Date;

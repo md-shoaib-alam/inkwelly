@@ -25,7 +25,7 @@ export const admitCardsRoutes = new Elysia({ prefix: '/admit-cards' })
       const [classDetails, school, exams, students] = await Promise.all([
         db.query.classes.findFirst({
           where: and(eq(schema.classes.id, classId), eq(schema.classes.tenantId, tenantId!)),
-          columns: { id: true, name: true, section: true, grade: true }
+          columns: { id: true, name: true, section: true, classLevel: true }
         }),
         db.query.tenants.findFirst({
           where: eq(schema.tenants.id, tenantId!),
@@ -117,7 +117,7 @@ export const admitCardsRoutes = new Elysia({ prefix: '/admit-cards' })
       const [classDetails, school, exams, studentsRaw] = await Promise.all([
         db.query.classes.findFirst({
           where: and(eq(schema.classes.id, classId), eq(schema.classes.tenantId, tenantId!)),
-          columns: { id: true, name: true, section: true, grade: true }
+          columns: { id: true, name: true, section: true, classLevel: true }
         }),
         db.query.tenants.findFirst({
           where: eq(schema.tenants.id, tenantId!),

@@ -39,7 +39,7 @@ export const rootTypeDefs = `#graphql
     """List classes, filtered and sorted in the database"""
     classes(
       tenantId: String
-      grade: String
+      classLevel: String
       section: String
       medium: String
       vocational: Boolean
@@ -54,7 +54,7 @@ export const rootTypeDefs = `#graphql
     """Tenant-wide class totals, independent of any filter on the list"""
     classStats(tenantId: String): ClassStats!
 
-    """The grade/section/medium values this school actually has"""
+    """The classLevel/section/medium values this school actually has"""
     classFilterOptions(tenantId: String): ClassFilterOptions!
 
     """List teachers for selection"""

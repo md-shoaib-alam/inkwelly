@@ -185,7 +185,7 @@ async function getExportData(type: string, tenantId: string, params: any): Promi
       const classes = await db.select({
         id: schema.classes.id,
         name: schema.classes.name,
-        grade: schema.classes.grade,
+        classLevel: schema.classes.classLevel,
         section: schema.classes.section,
         capacity: schema.classes.capacity,
         studentsCount: sql<number>`(select count(*) from ${schema.students} where ${schema.students.classId} = ${schema.classes.id})`.mapWith(Number)
@@ -195,7 +195,7 @@ async function getExportData(type: string, tenantId: string, params: any): Promi
 
       return classes.map(c => ({
         'Class Name': c.name,
-        'Class Level': c.grade,
+        'Class Level': c.classLevel,
         'Section': c.section,
         'Students': c.studentsCount,
         'Capacity': c.capacity
@@ -476,7 +476,7 @@ export const importRoute = new Elysia({ prefix: '/import' })
                 tenantId: targetTenantId,
                 name: c.name,
                 section: c.section,
-                grade: c.grade,
+                classLevel: c.grade,
                 capacity: 40
               }))
             ).returning();

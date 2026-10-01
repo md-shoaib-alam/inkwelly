@@ -276,13 +276,13 @@ async function main() {
 
     // Generate 6 classes for this school
     console.log(`🏫 Creating Classes for ${tenant.name}...`);
-    const gradesList = ['1', '2', '3', '4', '5', '6'];
-    const classesData = gradesList.map((grade) => ({
+    const classLevels = ['1', '2', '3', '4', '5', '6'];
+    const classesData = classLevels.map((level) => ({
       id: createId(),
       tenantId: tenant.id,
-      name: `Class ${grade}`,
+      name: `Class ${level}`,
       section: 'A',
-      grade: grade,
+      classLevel: level,
       capacity: 35,
       createdAt: now,
       updatedAt: now
@@ -323,7 +323,7 @@ async function main() {
     const studentsData = createdStudentUsers.map((u, i) => {
       const c = createdClasses[i % createdClasses.length]!;
       const parent = createdParents[i % createdParents.length]!;
-      const rollNo = `${c.grade}${c.section}${String(i + 1).padStart(3, '0')}`;
+      const rollNo = `${c.classLevel}${c.section}${String(i + 1).padStart(3, '0')}`;
       return {
         id: createId(),
         userId: u.id,
@@ -352,9 +352,9 @@ async function main() {
         subjectValues.push({
           id: createId(),
           name: sName,
-          code: `${sName.slice(0, 3).toUpperCase()}-${c.grade}`,
+          code: `${sName.slice(0, 3).toUpperCase()}-${c.classLevel}`,
           classId: c.id,
-          teacherId: createdTeachers[(c.grade.charCodeAt(0) + sIdx) % createdTeachers.length]!.id,
+          teacherId: createdTeachers[(c.classLevel.charCodeAt(0) + sIdx) % createdTeachers.length]!.id,
           tenantId: tenant.id,
           createdAt: now,
           updatedAt: now
@@ -499,7 +499,7 @@ async function main() {
     const feeStructuresList: any[] = [];
     for (const c of createdClasses) {
       // Structure varies by grade
-      const tuitionAmt = 300 + (parseInt(c.grade) * 20);
+      const tuitionAmt = 300 + (parseInt(c.classLevel) * 20);
       feeStructuresList.push(
         { id: createId(), feeCategoryId: tuitCat.id, classId: c.id, amount: tuitionAmt, academicYear: ACADEMIC_YEAR, createdAt: now, updatedAt: now },
         { id: createId(), feeCategoryId: examCat.id, classId: c.id, amount: 80, academicYear: ACADEMIC_YEAR, createdAt: now, updatedAt: now },

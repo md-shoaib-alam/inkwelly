@@ -512,7 +512,7 @@ export const tenantsRoutes = new Elysia({ prefix: "/tenants" })
           maxTeachers: b.maxTeachers ? parseInt(b.maxTeachers) : undefined,
           maxParents: b.maxParents ? parseInt(b.maxParents) : undefined,
           maxClasses: b.maxClasses ? parseInt(b.maxClasses) : undefined,
-          settings: JSON.stringify({ enableGradeSelection: false }),
+          settings: JSON.stringify({}),
           status: b.status || "active",
           startDate: b.startDate || formatDate(),
           endDate: b.endDate || null,

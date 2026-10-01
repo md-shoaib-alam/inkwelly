@@ -134,6 +134,13 @@
       "when": 1790728424182,
       "tag": "0018_student_addresses",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790814033090,
+      "tag": "0019_class_level_rename",
+      "breakpoints": true
     }
   ]
 }

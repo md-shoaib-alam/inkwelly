@@ -10,7 +10,7 @@ import { pickCurrentSession, sessionProgress } from '../../lib/academic-session'
  * untracked rather than as 0%, which would blame the school for our missing feature.
  */
 
-/** Class-stage bands from NEP 2020. `Class.grade` is free text, so a grade that
+/** Class-stage bands from NEP 2020. `Class.classLevel` is free text, so a grade that
  *  doesn't parse lands in "Unclassified" rather than being guessed at. */
 const NEP_STAGES = [
   { key: 'foundational', label: 'Foundational', min: 1, max: 3 },
@@ -41,7 +41,7 @@ export const AcademicsDashboardService = {
     const today = formatDate();
 
     const classRows = await db
-      .select({ id: schema.classes.id, grade: schema.classes.grade })
+      .select({ id: schema.classes.id, classLevel: schema.classes.classLevel })
       .from(schema.classes)
       .where(eq(schema.classes.tenantId, tenantId));
     const classIds = classRows.map((c) => c.id);
@@ -191,7 +191,7 @@ export const AcademicsDashboardService = {
     const classesWithOfferings = offeringClassRows.length;
     const grades = new Set(
       classRows
-        .map((c) => Number.parseInt(c.grade, 10))
+        .map((c) => Number.parseInt(c.classLevel, 10))
         .filter((g) => Number.isFinite(g)),
     ).size;
     const classesWithExams = yearName
@@ -244,7 +244,7 @@ export const AcademicsDashboardService = {
 
     const stages = NEP_STAGES.map((stage) => {
       const inStage = classRows.filter((c) => {
-        const grade = Number.parseInt(c.grade, 10);
+        const grade = Number.parseInt(c.classLevel, 10);
         return Number.isFinite(grade) && grade >= stage.min && grade <= stage.max;
       });
       return {
@@ -257,7 +257,7 @@ export const AcademicsDashboardService = {
     const staged = stages.reduce((sum, s) => sum + s.classes, 0);
     if (classes - staged > 0) {
       const ungraded = classRows.filter((c) => {
-        const grade = Number.parseInt(c.grade, 10);
+        const grade = Number.parseInt(c.classLevel, 10);
         return !Number.isFinite(grade) || grade < NEP_GRADE_MIN || grade > NEP_GRADE_MAX;
       });
       stages.push({

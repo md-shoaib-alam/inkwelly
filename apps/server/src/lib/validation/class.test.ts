@@ -6,7 +6,7 @@ import {
 } from './class';
 
 describe('class slugs', () => {
-  test('a grade and section become the URL segment the Classes screen shows', () => {
+  test('a class level and section become the URL segment the Classes screen shows', () => {
     expect(buildClassSlug('Class 10th', 'A')).toBe('class-10th-a');
     expect(buildClassSlug('  Grade 1 - ', 'B')).toBe('grade-1-b');
   });
@@ -25,7 +25,7 @@ describe('class slugs', () => {
 
 describe('create validation', () => {
   test('a minimal form body fills in the Indian-school defaults', () => {
-    const parsed = CreateClassSchema.parse({ name: 'Class 1st', section: 'A', grade: 'Class 1st' });
+    const parsed = CreateClassSchema.parse({ name: 'Class 1st', section: 'A', classLevel: 'Class 1st' });
     expect(parsed.medium).toBe('English');
     expect(parsed.capacity).toBe(40);
     expect(parsed.isActive).toBe(true);
@@ -34,12 +34,12 @@ describe('create validation', () => {
 
   test('only the mediums the picker offers are accepted', () => {
     expect(CLASS_MEDIUMS).toContain('Hindi');
-    const body = { name: 'X', section: 'A', grade: 'Y', medium: 'Klingon' };
+    const body = { name: 'X', section: 'A', classLevel: 'Y', medium: 'Klingon' };
     expect(CreateClassSchema.safeParse(body).success).toBe(false);
     expect(CreateClassSchema.safeParse({ ...body, medium: 'Hindi' }).success).toBe(true);
   });
 
-  test('a missing grade is rejected, because the roster groups on it', () => {
+  test('a missing class level is rejected, because the roster groups on it', () => {
     expect(CreateClassSchema.safeParse({ name: 'X', section: 'A' }).success).toBe(false);
   });
 });
@@ -51,7 +51,7 @@ describe('update validation', () => {
    * medium class back to English and switch off vocational.
    */
   test('fields the caller did not send stay absent rather than arriving as defaults', () => {
-    const parsed = UpdateClassSchema.parse({ id: 'c1', name: 'Class 5th', section: 'A', grade: 'Class 5th', capacity: 30 });
+    const parsed = UpdateClassSchema.parse({ id: 'c1', name: 'Class 5th', section: 'A', classLevel: 'Class 5th', capacity: 30 });
     expect('medium' in parsed).toBe(false);
     expect('isActive' in parsed).toBe(false);
     expect('isVocational' in parsed).toBe(false);
@@ -64,7 +64,7 @@ describe('update validation', () => {
 
 describe('list query', () => {
   test('the filter panel sends empty strings and "all" for untouched selects', () => {
-    const fromPanel: Record<string, unknown> = { grade: 'all', section: '', medium: 'Hindi', search: '' };
+    const fromPanel: Record<string, unknown> = { classLevel: 'all', section: '', medium: 'Hindi', search: '' };
     expect(blankToUndefined(fromPanel)).toEqual({ medium: 'Hindi' });
   });
 

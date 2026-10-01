@@ -1,6 +1,6 @@
 /**
  * A class change is a move a school will want to reconstruct later — "when did
- * this child leave Grade 5, and why". `PUT /students` already records the old and
+ * this child leave Class 5, and why". `PUT /students` already records the old and
  * new classId in its audit row, so the effective date, reason and remarks are
  * folded into that same row instead of needing a table of their own.
  */

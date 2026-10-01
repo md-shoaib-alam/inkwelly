@@ -152,7 +152,7 @@ async function main() {
     const [c] = await db.insert(schema.classes).values({
       name: `Class ${Math.floor(i / 2) + 1}`,
       section: i % 2 === 0 ? 'A' : 'B',
-      grade: `${Math.floor(i / 2) + 1}`,
+      classLevel: `${Math.floor(i / 2) + 1}`,
       capacity: 40,
       tenantId: tenant.id,
       createdAt: now,
@@ -165,7 +165,7 @@ async function main() {
     const c = classes[i % classes.length]!;
     const [s] = await db.insert(schema.students).values({
       userId: u.id,
-      rollNumber: `${c.grade}${c.section}${String(i + 1).padStart(3, '0')}`,
+      rollNumber: `${c.classLevel}${c.section}${String(i + 1).padStart(3, '0')}`,
       classId: c.id,
       parentId: parents[i]!.id,
       academicYear: '2024-2025',
@@ -186,7 +186,7 @@ async function main() {
     for (let s = 0; s < 5; s++) {
       const [sub] = await db.insert(schema.subjects).values({
         name: sn[s]!,
-        code: `${sn[s]!.slice(0, 3).toUpperCase()}${c.grade}${c.section}`,
+        code: `${sn[s]!.slice(0, 3).toUpperCase()}${c.classLevel}${c.section}`,
         classId: c.id,
         tenantId: tenant.id,
         teacherId: teachers[s % teachers.length]!.id,

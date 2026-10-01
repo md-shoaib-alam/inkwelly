@@ -324,7 +324,7 @@ export const StudentsDashboardService = {
           id: schema.classes.id,
           name: schema.classes.name,
           section: schema.classes.section,
-          grade: schema.classes.grade,
+          grade: schema.classes.classLevel,
           capacity: schema.classes.capacity,
         })
         .from(schema.classes)

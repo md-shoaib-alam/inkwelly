@@ -118,7 +118,7 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
       const [cls] = await db.insert(schema.classes).values({
         name: data.name,
         section: data.section,
-        grade: data.grade,
+        classLevel: data.classLevel,
         slug,
         medium: data.medium,
         isVocational: data.isVocational,
@@ -150,7 +150,7 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
           classId: cls.id,
           name: cls.name,
           section: cls.section,
-          grade: cls.grade
+          classLevel: cls.classLevel
         }
       });
 
@@ -203,7 +203,7 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
       const patch: Record<string, unknown> = {};
       if (data.name !== undefined) patch.name = data.name;
       if (data.section !== undefined) patch.section = data.section;
-      if (data.grade !== undefined) patch.grade = data.grade;
+      if (data.classLevel !== undefined) patch.classLevel = data.classLevel;
       if (data.medium !== undefined) patch.medium = data.medium;
       if (data.capacity !== undefined) patch.capacity = data.capacity;
       if (data.isVocational !== undefined) patch.isVocational = data.isVocational;

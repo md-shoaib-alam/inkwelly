@@ -201,7 +201,7 @@ export const AttendanceDashboardService = {
           id: schema.classes.id,
           name: schema.classes.name,
           section: schema.classes.section,
-          grade: schema.classes.grade,
+          grade: schema.classes.classLevel,
         })
         .from(schema.classes)
         .where(eq(schema.classes.tenantId, tenantId)),

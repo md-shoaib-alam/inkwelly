@@ -395,7 +395,7 @@ export const feesRoutes = new Elysia()
           },
           with: {
             category: { columns: { name: true, code: true, status: true } },
-            class: { columns: { name: true, section: true, grade: true } },
+            class: { columns: { name: true, section: true, classLevel: true } },
           },
           orderBy: [desc(schema.feeStructures.academicYear)],
         });
@@ -407,7 +407,7 @@ export const feesRoutes = new Elysia()
           feeCategoryStatus: s.category.status,
           classId: s.classId,
           className: `${s.class.name}-${s.class.section}`,
-          classGrade: s.class.grade ?? null,
+          classLevel: s.class.classLevel ?? null,
           amount: s.amount,
           academicYear: s.academicYear,
           createdAt: s.createdAt,

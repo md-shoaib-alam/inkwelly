@@ -21,7 +21,7 @@ export interface ClassRow {
   name: string;
   slug: string | null;
   section: string;
-  grade: string;
+  classLevel: string;
   medium: string;
   isVocational: boolean;
   isActive: boolean;
@@ -39,7 +39,7 @@ export interface ClassRow {
  */
 export const CLASS_SORT_EXPRESSIONS: Record<string, SQL> = {
   name: sql`${schema.classes.name}`,
-  grade: sql`${schema.classes.grade}`,
+  classLevel: sql`${schema.classes.classLevel}`,
   section: sql`${schema.classes.section}`,
   capacity: sql`${schema.classes.capacity}`,
 };
@@ -96,7 +96,7 @@ export function buildClassFilters(
 ): SQL[] {
   const clauses: SQL[] = [eq(schema.classes.tenantId, tenantId)];
 
-  if (filters.grade) clauses.push(eq(schema.classes.grade, filters.grade));
+  if (filters.classLevel) clauses.push(eq(schema.classes.classLevel, filters.classLevel));
   if (filters.section) clauses.push(eq(schema.classes.section, filters.section));
   if (filters.medium) clauses.push(eq(schema.classes.medium, filters.medium));
   if (typeof filters.vocational === 'boolean') clauses.push(eq(schema.classes.isVocational, filters.vocational));
@@ -106,7 +106,7 @@ export function buildClassFilters(
     const needle = `%${filters.search}%`;
     clauses.push(or(
       ilike(schema.classes.name, needle),
-      ilike(schema.classes.grade, needle),
+      ilike(schema.classes.classLevel, needle),
       ilike(schema.classes.section, needle),
     )!);
   }
@@ -129,13 +129,13 @@ export function buildClassFilters(
 export function classCacheKey(params: ClassListParams, teacherScope: string): string {
   const f = params;
   const parts = [
-    f.grade ?? '', f.section ?? '', f.medium ?? '',
+    f.classLevel ?? '', f.section ?? '', f.medium ?? '',
     f.vocational === undefined ? '' : String(f.vocational),
     f.status ?? '', f.search ?? '',
     f.sortBy ?? 'name', f.sortDir ?? 'asc',
     teacherScope, String(f.page ?? 1), String(f.limit ?? 50),
   ].map(encodeURIComponent).join('|');
-  return `classes:paginated:v3:${params.tenantId}:${parts}`;
+  return `classes:paginated:v4:${params.tenantId}:${parts}`;
 }
 
 const normalizePaging = (params: ClassListParams) => {
@@ -211,7 +211,7 @@ export const ClassService = {
             name: schema.classes.name,
             slug: schema.classes.slug,
             section: schema.classes.section,
-            grade: schema.classes.grade,
+            classLevel: schema.classes.classLevel,
             medium: schema.classes.medium,
             isVocational: schema.classes.isVocational,
             isActive: schema.classes.isActive,
@@ -259,7 +259,7 @@ export const ClassService = {
         name: c.name,
         slug: c.slug,
         section: c.section,
-        grade: c.grade,
+        classLevel: c.classLevel,
         medium: c.medium,
         isVocational: c.isVocational,
         isActive: c.isActive,
@@ -306,12 +306,12 @@ export const ClassService = {
   },
 
   /**
-   * Which grade/section/medium values this tenant actually has. The filter panel
+   * Which classLevel/section/medium values this tenant actually has. The filter panel
    * builds its options from this rather than a static list, so a select can never
    * offer a value that returns nothing — and never hides one the school uses.
    */
   async filterOptions(tenantId: string) {
-    return dataCache.getOrSet(`classes:options:v1:${tenantId}`, async () => {
+    return dataCache.getOrSet(`classes:options:v2:${tenantId}`, async () => {
       const distinct = async (column: SQL) => {
         const rows = await db
           .select({ value: column })
@@ -322,18 +322,18 @@ export const ClassService = {
         return rows.map((r) => r.value).filter(Boolean) as string[];
       };
 
-      const [grades, sections, mediums] = await Promise.all([
-        distinct(sql`${schema.classes.grade}`),
+      const [classLevels, sections, mediums] = await Promise.all([
+        distinct(sql`${schema.classes.classLevel}`),
         distinct(sql`${schema.classes.section}`),
         distinct(sql`${schema.classes.medium}`),
       ]);
-      return { grades, sections, mediums };
+      return { classLevels, sections, mediums };
     }, 300_000);
   },
 
   /** Lightweight list for dropdowns (mode=min) */
   async listMin(tenantId: string, teacherUserId?: string) {
-    const cacheKey = `classes:min:v1:${tenantId}:${teacherUserId || 'all'}`;
+    const cacheKey = `classes:min:v2:${tenantId}:${teacherUserId || 'all'}`;
     return dataCache.getOrSet(
       cacheKey,
       async () => {
@@ -355,7 +355,7 @@ export const ClassService = {
               sql`select 1 from "Subject" sub where sub."classId" = ${cls.id} and sub."teacherId" = ${teacherId}`,
             ));
           },
-          columns: { id: true, name: true, section: true, grade: true, slug: true },
+          columns: { id: true, name: true, section: true, classLevel: true, slug: true },
           orderBy: [asc(schema.classes.name), asc(schema.classes.section)],
         });
         return classes;

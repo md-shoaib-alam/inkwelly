@@ -6,8 +6,7 @@ import { requireAuth } from '../../lib/auth';
 import { posthog, captureError } from '../../lib/monitoring/posthog';
 
 const DEFAULT_SETTINGS = { 
-  workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
-  enableGradeSelection: false
+  workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 };
 
 export const tenantSettingsRoutes = new Elysia({ prefix: '/tenant-settings' })

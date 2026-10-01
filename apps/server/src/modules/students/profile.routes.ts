@@ -79,7 +79,7 @@ const selectShape = () => ({
 
   className: schema.classes.name,
   classSection: schema.classes.section,
-  classGrade: schema.classes.grade,
+  classLevel: schema.classes.classLevel,
 
   parentUserId: schema.parents.userId,
   parentOccupation: schema.parents.occupation,
@@ -329,7 +329,7 @@ export const academicOf = (r: StudentRow) => ({
   placement: {
     academicYear: r.academicYear,
     className: classNameOf(r),
-    grade: r.classGrade,
+    classLevel: r.classLevel,
     rollNumber: r.rollNumber,
     registrationNo: r.registrationNo,
     status: r.status,

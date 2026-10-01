@@ -71,7 +71,7 @@ export const academicTypeDefs = `#graphql
     name: String!
     slug: String
     section: String!
-    grade: String!
+    classLevel: String!
     medium: String!
     isVocational: Boolean!
     isActive: Boolean!
@@ -90,7 +90,7 @@ export const academicTypeDefs = `#graphql
   }
 
   type ClassFilterOptions {
-    grades: [String!]!
+    classLevels: [String!]!
     sections: [String!]!
     mediums: [String!]!
   }

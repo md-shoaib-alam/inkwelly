@@ -55,5 +55,5 @@ test("the paginated cache key is versioned for the row shape", () => {
   // Rows gained profileCompletePercent. Without the bump, entries written before
   // it would keep serving rows that lack the field for the rest of their TTL.
   const key = classCacheKey({ tenantId: "t1" } as never, "all");
-  expect(key.startsWith("classes:paginated:v3:t1:")).toBe(true);
+  expect(key.startsWith("classes:paginated:v4:t1:")).toBe(true);
 });

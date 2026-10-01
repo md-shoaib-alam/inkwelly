@@ -14,7 +14,7 @@ export const CLASS_SECTIONS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
 
 export const CLASS_SORT_COLUMNS = {
   name: 'name',
-  grade: 'grade',
+  classLevel: 'classLevel',
   section: 'section',
   capacity: 'capacity',
   enrolled: 'enrolled',
@@ -84,7 +84,7 @@ const capacity = z
 export const CreateClassSchema = z.object({
   name: z.string({ required_error: 'Class name is required' }).trim().min(1, 'Class name is required').max(80),
   section,
-  grade: z.string({ required_error: 'Class level is required' }).trim().min(1, 'Class level is required').max(40),
+  classLevel: z.string({ required_error: 'Class level is required' }).trim().min(1, 'Class level is required').max(40),
   slug: z.string().trim().max(120).optional().or(z.literal('')),
   medium: medium.default('English'),
   capacity: capacity.default(40),
@@ -122,13 +122,13 @@ const triState = z
   .transform((v) => (typeof v === 'boolean' ? v : v === 'true'));
 
 export const ClassListQuerySchema = z.object({
-  grade: z.string().trim().min(1).optional(),
+  classLevel: z.string().trim().min(1).optional(),
   section: z.string().trim().min(1).optional(),
   medium: z.string().trim().min(1).optional(),
   vocational: triState.optional(),
   status: z.enum(['active', 'inactive']).optional(),
   search: z.string().trim().min(1).max(80).optional(),
-  sortBy: z.enum(['name', 'grade', 'section', 'capacity', 'enrolled']).default('name'),
+  sortBy: z.enum(['name', 'classLevel', 'section', 'capacity', 'enrolled']).default('name'),
   sortDir: z.enum(['asc', 'desc']).default('asc'),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(50),
