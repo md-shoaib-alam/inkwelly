@@ -11,6 +11,7 @@ export interface SessionRow {
   id: string;
   device: string;
   browser: string;
+  os: string;
   ip: string | null;
   signedInAt: string;
   lastSeenAt: string;
@@ -61,11 +62,12 @@ async function listSessions(userId: string, currentFamily?: string): Promise<Ses
 
   return [
     ...(families as any[]).map((row) => {
-      const { device, browser } = parseUserAgent(row.ua);
+      const { device, browser, os } = parseUserAgent(row.ua);
       return {
         id: row.family as string,
         device,
         browser,
+        os,
         ip: row.ip ?? null,
         signedInAt: iso(row.signed_in_at),
         lastSeenAt: iso(row.last_seen_at ?? row.signed_in_at),
@@ -76,11 +78,12 @@ async function listSessions(userId: string, currentFamily?: string): Promise<Ses
       };
     }),
     ...orphans.map((row) => {
-      const { device, browser } = parseUserAgent(row.userAgent);
+      const { device, browser, os } = parseUserAgent(row.userAgent);
       return {
         id: row.id,
         device,
         browser,
+        os,
         ip: row.ipAddress ?? null,
         signedInAt: iso(row.createdAt),
         lastSeenAt: iso(row.createdAt),

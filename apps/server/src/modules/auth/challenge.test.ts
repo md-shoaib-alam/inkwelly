@@ -84,12 +84,12 @@ afterAll(async () => {
   );
 });
 
-test('create returns a 24-char id, a hyphenated 5-char code and no-store', async () => {
+test('create returns a 24-char id, a hyphenated 6-char code and no-store', async () => {
   const { res, body } = await create();
   expect(res.status).toBe(200);
   expect(res.headers.get('cache-control')).toBe('no-store');
   expect(body.challengeId).toHaveLength(24);
-  expect(body.code).toMatch(/^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{2}-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{3}$/);
+  expect(body.code).toMatch(/^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{3}-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{3}$/);
   expect(new Date(body.expiresAt).getTime() - Date.now()).toBeLessThanOrEqual(90_000);
 });
 

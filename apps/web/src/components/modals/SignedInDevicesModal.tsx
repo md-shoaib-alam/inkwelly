@@ -1,11 +1,9 @@
-'use client';
-
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Loader2, Monitor, Smartphone, ShieldCheck, LogOut, QrCode } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Loader2, Monitor, Smartphone, ShieldCheck, LogOut, QrCode, KeyRound, User, HelpCircle, X, Key } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { listSessions, revokeAllSessions, revokeSession, type SignedInDevice } from '@/lib/api';
+import { useAppStore } from '@/store/use-app-store';
 
 function timeAgo(dateStr: string): string {
   const ms = Date.now() - new Date(dateStr).getTime();
@@ -16,15 +14,21 @@ function timeAgo(dateStr: string): string {
   return days === 1 ? '1 d ago' : `${days} d ago`;
 }
 
-function DeviceIcon({ device, browser }: { device: string; browser: string }) {
-  const isMobile = /android|iphone|ipad|mobile/i.test(device) || /safari|chrome/i.test(browser) && /mobile/i.test(device);
-  return isMobile ? <Smartphone className="size-5 text-slate-500" /> : <Monitor className="size-5 text-slate-500" />;
+function DeviceIcon({ device }: { device: string }) {
+  return device === 'Mobile'
+    ? <Smartphone className="size-5 text-[#8c6b2d]" />
+    : <Monitor className="size-5 text-[#8c6b2d]" />;
 }
 
 export function SignedInDevicesModal({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { currentUser } = useAppStore();
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'help'>('security');
   const [devices, setDevices] = useState<SignedInDevice[]>([]);
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+
+  // Confirmation dialog state: target device or 'all'
+  const [confirmTarget, setConfirmTarget] = useState<SignedInDevice | 'all' | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -37,6 +41,7 @@ export function SignedInDevicesModal({ open, onOpenChange }: { open: boolean; on
     }
   }, []);
 
+  // eslint-disable-next-line
   useEffect(() => { if (open) void refresh(); }, [open, refresh]);
 
   const revokeOne = async (d: SignedInDevice) => {
@@ -51,6 +56,7 @@ export function SignedInDevicesModal({ open, onOpenChange }: { open: boolean; on
       toast.error((err as Error).message || 'Could not sign that device out');
     } finally {
       setBusy(null);
+      setConfirmTarget(null);
     }
   };
 
@@ -58,132 +64,331 @@ export function SignedInDevicesModal({ open, onOpenChange }: { open: boolean; on
     setBusy('all');
     try {
       await revokeAllSessions();
+      setConfirmTarget(null);
       onOpenChange(false);
       window.location.href = '/login';
     } catch (err) {
       toast.error((err as Error).message || 'Could not sign out your devices');
       setBusy(null);
+      setConfirmTarget(null);
     }
   };
 
   const currentDevice = devices.find(d => d.current);
   const activeCount = devices.length;
   const lastSignIn = currentDevice ? timeAgo(currentDevice.signedInAt) : '—';
-  const thisDeviceLabel = currentDevice ? `${currentDevice.browser} on ${currentDevice.device}` : '—';
+  const thisDeviceLabel = currentDevice ? `${currentDevice.browser} on ${currentDevice.os}` : '—';
+  const otherDevicesCount = devices.filter(d => !d.current).length;
+
+  const userInitials = (currentUser?.name || 'Shoaib')
+    .split(' ')
+    .map(p => p[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-0">
-        <DialogHeader className="px-6 pt-6 pb-4">
-          <DialogTitle className="text-xl font-semibold text-slate-900">Security & devices</DialogTitle>
-          <DialogDescription className="text-sm text-slate-500">
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="iwp-layer iwp-modal" showCloseButton={false}>
+          <DialogTitle className="sr-only">Security & devices</DialogTitle>
+          <DialogDescription className="sr-only">
             Review where you're signed in and manage your account security.
           </DialogDescription>
-        </DialogHeader>
 
-        {/* Summary Card */}
-        <div className="mx-6 rounded-lg border border-slate-200 bg-white p-4">
-          <div className="flex items-start gap-3 mb-4">
-            <div className="flex size-10 items-center justify-center rounded-full bg-emerald-50">
-              <ShieldCheck className="size-5 text-emerald-600" />
+          {/* Left Dark Emerald Sidebar (iwp-modal-side) */}
+          <aside className="iwp-modal-side">
+            {/* User Profile Badge */}
+            <div className="iwp-user-badge">
+              <div className="iwp-user-avatar">
+                {currentUser?.avatar ? (
+                  <img src={currentUser.avatar} alt={currentUser.name} className="size-full rounded-full object-cover" />
+                ) : (
+                  <span>{userInitials}</span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="iwp-user-name truncate">{currentUser?.name || 'Shoaib'}</div>
+                <div className="iwp-user-role">{currentUser?.role || 'ACCOUNT'}</div>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-slate-900">Your account is secure</p>
-              <p className="text-xs text-slate-500">Nothing needs your attention right now.</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-4 border-t border-slate-100 pt-3">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700">Active devices</p>
-              <p className="text-lg font-semibold text-slate-900">{activeCount}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700">Last sign-in</p>
-              <p className="text-lg font-semibold text-slate-900">{lastSignIn}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700">This device</p>
-              <p className="text-base font-semibold text-slate-900 truncate">{thisDeviceLabel}</p>
-            </div>
-          </div>
-        </div>
 
-        {/* Active Devices Section */}
-        <div className="px-6 pb-6">
-          {loading && devices.length === 0 ? (
-            <div className="flex justify-center py-8"><Loader2 className="size-5 animate-spin text-slate-400" /></div>
-          ) : devices.length === 0 ? (
-            <p className="py-6 text-sm text-slate-500">No devices are signed in.</p>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-semibold text-slate-900">Active devices</h3>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{activeCount} active</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs font-medium"
-                  disabled={busy !== null || activeCount <= 1}
-                  onClick={() => void revokeAll()}
-                >
-                  {busy === 'all' ? <Loader2 className="mr-1 size-3 animate-spin" /> : <LogOut className="mr-1 size-3" />}
-                  Log out other devices
-                </Button>
+            {/* Sidebar Navigation */}
+            <nav className="iwp-side-nav">
+              <button
+                type="button"
+                onClick={() => setActiveTab('profile')}
+                className={`iwp-side-tab ${activeTab === 'profile' ? 'is-active' : ''}`}
+              >
+                <User className="size-4 shrink-0" />
+                <span>Edit profile</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('security')}
+                className={`iwp-side-tab ${activeTab === 'security' ? 'is-active' : ''}`}
+              >
+                <ShieldCheck className="size-4 shrink-0" />
+                <span>Security & devices</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('help')}
+                className={`iwp-side-tab ${activeTab === 'help' ? 'is-active' : ''}`}
+              >
+                <HelpCircle className="size-4 shrink-0" />
+                <span>Help & feedback</span>
+              </button>
+            </nav>
+          </aside>
+
+          {/* Right White Content Area (iwp-modal-main) */}
+          <main className="iwp-modal-main">
+            {/* Close Button matching inspector: button.iwp-close (38px x 38px) */}
+            <button
+              type="button"
+              className="iwp-close"
+              onClick={() => onOpenChange(false)}
+              aria-label="Close"
+            >
+              <X className="size-4" />
+            </button>
+
+            {/* Security Pane (div.iwp-pane[data-pane="security"]) */}
+            <div className="iwp-pane" data-pane="security">
+              {/* Header */}
+              <div className="iwp-pane-header">
+                <h2 className="iwp-pane-title">Security & devices</h2>
+                <p className="iwp-pane-desc">Review where you're signed in and manage your account security.</p>
               </div>
 
-              <ul className="space-y-2 max-h-[40vh] overflow-y-auto">
-                {devices.map((d) => (
-                  <li
-                    key={d.id}
-                    className={`flex items-center gap-3 rounded-lg border p-3 ${
-                      d.current
-                        ? 'border-amber-400 bg-amber-50/50'
-                        : 'border-slate-200 bg-white hover:bg-slate-50'
-                    }`}
+              {/* Security Status Summary Card (div.iwp-security-card) */}
+              <div className="iwp-security-card">
+                <div className="iwp-status">
+                  <div className="iwp-security-shield">
+                    <ShieldCheck className="size-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 leading-tight">Your account is secure</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">Nothing needs your attention right now.</p>
+                  </div>
+                </div>
+
+                <div className="iwp-metrics-row">
+                  <div className="iwp-stat">
+                    <div className="iwp-metric-label">ACTIVE DEVICES</div>
+                    <div className="iwp-metric-val">{activeCount}</div>
+                  </div>
+                  <div className="iwp-stat">
+                    <div className="iwp-metric-label">LAST SIGN-IN</div>
+                    <div className="iwp-metric-val">{lastSignIn}</div>
+                  </div>
+                  <div className="iwp-stat">
+                    <div className="iwp-metric-label">THIS DEVICE</div>
+                    <div className="iwp-metric-val truncate">{thisDeviceLabel}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Transaction PIN Section (iwp-pin-card) */}
+              <div className="iwp-pin-card">
+                <div className="flex items-center gap-3.5">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#faf7ed] border border-[#14312a10] text-[#b97f1f]">
+                    <Key className="size-4.5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-slate-900">Transaction PIN</h4>
+                      <span className="rounded-full bg-[#fef3c7] px-2 py-0.5 text-[11px] font-bold text-[#8a5d11]">
+                        Not set
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5 leading-snug">
+                      Set up your PIN before collecting fees. You'll be asked for it every time money moves.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => toast.info('Transaction PIN setup is coming soon')}
+                  className="iwp-btn-pill-action shrink-0"
+                >
+                  Set up PIN
+                </button>
+              </div>
+
+              {/* Active Devices Sub-section */}
+              <div>
+                <div className="flex items-center justify-between mb-3.5">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-slate-900 tracking-tight">Active devices</h3>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
+                      {activeCount} active
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={busy !== null || otherDevicesCount === 0}
+                    onClick={() => setConfirmTarget('all')}
+                    className="iwp-btn-danger-outline"
                   >
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
-                      <DeviceIcon device={d.device} browser={d.browser} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-semibold text-slate-900 truncate">
-                          {d.browser} · {d.device}
-                        </p>
-                        {d.current && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
-                            <ShieldCheck className="size-2.5" /> This device
-                          </span>
-                        )}
-                        {d.isShared && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
-                            <QrCode className="size-2.5" /> Scanned
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        {d.ip ?? 'no address'} · {timeAgo(d.lastSeenAt)}
-                      </p>
-                    </div>
-                    {!d.current && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50 text-xs font-medium"
-                        disabled={busy !== null}
-                        onClick={() => void revokeOne(d)}
-                      >
-                        {busy === d.id ? <Loader2 className="size-3.5 animate-spin" /> : 'Log out'}
-                      </Button>
+                    {busy === 'all' ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <LogOut className="size-3.5 stroke-[2.2]" />
                     )}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+                    <span>Log out other devices</span>
+                  </button>
+                </div>
+
+                {/* Devices List */}
+                {loading && devices.length === 0 ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="size-5 animate-spin text-slate-400" />
+                  </div>
+                ) : devices.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-slate-500">No active devices found.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {devices.map((d) => {
+                      const isCurrent = d.current;
+                      const isOnline = isCurrent || (Date.now() - new Date(d.lastSeenAt).getTime()) < 300_000;
+
+                      const metaParts: string[] = [d.device];
+                      if (d.ip) {
+                        metaParts.push(d.ip);
+                      }
+
+                      return (
+                        <div
+                          key={d.id}
+                          className={`iwp-device ${
+                            isCurrent
+                              ? '!border-2 !border-[#edb449] shadow-sm'
+                              : ''
+                          }`}
+                        >
+                          {/* Left: Device Icon & Information */}
+                          <div className="flex items-center gap-3.5 min-w-0">
+                            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#faf7ed] border border-[#14312a10]">
+                              <DeviceIcon device={d.device} />
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="text-[14px] font-bold text-slate-900 tracking-tight truncate">
+                                  {d.browser} on {d.os}
+                                </h4>
+
+                                {isCurrent && (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#f9dd86]/45 text-[11px] font-semibold text-[#8a5d11] border border-[#edb449]/30">
+                                    <ShieldCheck className="size-3 text-[#b97f1f]" />
+                                    This device
+                                  </span>
+                                )}
+
+                                {d.isShared && (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-[11px] font-medium text-slate-600">
+                                    <QrCode className="size-3 text-slate-500" />
+                                    Scanned
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5 flex-wrap">
+                                <span>{metaParts.join(' · ')}</span>
+                                {isOnline ? (
+                                  <>
+                                    <span>·</span>
+                                    <span className="font-bold text-[#0c382f]">Active now</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>·</span>
+                                    <span>Last active {timeAgo(d.lastSeenAt)}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right: Log out action */}
+                          {!isCurrent && (
+                            <button
+                              type="button"
+                              disabled={busy !== null}
+                              onClick={() => setConfirmTarget(d)}
+                              className="shrink-0 text-xs font-bold text-[#a8341f] hover:text-red-700 hover:underline px-2 py-1 transition-colors cursor-pointer disabled:opacity-50"
+                            >
+                              {busy === d.id ? <Loader2 className="size-4 animate-spin" /> : 'Log out'}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </main>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog matching the user's inspector screenshots */}
+      <Dialog open={confirmTarget !== null} onOpenChange={(open) => { if (!open && busy === null) setConfirmTarget(null); }}>
+        <DialogContent className="iwp-confirm-dialog" showCloseButton={false}>
+          <DialogTitle className="sr-only">Log out device</DialogTitle>
+          <DialogDescription className="sr-only">
+            Confirm logging out from this device
+          </DialogDescription>
+
+          <div className="iwp-confirm-body">
+            <div className="iwp-confirm-icon">
+              <LogOut className="size-6 stroke-[2.2]" />
+            </div>
+
+            <h3 className="iwp-confirm-title">
+              {confirmTarget === 'all' ? 'Log out all other devices?' : 'Log out this device?'}
+            </h3>
+
+            <p className="iwp-confirm-desc">
+              {confirmTarget === 'all'
+                ? 'All other devices will be signed out right away — they will lose access the next time they are used.'
+                : 'This device will be signed out right away — it loses access the next time it’s used.'}
+            </p>
+          </div>
+
+          <div className="iwp-confirm-actions">
+            <button
+              type="button"
+              disabled={busy !== null}
+              onClick={() => setConfirmTarget(null)}
+              className="iwp-btn-cancel"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              disabled={busy !== null}
+              onClick={() => {
+                if (confirmTarget === 'all') {
+                  void revokeAll();
+                } else if (confirmTarget) {
+                  void revokeOne(confirmTarget);
+                }
+              }}
+              className="iwp-btn-danger"
+            >
+              {busy !== null ? <Loader2 className="size-4 animate-spin" /> : 'Log out'}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

@@ -479,7 +479,7 @@ export interface LoginChallenge {
 }
 
 export type ChallengePoll =
-  | { status: 'pending'; request: { device: string; browser: string; ip: string; createdAt: string } }
+  | { status: 'pending'; request: { device: string; browser: string; os: string; ip: string; createdAt: string } }
   | { status: 'approved'; token: string; refreshToken: string; user: SessionPayload['user'] }
   | { status: 'expired' }
   | { status: 'consumed' };
@@ -510,6 +510,7 @@ export interface SignedInDevice {
   id: string;
   device: string;
   browser: string;
+  os: string;
   ip: string | null;
   signedInAt: string;
   lastSeenAt: string;

@@ -207,10 +207,10 @@ export const challengePublicRoutes = new Elysia()
       return { status: 'consumed' };
     }
 
-    const { device, browser } = parseUserAgent(challenge.ua);
+    const { device, browser, os } = parseUserAgent(challenge.ua);
     return {
       status: 'pending',
-      request: { device, browser, ip: challenge.ip, createdAt: challenge.createdAt },
+      request: { device, browser, os, ip: challenge.ip, createdAt: challenge.createdAt },
     };
   }, { params: t.Object({ id: t.String({ minLength: 1, maxLength: 64 }) }) });
 

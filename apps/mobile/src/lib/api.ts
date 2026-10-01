@@ -447,6 +447,7 @@ export async function fetchAllStudents(params: {
 export interface ChallengeRequestInfo {
   device: string;
   browser: string;
+  os: string;
   ip: string | null;
   createdAt: string;
 }
@@ -487,6 +488,7 @@ export interface SignedInDevice {
   id: string;
   device: string;
   browser: string;
+  os: string;
   ip: string | null;
   signedInAt: string;
   lastSeenAt: string;
