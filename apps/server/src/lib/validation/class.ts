@@ -82,10 +82,8 @@ const capacity = z
   .max(1000, 'Capacity cannot exceed 1000');
 
 export const CreateClassSchema = z.object({
-  name: z.string({ required_error: 'Class name is required' }).trim().min(1, 'Class name is required').max(80),
   section,
   classLevel: z.string({ required_error: 'Class level is required' }).trim().min(1, 'Class level is required').max(40),
-  slug: z.string().trim().max(120).optional().or(z.literal('')),
   medium: medium.default('English'),
   capacity: capacity.default(40),
   isVocational: z.boolean().default(false),
@@ -96,7 +94,7 @@ export type CreateClassInput = z.infer<typeof CreateClassSchema>;
 
 /**
  * Partial by design: mobile's edit sheet still sends only
- * name/section/grade/capacity/classTeacherId, and a defaulted field here would
+ * section/classLevel/capacity/classTeacherId, and a defaulted field here would
  * silently overwrite the stored medium or flip the class inactive on every
  * mobile edit. The route applies exactly the keys the caller sent.
  */

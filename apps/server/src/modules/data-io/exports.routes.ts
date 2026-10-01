@@ -10,6 +10,7 @@ import * as XLSX from 'xlsx';
 import { formatDate } from '../../lib/date-utils';
 import { resolveTenantId } from '../../lib/resolve-tenant';
 import { dataCache } from '../../lib/cache';
+import { deriveClassName } from '../../lib/validation/class';
 
 
 export const exportsRoutes = new Elysia({ prefix: '/exports' })
@@ -383,15 +384,19 @@ export const importRoute = new Elysia({ prefix: '/import' })
           db.query.transportRoutes.findMany({ where: eq(schema.transportRoutes.tenantId, targetTenantId) })
         ]);
 
-        // Helper to parse class string
-        const parseClassString = (classStr: string): { grade: string; section: string } => {
+        // Splits a sheet's class cell into a level token and a section.
+        // The tokens it accepts ("class|grade", the 'grade' word test) are input
+        // tolerance for other people's spreadsheets, not this app's vocabulary: a
+        // sheet may say "Grade 10", "Class 10-A" or "10A" and all three must keep
+        // importing. Only the returned key follows the column's name, `classLevel`.
+        const parseClassString = (classStr: string): { classLevel: string; section: string } => {
           const clean = classStr.trim();
           
           // Match standard formats like "5-B", "Class 5-B", "5 B", etc.
           const match = clean.match(/^(?:(?:class|grade)\s+)?(\d+|[a-zA-Z]+)(?:\s*[-/ ]\s*([a-zA-Z]))?$/i);
           if (match) {
             return {
-              grade: match[1] || clean,
+              classLevel: match[1] || clean,
               section: match[2]?.toUpperCase() || 'A'
             };
           }
@@ -400,7 +405,7 @@ export const importRoute = new Elysia({ prefix: '/import' })
           const matchTrailing = clean.match(/^(?:(?:class|grade)\s+)?(\d+)([a-zA-Z])$/i);
           if (matchTrailing) {
             return {
-              grade: matchTrailing[1] || clean,
+              classLevel: matchTrailing[1] || clean,
               section: (matchTrailing[2] || 'A').toUpperCase()
             };
           }
@@ -411,42 +416,63 @@ export const importRoute = new Elysia({ prefix: '/import' })
             if ((namePart.toLowerCase() === 'class' || namePart.toLowerCase() === 'grade') && parts.length > 2) {
               namePart = parts[1] || clean;
               return {
-                grade: namePart,
+                classLevel: namePart,
                 section: (parts[2] || 'A').toUpperCase()
               };
             }
             return {
-              grade: namePart,
+              classLevel: namePart,
               section: (parts[1] || 'A').toUpperCase()
             };
           }
 
           return {
-            grade: clean,
+            classLevel: clean,
             section: 'A'
           };
         };
 
-        const getMappedGradeAndName = (gradeRaw: string) => {
-          const normalized = gradeRaw.trim().toLowerCase();
-          if (normalized === 'nursery') return { grade: 'Nursery', name: 'Nursery' };
-          if (normalized === 'lkg') return { grade: 'LKG', name: 'LKG' };
-          if (normalized === 'ukg') return { grade: 'UKG', name: 'UKG' };
-          const numMatch = gradeRaw.match(/\d+/);
-          const gradeVal = numMatch ? numMatch[0] : gradeRaw;
-          const nameVal = numMatch ? `Class ${numMatch[0]}` : gradeRaw;
-          return { grade: gradeVal, name: nameVal };
+        /**
+         * The four early-year levels in the spelling `deriveClassName` passes them
+         * through in — the spellings the rest of the app and the existing rows use.
+         */
+        const EARLY_YEAR_LEVELS: Record<string, string> = {
+          nursery: 'Nursery',
+          lkg: 'LKG',
+          ukg: 'UKG',
+          'pre-nursery': 'Pre-Nursery',
+        };
+
+        /**
+         * Folds one token from `parseClassString` into the value the `classLevel`
+         * column stores: a digit run wins, an early-year word takes its canonical
+         * spelling, anything else passes through. Trimmed here because the token
+         * comes from someone's spreadsheet and `deriveClassName` deliberately does no
+         * trimming — a stored name of "Class 10 " would silently stop matching the
+         * duplicate lookup. The name itself is `deriveClassName`'s to make, which is
+         * why the old hand-rolled `{ grade, name }` pair is gone: this importer now
+         * creates classes by exactly the rule the Classes routes apply.
+         */
+        const normalizeClassLevel = (levelRaw: string): string => {
+          const level = levelRaw.trim();
+          if (/^\d+$/.test(level)) return level;
+          const digits = level.match(/\d+/)?.[0];
+          if (digits) return digits;
+          return EARLY_YEAR_LEVELS[level.toLowerCase()] ?? level;
         };
 
         // Scan records for classes referenced in Excel
-        const classesToCreate: Array<{ name: string; section: string; grade: string }> = [];
+        const classesToCreate: Array<{ name: string; section: string; classLevel: string }> = [];
         const seenClassKeys = new Set<string>();
 
         for (const row of records) {
+          // A `grade` header in an uploaded sheet stays accepted: that is the other
+          // school's spelling of their column, not this app's vocabulary.
           const className = getValue(row, ['class', 'className', 'class_name', 'grade', 'section'])?.toString();
           if (className) {
-            const { grade: gradeRaw, section } = parseClassString(className);
-            const { grade, name: dbName } = getMappedGradeAndName(gradeRaw);
+            const { classLevel: levelRaw, section } = parseClassString(className);
+            const classLevel = normalizeClassLevel(levelRaw);
+            const dbName = deriveClassName(classLevel);
             const key = `${dbName.toLowerCase()}-${section.toLowerCase()}`;
             
             if (!seenClassKeys.has(key)) {
@@ -461,7 +487,7 @@ export const importRoute = new Elysia({ prefix: '/import' })
                 classesToCreate.push({
                   name: dbName,
                   section,
-                  grade
+                  classLevel
                 });
               }
             }
@@ -476,7 +502,7 @@ export const importRoute = new Elysia({ prefix: '/import' })
                 tenantId: targetTenantId,
                 name: c.name,
                 section: c.section,
-                classLevel: c.grade,
+                classLevel: c.classLevel,
                 capacity: 40
               }))
             ).returning();
@@ -557,11 +583,14 @@ export const importRoute = new Elysia({ prefix: '/import' })
             
             let classId = '';
             if (className) {
-              const { grade: gradeRaw, section } = parseClassString(className);
-              const { name: dbName } = getMappedGradeAndName(gradeRaw);
+              const { classLevel: levelRaw, section } = parseClassString(className);
+              // Derived exactly as the auto-create loop above derived it, so a sheet's
+              // "Class 5-B" / "5B" / "Grade 5 B" looks up the row named by
+              // deriveClassName("5") instead of guessing at the spelling.
+              const dbName = deriveClassName(normalizeClassLevel(levelRaw));
               classId = classMap.get(`${dbName}-${section}`.toLowerCase()) || 
                         classMap.get(className.toLowerCase()) || 
-                        classMap.get(`${gradeRaw}-${section}`.toLowerCase()) || 
+                        classMap.get(`${levelRaw}-${section}`.toLowerCase()) || 
                         '';
             }
 

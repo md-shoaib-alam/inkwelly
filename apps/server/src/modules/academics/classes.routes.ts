@@ -9,7 +9,7 @@ import { posthog, captureError } from '../../lib/monitoring/posthog';
 import { ClassService } from './class.service';
 import {
   ClassListQuerySchema, CreateClassSchema, UpdateClassSchema, AssignTeachersSchema,
-  blankToUndefined, buildClassSlug, resolveSlugCollision, formatZodError,
+  blankToUndefined, buildClassSlug, resolveSlugCollision, deriveClassName, formatZodError,
 } from '../../lib/validation/class';
 
 class ClassDeleteBlocked extends Error {}
@@ -89,34 +89,28 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
       }
       const data = parsed.data;
 
+      const name = deriveClassName(data.classLevel);
+
       const existing = await db.query.classes.findFirst({
         where: and(
           eq(schema.classes.tenantId, tenantId!),
-          eq(schema.classes.name, data.name),
+          eq(schema.classes.name, name),
           eq(schema.classes.section, data.section)
         )
       });
 
       if (existing) {
         set.status = 400;
-        return { error: `Class "${data.name} - ${data.section}" already exists for this school` };
+        return { error: `Class "${name} - ${data.section}" already exists for this school` };
       }
 
+      // The name is derived and the slug is derived from the name: the server is
+      // the only slug author, so a client cannot point a class at someone else's URL.
       const taken = await takenSlugs(tenantId);
-      const requested = data.slug?.trim();
-      let slug: string;
-      if (requested) {
-        if (taken.has(requested)) {
-          set.status = 400;
-          return { error: `Slug "${requested}" is already used by another class` };
-        }
-        slug = requested;
-      } else {
-        slug = resolveSlugCollision(buildClassSlug(data.name, data.section), taken);
-      }
+      const slug = resolveSlugCollision(buildClassSlug(name, data.section), taken);
 
       const [cls] = await db.insert(schema.classes).values({
-        name: data.name,
+        name,
         section: data.section,
         classLevel: data.classLevel,
         slug,
@@ -181,8 +175,9 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
       });
       if (!cls) { set.status = 404; return { error: 'Class not found or access denied' }; }
 
-      const name = data.name ?? cls.name;
+      const classLevel = data.classLevel ?? cls.classLevel;
       const section = data.section ?? cls.section;
+      const name = deriveClassName(classLevel);
 
       const duplicate = await db.query.classes.findFirst({
         where: and(
@@ -199,28 +194,18 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
       }
 
       // Exactly the keys the caller sent — a mobile edit that knows nothing about
-      // `medium` must not reset it to the column default.
+      // `medium` must not reset it to the column default. The name always tracks the
+      // level, so it is written whenever the level or section moved.
       const patch: Record<string, unknown> = {};
-      if (data.name !== undefined) patch.name = data.name;
-      if (data.section !== undefined) patch.section = data.section;
       if (data.classLevel !== undefined) patch.classLevel = data.classLevel;
+      if (data.section !== undefined) patch.section = data.section;
       if (data.medium !== undefined) patch.medium = data.medium;
       if (data.capacity !== undefined) patch.capacity = data.capacity;
       if (data.isVocational !== undefined) patch.isVocational = data.isVocational;
       if (data.isActive !== undefined) patch.isActive = data.isActive;
 
-      if (data.slug) {
-        if (data.slug !== cls.slug) {
-          const taken = await takenSlugs(tenantId, id);
-          if (taken.has(data.slug)) {
-            set.status = 400;
-            return { error: `Slug "${data.slug}" is already used by another class` };
-          }
-        }
-        patch.slug = data.slug;
-      } else if (data.name !== undefined || data.section !== undefined) {
-        // The name changed but no slug came with it; keep the two in step rather
-        // than leaving "class-1st-a" pointing at what is now "Class 5th".
+      if (name !== cls.name || section !== cls.section) {
+        patch.name = name;
         const taken = await takenSlugs(tenantId, id);
         patch.slug = resolveSlugCollision(buildClassSlug(name, section), taken);
       }
