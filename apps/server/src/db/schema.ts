@@ -88,9 +88,13 @@ export const refreshTokens = pgTable('RefreshToken', {
   ipAddress: text('ipAddress'),
   expiresAt: timestamp('expiresAt').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
+  sessionFamily: text('sessionFamily'),
+  lastSeenAt: timestamp('lastSeenAt'),
+  isShared: boolean('isShared').default(false),
 }, (table) => ({
   userIdIdx: index('RefreshToken_userId_idx').on(table.userId),
   expiresAtIdx: index('RefreshToken_expiresAt_idx').on(table.expiresAt),
+  userIdFamilyIdx: index('RefreshToken_userId_sessionFamily_idx').on(table.userId, table.sessionFamily),
 }));
 
 export const students = pgTable('Student', {

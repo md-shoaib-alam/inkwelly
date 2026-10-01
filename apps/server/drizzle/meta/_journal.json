@@ -141,6 +141,13 @@
       "when": 1790814033090,
       "tag": "0019_class_level_rename",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1790831391834,
+      "tag": "0020_session_tracking",
+      "breakpoints": true
     }
   ]
 }
