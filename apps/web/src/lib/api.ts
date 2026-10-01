@@ -8,24 +8,50 @@ import { triggerGlobalRefresh } from './query-client';
 
 const API_BASE = typeof window !== 'undefined' ? '/api/proxy' : env.NEXT_PUBLIC_API_URL;
 
+// A shared-computer session lives only in this document: a reload signs out, which is
+// what "leaves nothing on this machine" costs.
+let memoryToken: string | null = null;
+let memoryRefreshToken: string | null = null;
+
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('school_token');
+  return localStorage.getItem('school_token') ?? memoryToken;
 }
 
-function setToken(token: string): void {
+function setToken(token: string, persist = true): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('school_token', token);
+  if (persist) localStorage.setItem('school_token', token);
+  else memoryToken = token;
 }
 
 function getRefreshToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('school_refresh_token');
+  return localStorage.getItem('school_refresh_token') ?? memoryRefreshToken;
 }
 
-function setRefreshToken(token: string): void {
+function setRefreshToken(token: string, persist = true): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('school_refresh_token', token);
+  if (persist) localStorage.setItem('school_refresh_token', token);
+  else memoryRefreshToken = token;
+}
+
+/** Called by logout so an in-memory session cannot outlive the sign-out. */
+export function clearSessionTokens(): void {
+  memoryToken = null;
+  memoryRefreshToken = null;
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('school_token');
+  localStorage.removeItem('school_refresh_token');
+}
+
+/**
+ * Does the live session sit on disk? A silent refresh has to answer that before it
+ * rotates the pair, or a shared-computer session would get persisted by the first
+ * 401 it survives.
+ */
+function sessionIsPersisted(): boolean {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem('school_token') !== null;
 }
 
 function getTenantId(): string | null {
@@ -98,15 +124,22 @@ async function refreshAccessToken(): Promise<string> {
 
   const data = await res.json();
 
-  // Store the new tokens
-  setToken(data.token);
-  setRefreshToken(data.refreshToken);
+  // Store the new tokens on the same surface the current session lives on: a
+  // shared-computer rotation must keep the pair in memory, and must keep the cookie a
+  // session cookie, or the checkbox's promise breaks at the first 401.
+  const persist = sessionIsPersisted();
+  setToken(data.token, persist);
+  setRefreshToken(data.refreshToken, persist);
 
   // Also update cookie so the cookie guard still works
   if (typeof document !== 'undefined') {
-    const d = new Date();
-    d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000);
-    document.cookie = `school_token=${data.token};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+    if (persist) {
+      const d = new Date();
+      d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000);
+      document.cookie = `school_token=${data.token};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+    } else {
+      document.cookie = `school_token=${data.token}; path=/; SameSite=Lax`;
+    }
   }
 
   return data.token;
@@ -114,6 +147,9 @@ async function refreshAccessToken(): Promise<string> {
 
 export function forceLogout() {
   if (typeof window === 'undefined') return;
+  // Both silent-refresh failure paths (getValidTokenOrRefresh) land here, so this is where
+  // an in-memory shared session gets dropped alongside the on-disk one.
+  clearSessionTokens();
   localStorage.clear();
   sessionStorage.clear();
   const cookies = document.cookie.split(';');
@@ -309,6 +345,10 @@ export async function logoutWithElysia(): Promise<void> {
       // Ignore errors — we'll clear local state regardless
     }
   }
+  // store.logout() wipes localStorage and the cookies but has no way to reach module
+  // memory, and this is the one call every sign-out makes — so the shared-computer pair
+  // is dropped here rather than surviving the sign-out in this document.
+  clearSessionTokens();
 }
 
 /**
@@ -403,3 +443,58 @@ export async function fetchAllStudents(params: {
   }
   return all;
 }
+
+// ── Scan-to-sign-in ──
+
+/** The exact body `POST /auth/login` returns, so nothing downstream can tell the two apart. */
+export interface SessionPayload {
+  token: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    avatar: string | null;
+    tenantId: string | null;
+    tenantSlug: string | null;
+    tenantName: string | null;
+    tenantLogo: string | null;
+    phone: string | null;
+    address: string | null;
+    customRole: { id: string; name: string; color: string | null; permissions: Record<string, unknown> } | null;
+  };
+}
+
+export interface LoginChallenge {
+  challengeId: string;
+  code: string;
+  expiresAt: string;
+}
+
+export type ChallengePoll =
+  | { status: 'pending'; request: { device: string; browser: string; ip: string; createdAt: string } }
+  | { status: 'approved'; token: string; refreshToken: string; user: SessionPayload['user'] }
+  | { status: 'expired' }
+  | { status: 'consumed' };
+
+export const createLoginChallenge = (shared: boolean) =>
+  api.post<LoginChallenge>('/auth/login-challenge', { shared });
+
+/**
+ * The server answers an expired or burned challenge with 410 and `request()` throws on
+ * any non-2xx, so the terminal states are read from the error body instead of being
+ * dressed up as a network failure.
+ */
+export async function pollLoginChallenge(challengeId: string): Promise<ChallengePoll> {
+  try {
+    return await api.get<ChallengePoll>(`/auth/login-challenge/${challengeId}`);
+  } catch (err) {
+    const e = err as { status?: number; body?: { status?: string } };
+    if (e.status === 410) {
+      return { status: e.body?.status === 'consumed' ? 'consumed' : 'expired' };
+    }
+    throw err;
+  }
+}
+

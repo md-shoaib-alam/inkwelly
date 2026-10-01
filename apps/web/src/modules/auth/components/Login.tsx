@@ -3,9 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { useAppStore, type UserRole } from "@/store/use-app-store";
-import { setCookie } from "@/lib/cookies";
-import { SESSION_EXPIRY_DAYS } from "@/store/app-store/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,11 +32,34 @@ import {
   Star,
 } from "lucide-react";
 import { toast } from "sonner";
-import { loginWithElysia, setRefreshToken } from "@/lib/api";
+import { loginWithElysia } from "@/lib/api";
+import { applySession } from "../lib/apply-session";
+import { ScanToSignInPanel } from "./ScanToSignInPanel";
+
+/**
+ * The page ships two layout branches — mobile/tablet (`lg:hidden`) and desktop
+ * (`hidden lg:flex`) — and both stay in the DOM at once. The credentials form can be
+ * rendered into each because it is stateless JSX over this component's own state; the scan
+ * panel is not: it owns a challenge and a 2 s poller, so mounting it twice would mint two
+ * codes and poll twice as often on every login page. `null` means "not measured yet", and
+ * the panel mounts in neither branch until the breakpoint is known (the whole screen only
+ * renders after hydration anyway).
+ */
+function useDesktopBranch(): boolean | null {
+  const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const sync = () => setIsDesktop(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  return isDesktop;
+}
 
 export function LoginScreen() {
   const router = useRouter();
-  const { login } = useAppStore();
+  const desktopBranch = useDesktopBranch();
 
   const [loginMode, setLoginMode] = useState<"email" | "id">("email");
   const [email, setEmail] = useState("");
@@ -88,23 +108,8 @@ export function LoginScreen() {
     toast.promise(loginPromise, {
       loading: "Authenticating...",
       success: (data) => {
-        const userData = data.user;
-        const token = data.token;
-        if (token) { localStorage.setItem("school_token", token); setCookie("school_token", token, SESSION_EXPIRY_DAYS); }
-        if (data.refreshToken) setRefreshToken(data.refreshToken);
-        login({
-          id: userData.id, name: userData.name, email: userData.email,
-          role: userData.role as UserRole, avatar: userData.avatar,
-          tenantId: userData.tenantId, tenantSlug: userData.tenantSlug,
-          tenantName: userData.tenantName, tenantLogo: userData.tenantLogo || null,
-          customRole: userData.customRole || null,
-        });
-        const tenantId = userData.tenantSlug || userData.tenantId;
-        // The tenant root, not `/modules`: only the root dispatcher knows how
-        // to find this school's active year, and the session's year list is not
-        // loaded yet at this instant.
-        window.location.href = tenantId ? `/${tenantId}` : "/modules";
-        return `Welcome back, ${userData.name}!`;
+        applySession(data);
+        return `Welcome back, ${data.user.name}!`;
       },
       error: (err: any) => { setLoading(false); return err.message || "Authentication failed"; },
     });
@@ -280,6 +285,15 @@ export function LoginScreen() {
           <div className="w-full rounded-[24px] sm:rounded-[28px] md:rounded-[30px] bg-white border border-slate-100 shadow-xl shadow-sky-950/10 px-4.5 sm:px-6 md:px-7 py-4 sm:py-5 md:py-6 backdrop-blur-xs">
             {renderForm()}
           </div>
+
+          {/* Scan to sign in — a sibling card on the same glass surface, same chrome as the
+              credentials card, and outside <form> so it can never become a second login form.
+              Rendered only while the mobile branch is the visible one. */}
+          {desktopBranch === false && (
+            <div className="w-full mt-2 sm:mt-2.5 rounded-[24px] sm:rounded-[28px] md:rounded-[30px] bg-white border border-slate-100 shadow-xl shadow-sky-950/10 px-4.5 sm:px-6 md:px-7 py-4 sm:py-5 md:py-6 backdrop-blur-xs">
+              <ScanToSignInPanel />
+            </div>
+          )}
         </div>
 
         {/* Tablet Stat Card (shown on tablet md screens, hidden on phone) */}
@@ -402,8 +416,10 @@ export function LoginScreen() {
               </div>
             </div>
 
-            {/* Right — Outer Glassmorphic Card (vertically centered top to bottom, near plane on 2xl) */}
-            <div className="w-full max-w-[390px] xl:max-w-[420px] 2xl:max-w-[450px] shrink-0 self-center 2xl:ml-auto 2xl:mr-14">
+            {/* Right — Outer Glassmorphic Card (vertically centered top to bottom, near plane on 2xl).
+                max-h + overflow: the card now stacks two surfaces, and a clipped "Sign In" button on a
+                short laptop is worse than a scrollbar. */}
+            <div className="w-full max-w-[390px] xl:max-w-[420px] 2xl:max-w-[450px] shrink-0 self-center max-h-full overflow-y-auto 2xl:ml-auto 2xl:mr-14">
               <div className="relative w-full rounded-[38px] xl:rounded-[42px] bg-white/35 backdrop-blur-md border border-white/60 shadow-2xl shadow-sky-950/15 p-2.5 sm:p-3 pt-5 xl:pt-6 2xl:pt-7 pb-3 xl:pb-3.5 2xl:pb-4">
                 {/* Heading displayed directly on the frosted glass */}
                 <div className="text-center mb-3.5 xl:mb-4 2xl:mb-5">
@@ -416,6 +432,16 @@ export function LoginScreen() {
                 <div className="rounded-[30px] bg-white border border-slate-200/70 shadow-xl shadow-slate-300/30 p-6 xl:p-7 2xl:p-8 w-full">
                   {renderForm()}
                 </div>
+
+                {/* Scan to sign in — the sibling card. Same radius, border, shadow and padding as the
+                    credentials card above it, and it gets no form props: it only ever hands a finished
+                    session to applySession(). Rendered only while the desktop branch is the visible one,
+                    so exactly one panel — and one challenge and one poller — exists per page. */}
+                {desktopBranch === true && (
+                  <div className="mt-3 xl:mt-3.5 rounded-[30px] bg-white border border-slate-200/70 shadow-xl shadow-slate-300/30 p-6 xl:p-7 2xl:p-8 w-full">
+                    <ScanToSignInPanel />
+                  </div>
+                )}
               </div>
             </div>
 

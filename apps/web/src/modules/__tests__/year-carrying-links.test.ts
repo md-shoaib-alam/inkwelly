@@ -46,10 +46,10 @@ const ALLOWLIST: Allowed[] = [
       "fail-safe hop to the user's own tenant root, which resolves its own year on the next pass.",
   },
   {
-    file: "modules/auth/components/Login.tsx",
-    text: "window.location.href = tenantId ? `/${tenantId}` : \"/modules\"",
+    file: "modules/auth/lib/apply-session.ts",
+    text: "window.location.href = tenantId ? `/${tenantId}` : '/modules'",
     reason:
-      "the post-login landing goes to the tenant root, which is where the year is first resolved; nothing is known about the school's sessions yet.",
+      "the post-login landing goes to the tenant root, which is where the year is first resolved; nothing is known about the school's sessions yet. Moved here from Login.tsx when password login and scan login shared one post-login path.",
   },
   {
     file: "app/(authenticated)/[slug]/[...segments]/tenant-screen-dispatcher.tsx",
