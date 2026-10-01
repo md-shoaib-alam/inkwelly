@@ -136,7 +136,7 @@ function newCode(): string {
     crypto.getRandomValues(new Uint8Array(CODE_LENGTH)),
     (b) => CODE_ALPHABET[b % CODE_ALPHABET.length],
   );
-  return `${chars.slice(0, 2).join('')}-${chars.slice(2).join('')}`;
+  return `${chars.slice(0, 3).join('')}-${chars.slice(3).join('')}`;
 }
 
 /** Codes are typed and read aloud: compare on the alphabet, ignoring layout and case. */
