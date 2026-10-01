@@ -1,6 +1,6 @@
 import { test, expect, describe } from 'bun:test';
 import {
-  slugify, buildClassSlug, resolveSlugCollision,
+  slugify, buildClassSlug, resolveSlugCollision, deriveClassName,
   CreateClassSchema, UpdateClassSchema, ClassListQuerySchema, AssignTeachersSchema,
   blankToUndefined, CLASS_MEDIUMS,
 } from './class';
@@ -98,5 +98,24 @@ describe('teacher assignment', () => {
   test('isPrimary defaults to false so a plain add does not steal the role', () => {
     const parsed = AssignTeachersSchema.parse({ classId: 'c1', teachers: [{ id: 't1' }] });
     expect(parsed.teachers[0]?.isPrimary).toBe(false);
+  });
+});
+
+describe('class name derivation', () => {
+  test('a numeric level becomes "Class <n>" — the form the whole app already shows', () => {
+    expect(deriveClassName('10')).toBe('Class 10');
+    expect(deriveClassName('1')).toBe('Class 1');
+  });
+
+  test('an early-year level is its own name, with no "Class " prefix', () => {
+    expect(deriveClassName('Pre-Nursery')).toBe('Pre-Nursery');
+    expect(deriveClassName('Nursery')).toBe('Nursery');
+    expect(deriveClassName('LKG')).toBe('LKG');
+    expect(deriveClassName('UKG')).toBe('UKG');
+  });
+
+  test('the section never enters the name — the slug carries it', () => {
+    expect(deriveClassName('5')).not.toContain('A');
+    expect(deriveClassName('5')).toBe('Class 5');
   });
 });

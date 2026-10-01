@@ -53,6 +53,16 @@ export function resolveSlugCollision(base: string, taken: Set<string>): string {
   return `${base}-${Date.now()}`;
 }
 
+/**
+ * The name a class row carries is the class level in words: `"10" -> "Class 10"`.
+ * An early-year level (`LKG`, `Pre-Nursery`) is already a name, so it passes through.
+ * Section is deliberately absent — every stored row is named by level alone and the
+ * slug is what carries the section.
+ */
+export function deriveClassName(classLevel: string): string {
+  return /^\d+$/.test(classLevel) ? `Class ${classLevel}` : classLevel;
+}
+
 // ─── Writes ───────────────────────────────────────────────────────────────────
 
 const medium = z.enum(CLASS_MEDIUMS, {
