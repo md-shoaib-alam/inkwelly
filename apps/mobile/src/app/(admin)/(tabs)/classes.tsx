@@ -157,7 +157,7 @@ export default function ClassesScreen() {
 
       if (dialogMode === 'create') {
         const newClass: any = await api.post('/classes', payload);
-        setSuccessMsg(`Class "${newClass?.name ?? classLevel.trim()}" created successfully!`);
+        setSuccessMsg(`${newClass?.name ?? classLevel.trim()} created successfully!`);
         if (newClass && newClass.id) {
           if (matchesSearch(newClass)) {
             setClasses(prev => [...prev, newClass]);

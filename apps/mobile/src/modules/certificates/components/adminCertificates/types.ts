@@ -63,7 +63,7 @@ export const getBodyText = (cert: CertificateRecord, tenantDetails: any, userRol
   const studentName = cert.content?.studentName || cert.student?.user?.name || '  ';
   const classInfo = cert.content?.class;
   const className = classInfo
-    ? `${classInfo.classLevel} - ${classInfo.name} (${classInfo.section})`
+    ? `${classInfo.name} (${classInfo.section})`
     : '  ';
   const schoolName = tenantDetails.tenantName || userRoleOrName || '';
 
