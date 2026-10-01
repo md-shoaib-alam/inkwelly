@@ -1,6 +1,6 @@
 import { env } from '../env';
 import { triggerGlobalRefresh } from '../query-client';
-import { getToken, getRefreshToken, sessionIsPersisted, setToken, setRefreshToken } from '@/lib/api';
+import { getToken, getValidTokenOrRefresh } from '@/lib/api';
 const API_BASE = env.NEXT_PUBLIC_API_URL;
 const GRAPHQL_ENDPOINT = typeof window !== 'undefined' ? '/graphql-proxy' : `${API_BASE}/graphql`;
 
@@ -12,55 +12,6 @@ function getStoredToken(): string | null {
 function getStoredTenantId(): string | null {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem('schoolsaas_tenant_id');
-}
-
-function getStoredRefreshToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return getRefreshToken();
-}
-
-// ── GraphQL-level refresh interceptor ──
-let graphqlRefreshing = false;
-let graphqlRefreshFailed = false;
-let graphqlRefreshFailedTimer: ReturnType<typeof setTimeout> | null = null;
-
-function markGraphqlRefreshFailed() {
-  graphqlRefreshFailed = true;
-  if (graphqlRefreshFailedTimer) clearTimeout(graphqlRefreshFailedTimer);
-  graphqlRefreshFailedTimer = setTimeout(() => {
-    graphqlRefreshFailed = false;
-    graphqlRefreshFailedTimer = null;
-  }, 10_000);
-}
-
-async function refreshForGraphQL(): Promise<string> {
-  const refreshToken = getStoredRefreshToken();
-  if (!refreshToken) throw new Error('No refresh token');
-
-  const refreshRes = await fetch(
-    typeof window !== 'undefined' ? '/api/proxy/auth/refresh' : `${API_BASE}/auth/refresh`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
-    }
-  );
-
-  if (!refreshRes.ok) throw new Error('Refresh failed');
-  const data = await refreshRes.json();
-  
-  if (sessionIsPersisted()) {
-    localStorage.setItem('school_token', data.token);
-    localStorage.setItem('school_refresh_token', data.refreshToken);
-    if (typeof document !== 'undefined') {
-      const d = new Date(); d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000);
-      document.cookie = `school_token=${data.token};expires=${d.toUTCString()};path=/;SameSite=Lax`;
-    }
-  } else {
-    setToken(data.token, false);
-    setRefreshToken(data.refreshToken, false);
-  }
-  return data.token;
 }
 
 let batchQueue: Array<{
@@ -92,21 +43,21 @@ async function flushBatch() {
       keepalive: true,
     });
 
-    if (res.status === 401 && !graphqlRefreshFailed) {
-      // Try silent refresh then retry the batch
-      if (graphqlRefreshing) {
-        // Another refresh in progress — reject and let React Query retry
-        const err = new Error('Token refresh in progress');
-        currentQueue.forEach(op => op.reject(err));
+    if (res.status === 401) {
+      // One refresher for the whole app. `getValidTokenOrRefresh` owns the single-flight
+      // lock and the waiting queue that REST and axios already use, so an expiring access
+      // token can no longer put two rotations in flight with the same stored refresh token
+      // — the collision the server answers by invalidating the session.
+      let newToken: string;
+      try {
+        newToken = await getValidTokenOrRefresh();
+      } catch (refreshErr) {
+        // The shared path has already cleared storage and redirected to sign in.
+        currentQueue.forEach((op) => op.reject(refreshErr));
         return;
       }
-      graphqlRefreshing = true;
-      try {
-        const newToken = await refreshForGraphQL();
-        graphqlRefreshing = false;
-        graphqlRefreshFailed = false;
 
-        // Retry the batch with new token
+      try {
         const retryRes = await fetch(GRAPHQL_ENDPOINT, {
           method: 'POST',
           headers: {
@@ -126,15 +77,8 @@ async function flushBatch() {
           else op.resolve(result.data);
         });
         return;
-      } catch (refreshErr) {
-        graphqlRefreshing = false;
-        markGraphqlRefreshFailed();
-        // Force logout
-        if (typeof window !== 'undefined') {
-          localStorage.clear(); sessionStorage.clear();
-          window.location.href = '/';
-        }
-        currentQueue.forEach(op => op.reject(refreshErr));
+      } catch (err) {
+        currentQueue.forEach((op) => op.reject(err as Error));
         return;
       }
     }
@@ -177,9 +121,9 @@ export async function graphqlMutate<TData>(mutation: string, variables?: Record<
   });
 
   // Handle 401 by attempting to refresh token once
-  if (res.status === 401 && !graphqlRefreshFailed) {
+  if (res.status === 401) {
     try {
-      token = await refreshForGraphQL();
+      token = await getValidTokenOrRefresh();
       res = await fetch(GRAPHQL_ENDPOINT, {
         method: 'POST',
         headers: { 
@@ -191,7 +135,8 @@ export async function graphqlMutate<TData>(mutation: string, variables?: Record<
         keepalive: true,
       });
     } catch {
-      markGraphqlRefreshFailed();
+      // The shared refresher has already forced the logout; fall through and let the
+      // status check below report the failed mutation to the caller.
     }
   }
 
