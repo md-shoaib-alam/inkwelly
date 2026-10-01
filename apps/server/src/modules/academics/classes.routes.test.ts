@@ -109,3 +109,38 @@ test("the same level and section twice is refused by the derived name", async ()
   expect(second.status).toBe(400);
   expect(((await second.json()) as { error: string }).error).toContain("Class 95 - Z");
 });
+
+// Level "92" is deliberately reused but no live row carries the name "Class 92":
+// test 2 moves its 92 row up to 93, so a capacity PUT here derives "Class 92",
+// clears the duplicate check, and reaches the guard untouched by any sibling test.
+test("a capacity-only edit on a legacy-named row does not rewrite its name or URL", async () => {
+  // A row as it exists in a migrated database: the stored name ("Grade 92") and
+  // slug predate `deriveClassName`, so the name no longer matches the level. Only
+  // a genuine level/section change should correct it — never a capacity edit.
+  const [legacy] = await db
+    .insert(schema.classes)
+    .values({
+      tenantId: admin.tenantId,
+      name: "Grade 92",
+      slug: "grade-92-legacy",
+      section: "Z",
+      classLevel: "92",
+      capacity: 30,
+    })
+    .returning();
+  if (!legacy) throw new Error("legacy fixture row was not created");
+  // Register the id for afterAll before any assertion can fail.
+  const created = await readClass(legacy.id);
+  expect(created.name).toBe("Grade 92");
+  expect(created.slug).toBe("grade-92-legacy");
+
+  const put = await call("PUT", { id: created.id, capacity: 44 });
+  expect(put.status).toBe(200);
+  const after = await readClass(created.id);
+  // The capacity moved; the drifted name and its bookmarked slug did not — the old
+  // `name !== cls.name` guard alone would treat the drifted name as a change and
+  // rewrite both, breaking exactly the URL the guard exists to protect.
+  expect(after.capacity).toBe(44);
+  expect(after.name).toBe("Grade 92");
+  expect(after.slug).toBe("grade-92-legacy");
+});

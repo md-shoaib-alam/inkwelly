@@ -204,7 +204,13 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
       if (data.isVocational !== undefined) patch.isVocational = data.isVocational;
       if (data.isActive !== undefined) patch.isActive = data.isActive;
 
-      if (name !== cls.name || section !== cls.section) {
+      // Only a genuine name/section change may move a class's URL. A legacy row's
+      // stored name can predate `deriveClassName`, so comparing the derived name to
+      // the stored one would fire on an unrelated edit (capacity) and rewrite a
+      // perfectly good bookmark. The caller must have actually sent a level or a
+      // section for the rewrite to be a consequence of their change, not a side
+      // effect of the naming rule closing in on a drifted row.
+      if ((data.classLevel !== undefined || data.section !== undefined) && (name !== cls.name || section !== cls.section)) {
         patch.name = name;
         const taken = await takenSlugs(tenantId, id);
         patch.slug = resolveSlugCollision(buildClassSlug(name, section), taken);
