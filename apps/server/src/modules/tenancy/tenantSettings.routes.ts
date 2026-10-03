@@ -3,6 +3,7 @@ import { db } from '../../lib/db';
 import * as schema from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import { requireAuth } from '../../lib/auth';
+import { invalidateTenantDashboardCache } from '../../lib/dashboardCache';
 import { posthog, captureError } from '../../lib/monitoring/posthog';
 
 const DEFAULT_SETTINGS = { 
@@ -47,6 +48,7 @@ export const tenantSettingsRoutes = new Elysia({ prefix: '/tenant-settings' })
       await db.update(schema.tenants)
         .set({ settings: JSON.stringify(b.settings) })
         .where(eq(schema.tenants.id, tenantId));
+      await invalidateTenantDashboardCache(tenantId);
 
       posthog.capture({
         distinctId: tenantId || 'system',

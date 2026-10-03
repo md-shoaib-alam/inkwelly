@@ -12,6 +12,7 @@ interface ModuleRailProps {
   collapsed?: boolean;
   onExpand?: () => void;
   onSelect: (item: ModuleNavItem) => void;
+  onLogoClick?: () => void;
 }
 
 export function ModuleRail({
@@ -22,6 +23,7 @@ export function ModuleRail({
   collapsed = false,
   onExpand,
   onSelect,
+  onLogoClick,
 }: ModuleRailProps) {
   return (
     <nav
@@ -30,7 +32,12 @@ export function ModuleRail({
     >
       {/* Brand / school mark */}
       <div className="flex justify-center pb-2 shrink-0">
-        <div className="size-11 rounded-2xl bg-white/[0.07] ring-1 ring-white/10 overflow-hidden flex items-center justify-center">
+        <button
+          type="button"
+          onClick={onLogoClick}
+          aria-label="Go to Modules"
+          className="size-11 rounded-2xl bg-white/[0.07] ring-1 ring-white/10 hover:ring-white/25 hover:bg-white/[0.12] active:scale-95 transition-all overflow-hidden flex items-center justify-center cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#F2B33D]"
+        >
           {tenantLogo ? (
             <img
               src={tenantLogo}
@@ -41,7 +48,7 @@ export function ModuleRail({
           ) : (
             <GraduationCap className="size-5 text-[#F2B33D]" />
           )}
-        </div>
+        </button>
       </div>
 
       {/* Rail list: 6px gap, 8px margin-top, 4px padding-x */}

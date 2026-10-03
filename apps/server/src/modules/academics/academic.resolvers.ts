@@ -4,6 +4,7 @@ import * as schema from '../../db/schema'
 import { eq, and, ne, desc, inArray, count, sql, sum, ilike, or, lt, gt } from 'drizzle-orm'
 import { checkAuth, paginate, requireModule, requireSchoolAdmin, assertTenantOwnership, tenantFromArg } from '../../graphql/resolvers/helpers'
 import { invalidateUserPermissions, invalidateRolePermissions } from '../../lib/permissions'
+import { invalidateTenantDashboardCache } from '../../lib/dashboardCache'
 import { dataCache } from '../../lib/cache'
 import { formatDate } from '../../lib/date-utils'
 import { StudentService } from '../students'
@@ -652,29 +653,27 @@ export const academicMutations = {
     if (!tenantId) throw new Error('Tenant required');
 
     try {
-      await db.transaction(async (tx) => {
-        for (const item of data) {
-          if (!item.userId || !item.date) continue;
-          await tx.insert(schema.staffAttendance).values({
-            userId: item.userId,
-            tenantId,
-            date: item.date,
-            status: item.status || 'present',
-            checkIn: item.checkIn || null,
-            checkOut: item.checkOut || null,
-            remarks: item.remarks || null
-          })
-          .onConflictDoUpdate({
-            target: [schema.staffAttendance.userId, schema.staffAttendance.date],
-            set: { 
-              status: item.status || 'present',
-              checkIn: item.checkIn || null,
-              checkOut: item.checkOut || null,
-              remarks: item.remarks || null
-            }
-          });
-        }
-      });
+      const rows = data.filter((item: any) => item.userId && item.date);
+      if (rows.length > 0) {
+        await db.insert(schema.staffAttendance).values(rows.map((item: any) => ({
+          userId: item.userId,
+          tenantId,
+          date: item.date,
+          status: item.status || 'present',
+          checkIn: item.checkIn || null,
+          checkOut: item.checkOut || null,
+          remarks: item.remarks || null
+        })))
+        .onConflictDoUpdate({
+          target: [schema.staffAttendance.userId, schema.staffAttendance.date],
+          set: {
+            status: sql`EXCLUDED."status"`,
+            checkIn: sql`EXCLUDED."checkIn"`,
+            checkOut: sql`EXCLUDED."checkOut"`,
+            remarks: sql`EXCLUDED."remarks"`
+          }
+        });
+      }
       return true;
     } catch (err: any) {
       console.error('Staff Attendance Bulk Error:', err);
@@ -726,6 +725,7 @@ export const academicMutations = {
         status: input.status || 'active'
       });
     });
+    await invalidateTenantDashboardCache(tenantId);
 
     return db.query.academicYears.findFirst({
       where: and(eq(schema.academicYears.tenantId, tenantId), eq(schema.academicYears.name, input.name))
@@ -777,6 +777,7 @@ export const academicMutations = {
       return tx.update(schema.academicYears).set(input).where(and(eq(schema.academicYears.id, id), eq(schema.academicYears.tenantId, tenantId))).returning();
     });
 
+    await invalidateTenantDashboardCache(tenantId);
     if (!year) throw new Error('Academic year not found');
     return year;
   },
@@ -785,6 +786,7 @@ export const academicMutations = {
     const { tenantId } = await requireModule(context, 'academic-years', 'delete');
     const res = await db.delete(schema.academicYears).where(and(eq(schema.academicYears.id, id), eq(schema.academicYears.tenantId, tenantId))).returning();
     if (res.length === 0) throw new Error('Academic year not found');
+    await invalidateTenantDashboardCache(tenantId);
     return true;
   },
 
@@ -802,6 +804,7 @@ export const academicMutations = {
         .returning();
     });
 
+    await invalidateTenantDashboardCache(tenantId);
     if (!year) throw new Error('Academic year not found');
     return year;
   }

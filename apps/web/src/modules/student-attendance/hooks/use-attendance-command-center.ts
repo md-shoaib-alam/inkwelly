@@ -88,8 +88,8 @@ export type AttendanceCommandCenter = {
 };
 
 const GET_COMMAND_CENTER = `
-  query AttendanceCommandCenter($tenantId: String, $academicYear: String, $month: String) {
-    attendanceCommandCenter(tenantId: $tenantId, academicYear: $academicYear, month: $month) {
+  query AttendanceCommandCenter($tenantId: String, $academicYear: String, $month: String, $date: String) {
+    attendanceCommandCenter(tenantId: $tenantId, academicYear: $academicYear, month: $month, date: $date) {
       session {
         name
         isCurrent
@@ -146,19 +146,25 @@ const GET_COMMAND_CENTER = `
 /**
  * `month` moves the calendar grid only; every rate stays anchored on today, which is why
  * the chevrons refetch rather than re-slice what is already cached.
+ *
+ * `date` re-anchors the per-class `marking` array only — it is what the Past Days list
+ * reads to show each class's status on a chosen day. The dashboard never passes it, so its
+ * figures stay measured on today.
  */
 export function useAttendanceCommandCenter(
   tenantId: string | null,
   academicYear?: string | null,
   month?: string | null,
+  date?: string | null,
 ) {
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['attendance-command-center', tenantId, academicYear ?? null, month ?? null],
+    queryKey: ['attendance-command-center', tenantId, academicYear ?? null, month ?? null, date ?? null],
     queryFn: () =>
       graphqlQuery<{ attendanceCommandCenter: AttendanceCommandCenter }>(GET_COMMAND_CENTER, {
         tenantId: tenantId ?? undefined,
         academicYear: academicYear ?? undefined,
         month: month ?? undefined,
+        date: date ?? undefined,
       }),
     enabled: !!tenantId,
     staleTime: 60_000,

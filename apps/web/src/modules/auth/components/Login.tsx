@@ -82,163 +82,209 @@ export function LoginScreen() {
   };
 
   const renderCredentialsForm = () => (
-    <div className="flex flex-col h-full">
-      {/* Eyebrow */}
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1">
-        SCHOOL PORTAL
-      </p>
+    <div className="flex flex-col h-full justify-between">
+      <div>
+        {/* Eyebrow */}
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#b97f1f] mb-1">
+          SCHOOL PORTAL
+        </p>
 
-      {/* Headline */}
-      <h2 className="text-xl font-bold text-slate-900 mb-1">
-        Login to your account
-      </h2>
+        {/* Headline */}
+        <h2 className="text-2xl font-black text-[#14312a] mb-1 tracking-tight">
+          Welcome <span className="text-[#b97f1f]">back.</span>
+        </h2>
 
-      {/* Subtitle */}
-      <p className="text-sm text-slate-600 mb-5">
-        Enter your credentials to access your school portal.
-      </p>
+        {/* Subtitle */}
+        <p className="text-xs text-[#4c5f58] mb-5 leading-relaxed">
+          Enter your credentials to access your school portal.
+        </p>
 
-      {/* Form */}
-      <form onSubmit={handleLogin} className="space-y-3 xl:space-y-3.5 flex-1">
-        <div className="space-y-1">
-          <Label htmlFor="login-identifier" className="text-xs font-semibold text-slate-700">
-            {loginMode === "email" ? "Email Address" : "School ID / Mobile Number"}
-          </Label>
-          <div className="relative">
-            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-              {loginMode === "email" ? <Mail className="size-4" /> : <Phone className="size-4" />}
+        {/* Form */}
+        <form onSubmit={handleLogin} className="space-y-3.5 flex-1">
+          <div className="space-y-1.5 text-left">
+            <Label htmlFor="login-identifier" className="text-xs font-semibold text-[#14312a]">
+              {loginMode === "email" ? "Email Address" : "Mobile number / School ID"}
+            </Label>
+            <div className="relative">
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                {loginMode === "email" ? <Mail className="size-4" /> : <Phone className="size-4" />}
+              </div>
+              <Input
+                id="login-identifier"
+                type={loginMode === "email" ? "email" : "text"}
+                placeholder={loginMode === "email" ? "Enter your email address" : "10-digit number or ID"}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="pl-10 h-11 text-xs sm:text-sm bg-[#faf7ed]/50 border-[#14312a24] rounded-xl focus-visible:ring-2 focus-visible:ring-amber-500 placeholder:text-slate-400 text-[#14312a]"
+                autoComplete="username"
+                required
+              />
             </div>
-            <Input
-              id="login-identifier"
-              type={loginMode === "email" ? "email" : "text"}
-              placeholder={loginMode === "email" ? "Enter your email address" : "Enter School ID or phone"}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-10 xl:h-11 text-xs sm:text-sm bg-slate-50 border-slate-200 rounded-xl focus-visible:ring-2 focus-visible:ring-blue-500 placeholder:text-slate-400"
-              autoComplete="username"
-              required
-            />
           </div>
-        </div>
 
-        <div className="space-y-1">
-          <Label htmlFor="login-password" className="text-xs font-semibold text-slate-700">Password</Label>
-          <div className="relative">
-            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-              <Lock className="size-4" />
+          <div className="space-y-1.5 text-left">
+            <Label htmlFor="login-password" className="text-xs font-semibold text-[#14312a]">Password</Label>
+            <div className="relative">
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                <Lock className="size-4" />
+              </div>
+              <Input
+                id="login-password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="pl-10 pr-10 h-11 text-xs sm:text-sm bg-[#faf7ed]/50 border-[#14312a24] rounded-xl focus-visible:ring-2 focus-visible:ring-amber-500 placeholder:text-slate-400 text-[#14312a]"
+                autoComplete="current-password"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
             </div>
-            <Input
-              id="login-password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 pr-10 h-10 xl:h-11 text-xs sm:text-sm bg-slate-50 border-slate-200 rounded-xl focus-visible:ring-2 focus-visible:ring-blue-500 placeholder:text-slate-400"
-              autoComplete="current-password"
-              required
-            />
+          </div>
+
+          <div className="flex items-center justify-between pt-0.5">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="remember-me"
+                checked={rememberMe}
+                onCheckedChange={(v) => setRememberMe(!!v)}
+                className="size-3.5 rounded border-slate-300 data-[state=checked]:bg-[#b97f1f] data-[state=checked]:border-[#b97f1f]"
+              />
+              <Label htmlFor="remember-me" className="text-xs text-[#4c5f58] cursor-pointer font-medium">Remember me</Label>
+            </div>
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
-              aria-label={showPassword ? "Hide password" : "Show password"}
+              onClick={() => router.push("/reset-password")}
+              className="text-xs font-semibold text-[#b97f1f] hover:text-[#976413] transition-colors"
             >
-              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              Forgot password?
             </button>
           </div>
-        </div>
 
-        <div className="flex items-center justify-between pt-0.5">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="remember-me"
-              checked={rememberMe}
-              onCheckedChange={(v) => setRememberMe(!!v)}
-              className="size-3.5 rounded border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-            />
-            <Label htmlFor="remember-me" className="text-xs text-slate-600 cursor-pointer font-medium">Remember me</Label>
+          {/* Primary Gold Action Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn gold w-full h-[49px] flex items-center justify-center gap-2 text-[15px] font-bold mt-4"
+          >
+            {loading ? (
+              <><Loader2 className="size-4.5 animate-spin" /><span>Authenticating...</span></>
+            ) : (
+              <><span>Sign In</span><ArrowRight className="size-4.5" /></>
+            )}
+          </button>
+
+          <div className="relative my-2 py-0.5">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200/80" /></div>
+            <div className="relative flex justify-center"><span className="bg-white px-3 text-slate-400 font-bold text-[10px] tracking-wider uppercase">OR</span></div>
           </div>
+
+          {/* Ghost Secondary Button */}
           <button
             type="button"
-            onClick={() => router.push("/reset-password")}
-            className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+            onClick={() => { setLoginMode(loginMode === "email" ? "id" : "email"); setEmail(""); }}
+            className="btn ghost w-full h-[46px] flex items-center justify-center gap-2 text-[14px] font-semibold"
           >
-            Forgot password?
+            {loginMode === "email" ? (
+              <><Phone className="size-4" /><span>Login by School ID / Phone</span></>
+            ) : (
+              <><Mail className="size-4" /><span>Login by Email Address</span></>
+            )}
           </button>
-        </div>
 
-        <Button
-          type="submit"
-          disabled={loading}
-          className="w-full h-10 xl:h-11 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold text-sm shadow-md shadow-blue-500/25 gap-2 transition-all cursor-pointer"
-        >
-          {loading ? (
-            <><Loader2 className="size-4 animate-spin" /><span>Authenticating...</span></>
-          ) : (
-            <><span>Sign In</span><ArrowRight className="size-4" /></>
-          )}
-        </Button>
-
-        <div className="relative my-1.5 py-0.5">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200" /></div>
-          <div className="relative flex justify-center"><span className="bg-white px-3 text-slate-400 font-semibold text-[11px] uppercase">OR</span></div>
-        </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => { setLoginMode(loginMode === "email" ? "id" : "email"); setEmail(""); }}
-          className="w-full h-9.5 xl:h-10.5 rounded-xl border-blue-200/80 bg-blue-50/40 hover:bg-blue-50/80 text-blue-600 font-semibold text-xs gap-2 transition-all cursor-pointer shadow-2xs"
-        >
-          {loginMode === "email" ? (
-            <><Phone className="size-3.5" /><span>Login by School ID / Phone</span></>
-          ) : (
-            <><Mail className="size-3.5" /><span>Login by Email Address</span></>
-          )}
-        </Button>
-
-        <div className="mt-2.5 rounded-xl bg-sky-50 border border-sky-100 p-2.5 flex items-center justify-between gap-2.5">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="size-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-              <Headphones className="size-3.5" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs font-bold text-slate-800 leading-tight">Need help?</div>
-              <div className="text-[11px] text-slate-500 leading-tight mt-0.5 truncate">Contact your school administration.</div>
-            </div>
-          </div>
-        </div>
-
-        <p className="text-xs text-slate-500 text-center mt-2">
-          By signing in, you agree to our{" "}
-          <Link href="/terms" className="underline text-blue-600 hover:text-blue-700">
-            Terms
-          </Link>{" "}
-          and{" "}
-          <Link href="/privacy" className="underline text-blue-600 hover:text-blue-700">
-            Privacy Policy
-          </Link>
-          .
-        </p>
-      </form>
+          <p className="text-[11.5px] text-slate-500 text-center mt-3">
+            By signing in, you agree to our{" "}
+            <Link href="/terms" className="font-semibold text-[#b97f1f] hover:underline">
+              Terms
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="font-semibold text-[#b97f1f] hover:underline">
+              Privacy Policy
+            </Link>
+            .
+          </p>
+        </form>
+      </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen w-full bg-slate-900 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      {/* Centered card */}
-      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden">
-        {/* Two-column grid: QR left, credentials right */}
-        <div className="lg:grid lg:grid-cols-2">
-          {/* Left column: Scan to sign in panel */}
-          <div className="order-2 lg:order-1 border-t lg:border-t-0 lg:border-r border-slate-200 p-6 lg:p-8 xl:p-10">
+    <div className="inkwelly-login selection:bg-teal-500 selection:text-white">
+      {/* Top Brand Logo Header */}
+      <div className="mb-6 flex items-center justify-center gap-2 select-none">
+        {/* Inkwelly icon mark (asterisk / flower badge) */}
+        <div className="flex items-center gap-2 text-white">
+          <svg
+            className="size-6 text-[#2dd4bf]"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path d="M12 2a1.5 1.5 0 0 1 1.5 1.5v3.636l2.571-2.571a1.5 1.5 0 1 1 2.122 2.121L15.621 9.257H19.25a1.5 1.5 0 1 1 0 3h-3.629l2.571 2.571a1.5 1.5 0 1 1-2.121 2.122L13.5 14.379v3.621a1.5 1.5 0 1 1-3 0v-3.621l-2.571 2.571a1.5 1.5 0 1 1-2.122-2.121L8.379 12.257H4.75a1.5 1.5 0 1 1 0-3h3.629L5.808 6.686a1.5 1.5 0 1 1 2.121-2.122L10.5 7.136V3.5A1.5 1.5 0 0 1 12 2z" />
+          </svg>
+          <span className="text-2xl font-bold tracking-tight text-white font-sans">
+            inkwelly
+          </span>
+        </div>
+      </div>
+
+      {/* Centered Split Card (780px wide on desktop, 370px on mobile) */}
+      <div className="lg-card-split relative w-full max-w-[780px] bg-white rounded-[22px] shadow-2xl shadow-emerald-950/60 overflow-hidden border border-white/20">
+        {/* Two-column layout (stacks credentials first on mobile, then OR divider, then QR panel) */}
+        <div className="flex flex-col lg:grid lg:grid-cols-[356px_1fr] relative">
+          {/* Left panel on desktop / Bottom panel on mobile: Scan to sign in */}
+          <aside className="lg-qr-panel order-2 lg:order-1 relative">
             <ScanToSignInPanel />
+          </aside>
+
+          {/* Central OR divider circle badge (positioned centrally between columns on desktop, and between stacked cards on mobile) */}
+          <div className="lg:absolute left-[356px] top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 size-8 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center pointer-events-none self-center -my-4 lg:my-0">
+            <span className="text-[10px] font-bold uppercase text-slate-400">
+              OR
+            </span>
           </div>
 
-          {/* Right column: Credentials form */}
-          <div className="order-1 lg:order-2 p-6 lg:p-8 xl:p-10">
+          {/* Right panel on desktop / Top panel on mobile: Credentials form (lg-form-col) */}
+          <section className="lg-form-col order-1 lg:order-2">
             {renderCredentialsForm()}
+          </section>
+        </div>
+      </div>
+
+      {/* Trouble Signing In & Help Box matching div.lg-help */}
+      <div className="mt-6 flex flex-col items-center gap-3 w-full max-w-[424px]">
+        <div className="lg-help w-full">
+          <div className="text-left">
+            <div className="text-xs font-bold text-slate-200">Trouble signing in?</div>
+            <div className="text-[11px] text-slate-400 mt-0.5">We usually reply within 5 minutes.</div>
           </div>
+          <a
+            href="https://wa.me/"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-900/50 hover:bg-emerald-800/80 border border-emerald-700/50 text-xs font-semibold text-emerald-200 transition-colors"
+          >
+            <Phone className="size-3.5" />
+            <span>Chat with us</span>
+          </a>
+        </div>
+
+        {/* Footer Contact Details */}
+        <div className="flex items-center gap-4 text-[11px] text-emerald-200/60 font-medium">
+          <span className="flex items-center gap-1.5">
+            <Phone className="size-3" /> +91 92035 10698
+          </span>
+          <span>•</span>
+          <span className="flex items-center gap-1.5">
+            <Mail className="size-3" /> hello@inkwelly.com
+          </span>
         </div>
       </div>
     </div>

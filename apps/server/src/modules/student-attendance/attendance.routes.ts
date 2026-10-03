@@ -792,9 +792,13 @@ export const attendanceRoutes = new Elysia({ prefix: '/attendance' })
         .from(schema.classes)
         .where(eq(schema.classes.tenantId, tenantId));
 
+      // Only the four columns the resolution maps below ever read — not every
+      // student PII column of the whole tenant.
       const allTenantStudents = await db.select({
-        student: schema.students,
-        user: schema.users
+        id: schema.students.id,
+        rollNumber: schema.students.rollNumber,
+        classId: schema.students.classId,
+        email: schema.users.email,
       })
       .from(schema.students)
       .innerJoin(schema.users, eq(schema.students.userId, schema.users.id))
@@ -811,26 +815,23 @@ export const attendanceRoutes = new Elysia({ prefix: '/attendance' })
       }
 
       // 2. student maps
-      const studentMapById = new Map<string, typeof schema.students.$inferSelect & { email: string }>();
-      const studentMapByEmail = new Map<string, typeof schema.students.$inferSelect & { email: string }>();
-      const studentMapByRollClass = new Map<string, typeof schema.students.$inferSelect & { email: string }>();
+      type StudentRef = { id: string; rollNumber: string | null; classId: string | null; email: string | null };
+      const studentMapById = new Map<string, StudentRef>();
+      const studentMapByEmail = new Map<string, StudentRef>();
+      const studentMapByRollClass = new Map<string, StudentRef>();
 
       for (const row of allTenantStudents) {
-        const studentObj = {
-          ...row.student,
-          email: row.user.email
-        };
-        studentMapById.set(row.student.id, studentObj);
-        
-        if (row.user.email) {
-          studentMapByEmail.set(row.user.email, studentObj);
-          studentMapByEmail.set(row.user.email.toLowerCase(), studentObj);
+        studentMapById.set(row.id, row);
+
+        if (row.email) {
+          studentMapByEmail.set(row.email, row);
+          studentMapByEmail.set(row.email.toLowerCase(), row);
         }
-        
-        if (row.student.rollNumber && row.student.classId) {
-          const key = `${row.student.rollNumber}_${row.student.classId}`;
-          studentMapByRollClass.set(key, studentObj);
-          studentMapByRollClass.set(key.toLowerCase(), studentObj);
+
+        if (row.rollNumber && row.classId) {
+          const key = `${row.rollNumber}_${row.classId}`;
+          studentMapByRollClass.set(key, row);
+          studentMapByRollClass.set(key.toLowerCase(), row);
         }
       }
 
@@ -911,14 +912,11 @@ export const attendanceRoutes = new Elysia({ prefix: '/attendance' })
       }
 
       if (validRecords.length > 0) {
-        // Derive academic year from the first record's date (all records should be same period)
-        const academicYear = deriveAcademicYearFromDate(validRecords[0].date);
-        
         const insertValues = validRecords.map(r => ({
           tenantId: tenantId,
           studentId: r.studentId,
           classId: r.classId,
-          academicYear,
+          academicYear: deriveAcademicYearFromDate(r.date),
           date: r.date,
           month: r.date.substring(0, 7),
           status: r.status,

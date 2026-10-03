@@ -6,6 +6,7 @@ import { sendPushNotification } from './firebase-admin';
 import { invalidateUnreadCount, invalidateUnreadCountBulk, pushTransientNotification, pushTransientNotificationsBulk } from './notifications';
 import { chunked } from './batch';
 import { db } from './db';
+import { academicYearForNewRow } from './dashboardCache';
 import * as schema from '../db/schema';
 import { inArray, eq, sql, and } from 'drizzle-orm';
 
@@ -110,6 +111,19 @@ export const generalWorker = new Worker(
       const errors = [...(preValidationErrors || [])];
       let imported = 0;
       const totalToImport = validRows.length;
+
+      // Rows must land in a session the school actually owns; there is no
+      // invented fallback year. Fail the job instead of orphaning imports.
+      const importYear = await academicYearForNewRow(targetTenantId);
+      if (!importYear) {
+        return {
+          success: false,
+          imported: 0,
+          skipped: totalToImport,
+          errors: 1,
+          errorDetails: ['The school has no current academic session — create one before importing students']
+        };
+      }
       
       const BATCH_SIZE = 50;
       
@@ -137,7 +151,7 @@ export const generalWorker = new Worker(
                   tenantId: sql`EXCLUDED."tenantId"`
                 }
               })
-              .returning();
+              .returning({ id: schema.users.id, email: schema.users.email });
             
             if (createdUsers.length > 0) {
               const userMap = new Map(createdUsers.map(u => [u.email.toLowerCase(), u.id]));
@@ -165,6 +179,7 @@ export const generalWorker = new Worker(
                   userId,
                   rollNumber: v.rollNumber,
                   classId: v.classId,
+                  academicYear: importYear,
                   gender: v.gender,
                   dateOfBirth: formattedDob,
                   bloodGroup: v.bloodGroup,
@@ -186,7 +201,7 @@ export const generalWorker = new Worker(
                       admissionDate: sql`EXCLUDED."admissionDate"`,
                     }
                   })
-                  .returning();
+                  .returning({ id: schema.students.id, userId: schema.students.userId });
                 imported += createdStudents.length;
 
                 const studentUserMap = new Map(createdStudents.map(s => [s.userId, s.id]));

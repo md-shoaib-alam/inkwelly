@@ -78,11 +78,13 @@ export default function SignedInDevicesScreen() {
     );
   }, [load]);
 
+  // Counted once: the alert title and the button label must show the same number.
+  const otherCount = devices.filter((device) => !device.current).length;
+
   const signAllOut = useCallback(() => {
-    const otherCount = devices.filter((dd) => !dd.current).length;
     Alert.alert(
       `Log out all other devices (${otherCount})?`,
-      'Every machine except this one is signed out immediately. They will need their password again.',
+      'Every machine except this one stops renewing and signs out within 15 minutes. They will need their password again.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -99,7 +101,7 @@ export default function SignedInDevicesScreen() {
         },
       ],
     );
-  }, [devices, load]);
+  }, [otherCount, load]);
 
   const renderHeader = () => (
     <View style={[styles.header, { backgroundColor: colors.background, paddingTop: insets.top }]}>
@@ -214,7 +216,7 @@ export default function SignedInDevicesScreen() {
         <TouchableOpacity style={styles.logoutAllBtn} onPress={signAllOut}>
           <Ionicons name="log-out-outline" size={18} color="#a8341f" />
           <ThemedText style={styles.logoutAllText}>
-            Log out all other devices ({devices.filter((d) => !d.current).length})
+            Log out all other devices ({otherCount})
           </ThemedText>
         </TouchableOpacity>
       )}
@@ -227,18 +229,10 @@ export default function SignedInDevicesScreen() {
     </ScrollView>
   );
 
-  const renderHistoryTab = () => (
+  const renderSoon = (message: string) => (
     <ScrollView contentContainerStyle={styles.scrollContent}>
       <ThemedText style={[styles.body, { textAlign: 'center', marginTop: 40, color: colors.textSecondary }]}>
-        Login history coming soon.
-      </ThemedText>
-    </ScrollView>
-  );
-
-  const renderPinTab = () => (
-    <ScrollView contentContainerStyle={styles.scrollContent}>
-      <ThemedText style={[styles.body, { textAlign: 'center', marginTop: 40, color: colors.textSecondary }]}>
-        Transaction PIN settings coming soon.
+        {message}
       </ThemedText>
     </ScrollView>
   );
@@ -248,8 +242,8 @@ export default function SignedInDevicesScreen() {
       {renderHeader()}
       {renderTabs()}
       {tab === 'devices' && renderDevicesTab()}
-      {tab === 'history' && renderHistoryTab()}
-      {tab === 'pin' && renderPinTab()}
+      {tab === 'history' && renderSoon('Login history coming soon.')}
+      {tab === 'pin' && renderSoon('Transaction PIN settings coming soon.')}
     </ThemedView>
   );
 }

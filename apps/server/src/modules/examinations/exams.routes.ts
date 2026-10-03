@@ -5,6 +5,7 @@ import { eq, and, desc, count, sql, inArray } from 'drizzle-orm';
 import { requireAuth } from '../../lib/auth';
 import { requirePermission } from '../../lib/permissions';
 import { dataCache } from '../../lib/cache';
+import { academicYearForNewRow } from '../../lib/dashboardCache';
 import { posthog, captureError } from '../../lib/monitoring/posthog';
 import { exams } from '../../db/schema';
 
@@ -60,6 +61,7 @@ export async function syncExamResultsToGrades(examId: string, tenantId: string, 
       studentId: res.studentId,
       subjectId: exam.subjectId,
       teacherId: resolvedTeacherId,
+      academicYear: exam.academicYear,
       examType: exam.examType,
       marks: res.marksObtained ?? 0,
       maxMarks: exam.totalMarks || 100,
@@ -286,29 +288,26 @@ export const examsRoutes = new Elysia({ prefix: '/exams' })
           }
         }
 
-        const created = await db.transaction(async (tx) => {
-          const items = [];
-          for (const exam of exams) {
-            const currentYear = new Date().getFullYear();
-            const fallbackYear = `${currentYear}-${currentYear + 1}`;
-            const [newExam] = await tx.insert(schema.exams).values({
-              tenantId: tenantId!,
-              classId,
-              subjectId: exam.subjectId,
-              examType,
-              name: name.trim(),
-              academicYear: academicYear || fallbackYear,
-              date: exam.date,
-              startTime: exam.startTime,
-              endTime: exam.endTime,
-              totalMarks: exam.totalMarks,
-              passingMarks: exam.passingMarks,
-              status: 'scheduled'
-            }).returning();
-            items.push(newExam);
-          }
-          return items;
-        });
+        const examYear = academicYear || await academicYearForNewRow(tenantId!);
+        if (!examYear) {
+          set.status = 400;
+          return { error: 'Create the academic session first — exams are filed under it' };
+        }
+
+        const created = await db.insert(schema.exams).values(exams.map((exam: any) => ({
+          tenantId: tenantId!,
+          classId,
+          subjectId: exam.subjectId,
+          examType,
+          name: name.trim(),
+          academicYear: examYear,
+          date: exam.date,
+          startTime: exam.startTime,
+          endTime: exam.endTime,
+          totalMarks: exam.totalMarks,
+          passingMarks: exam.passingMarks,
+          status: 'scheduled'
+        }))).returning({ id: schema.exams.id });
 
         return { success: true, totalCreated: created.length };
       }
@@ -330,14 +329,18 @@ export const examsRoutes = new Elysia({ prefix: '/exams' })
         return { error: 'Invalid subject ID or access denied' };
       }
 
-      const singleFallbackYear = (() => { const y = new Date().getFullYear(); return `${y}-${y + 1}`; })();
+      const examYear = data.academicYear || await academicYearForNewRow(tenantId!);
+      if (!examYear) {
+        set.status = 400;
+        return { error: 'Create the academic session first — exams are filed under it' };
+      }
       const [exam] = await db.insert(schema.exams).values({
         tenantId: tenantId!,
         classId: data.classId,
         subjectId: data.subjectId,
         name: data.name,
         examType: data.examType,
-        academicYear: data.academicYear || singleFallbackYear,
+        academicYear: examYear,
         date: data.date,
         startTime: data.startTime,
         endTime: data.endTime,
@@ -402,29 +405,25 @@ export const examsRoutes = new Elysia({ prefix: '/exams' })
         }
       }
 
-      const currentYear = new Date().getFullYear();
-      const fallbackYear = `${currentYear}-${currentYear + 1}`;
-      const created = await db.transaction(async (tx) => {
-        const items = [];
-        for (const exam of exams) {
-          const [newExam] = await tx.insert(schema.exams).values({
-            tenantId: tenantId!,
-            classId,
-            subjectId: exam.subjectId,
-            examType,
-            name: name.trim(),
-            academicYear: academicYear || fallbackYear,
-            date: exam.date,
-            startTime: exam.startTime,
-            endTime: exam.endTime,
-            totalMarks: exam.totalMarks,
-            passingMarks: exam.passingMarks,
-            status: 'scheduled'
-          }).returning();
-          items.push(newExam);
-        }
-        return items;
-      });
+      const examYear = academicYear || await academicYearForNewRow(tenantId!);
+      if (!examYear) {
+        set.status = 400;
+        return { error: 'Create the academic session first — exams are filed under it' };
+      }
+      const created = await db.insert(schema.exams).values(exams.map((exam: any) => ({
+        tenantId: tenantId!,
+        classId,
+        subjectId: exam.subjectId,
+        examType,
+        name: name.trim(),
+        academicYear: examYear,
+        date: exam.date,
+        startTime: exam.startTime,
+        endTime: exam.endTime,
+        totalMarks: exam.totalMarks,
+        passingMarks: exam.passingMarks,
+        status: 'scheduled'
+      }))).returning({ id: schema.exams.id });
 
       await dataCache.deleteMatch(`dashboard:${tenantId}:*`);
 
@@ -499,17 +498,15 @@ export const examsRoutes = new Elysia({ prefix: '/exams' })
 
       // If specific subject timetable updates were supplied
       if (Array.isArray(subjectUpdates) && subjectUpdates.length > 0) {
-        for (const sub of subjectUpdates) {
-          if (sub.id) {
-            await db.update(schema.exams).set({
-              ...(sub.date ? { date: sub.date } : {}),
-              ...(sub.startTime ? { startTime: sub.startTime } : {}),
-              ...(sub.endTime ? { endTime: sub.endTime } : {}),
-              ...(sub.totalMarks !== undefined ? { totalMarks: Number(sub.totalMarks) } : {}),
-              ...(sub.passingMarks !== undefined ? { passingMarks: Number(sub.passingMarks) } : {}),
-            }).where(and(eq(schema.exams.id, sub.id), eq(schema.exams.tenantId, tenantId!)));
-          }
-        }
+        await Promise.all(subjectUpdates.filter((sub: any) => sub.id).map((sub: any) =>
+          db.update(schema.exams).set({
+            ...(sub.date ? { date: sub.date } : {}),
+            ...(sub.startTime ? { startTime: sub.startTime } : {}),
+            ...(sub.endTime ? { endTime: sub.endTime } : {}),
+            ...(sub.totalMarks !== undefined ? { totalMarks: Number(sub.totalMarks) } : {}),
+            ...(sub.passingMarks !== undefined ? { passingMarks: Number(sub.passingMarks) } : {}),
+          }).where(and(eq(schema.exams.id, sub.id), eq(schema.exams.tenantId, tenantId!)))
+        ));
       }
 
       await dataCache.deleteMatch(`dashboard:${tenantId}:*`);
@@ -611,14 +608,13 @@ export const examsRoutes = new Elysia({ prefix: '/exams' })
         .set({ status: 'published', updatedAt: new Date() })
         .where(inArray(schema.examResults.examId, targetExamIds));
 
-      // 3. Sync to schema.grades
-      for (const eid of targetExamIds) {
-        try {
-          await syncExamResultsToGrades(eid, tenantId!, user?.id);
-        } catch (e) {
+      // 3. Sync to schema.grades — one task per exam, errors isolated so one bad
+      // exam never blocks the others (previously a sequential await loop).
+      await Promise.all(targetExamIds.map((eid: string) =>
+        syncExamResultsToGrades(eid, tenantId!, user?.id).catch((e) => {
           console.warn(`[SYNC_ERROR_ON_PUBLISH] ${eid}:`, e);
-        }
-      }
+        })
+      ));
 
       await dataCache.deleteMatch(`dashboard:${tenantId}:*`);
 
@@ -718,27 +714,28 @@ export const examsRoutes = new Elysia({ prefix: '/exams' })
         }
       }
 
-      const savedCount = await db.transaction(async (tx) => {
-        let count = 0;
-        for (const res of results) {
-          await tx.insert(schema.examResults).values({
+      // One multi-row upsert instead of one round-trip per student. The conflict
+      // update reads EXCLUDED.* so each row keeps its own new marks/status.
+      let savedCount = 0;
+      if (results.length > 0) {
+        const upserted = await db.insert(schema.examResults).values(
+          results.map((res: any) => ({
             examId,
             studentId: res.studentId,
             marksObtained: res.marksObtained,
             status: res.status,
             remarks: res.remarks,
-          }).onConflictDoUpdate({
-            target: [schema.examResults.examId, schema.examResults.studentId],
-            set: {
-              marksObtained: res.marksObtained,
-              status: res.status,
-              remarks: res.remarks,
-            }
-          });
-          count++;
-        }
-        return count;
-      });
+          }))
+        ).onConflictDoUpdate({
+          target: [schema.examResults.examId, schema.examResults.studentId],
+          set: {
+            marksObtained: sql`EXCLUDED."marksObtained"`,
+            status: sql`EXCLUDED."status"`,
+            remarks: sql`EXCLUDED."remarks"`,
+          }
+        }).returning({ id: schema.examResults.id });
+        savedCount = upserted.length;
+      }
 
       await dataCache.deleteMatch(`dashboard:${tenantId}:*`);
 

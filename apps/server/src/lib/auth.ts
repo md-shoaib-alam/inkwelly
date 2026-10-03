@@ -6,6 +6,68 @@ import { db } from './db';
 import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
 
+export interface AuthenticatedCaller {
+  user: AccessTokenPayload;
+  tenantId: string | null;
+  dbUser: { name: string; tenantId: string | null };
+}
+
+/**
+ * Single auth path for access tokens, shared by the REST derive and the
+ * GraphQL gate so both enjoy (and stay consistent with) the 5s auth cache.
+ * Returns null for anything the REST middleware would reject: bad signature,
+ * refresh tokens, inactive users, tokens predating a profile change.
+ */
+export async function authenticateAccessToken(token: string): Promise<AuthenticatedCaller | null> {
+  const cacheKey = authCacheKey(token);
+  const cached = getAuthCache(cacheKey);
+  if (cached) {
+    return {
+      user: cached.user as unknown as AccessTokenPayload,
+      tenantId: cached.tenantId,
+      dbUser: cached.dbUser,
+    };
+  }
+
+  const payload = await verifyJWT(token);
+  if (!payload || payload.typ !== 'access') return null;
+
+  // Verify token has not expired due to password change, profile update, or user deactivation
+  const dbUser = await db.query.users.findFirst({
+    where: eq(users.id, payload.id),
+    columns: { updatedAt: true, isActive: true, name: true, tenantId: true }
+  });
+
+  if (!dbUser || !dbUser.isActive) return null;
+
+  // Token issued-at (iat) is in seconds, convert to ms
+  const tokenIatMs = payload.iat ? payload.iat * 1000 : 0;
+  // Round updatedAt down to the nearest second to align with JWT's second-level resolution (iat)
+  const dbUpdatedAtMs = Math.floor(dbUser.updatedAt.getTime() / 1000) * 1000;
+
+  if (tokenIatMs < dbUpdatedAtMs) return null;
+
+  // Default tenantId from token
+  const tenantId = payload.tenantId as string | null;
+
+  // Only cache results whose tenant came from the token itself. The
+  // super-admin tenant override is request-specific and callers applying it
+  // must do so after this function, on a fresh result — never from cache.
+  if (payload.tenantId) {
+    setAuthCache(cacheKey, {
+      user: payload as { id: string; exp?: number },
+      tenantId,
+      dbUser: { name: dbUser.name, tenantId: dbUser.tenantId },
+    });
+  }
+
+  return {
+    user: payload,
+    tenantId,
+    dbUser: { name: dbUser.name, tenantId: dbUser.tenantId },
+  };
+}
+
 /**
  * Auth middleware for Elysia — validates Bearer JWT token.
  * Derives `user` and `tenantId` into the request context.
@@ -32,19 +94,8 @@ export const authPlugin = new Elysia({ name: 'auth' })
     // Hot path: a fresh cache entry skips JWT verify, the Redis denylist GET
     // and the User SELECT entirely (~0.82 ms of the ~1.12 ms per-request CPU).
     // Approved trade-off: revocations bite within AUTH_CACHE_TTL_MS, not instantly.
-    const cacheKey = authCacheKey(token);
-    const cached = getAuthCache(cacheKey);
-    if (cached) {
-      return {
-        user: cached.user as unknown as AccessTokenPayload,
-        tenantId: cached.tenantId,
-        dbUser: cached.dbUser,
-        _authFailed: false,
-      };
-    }
-
-    const payload = await verifyJWT(token);
-    if (!payload || payload.typ !== 'access') {
+    const authed = await authenticateAccessToken(token);
+    if (!authed) {
       return {
         user: null as unknown as AccessTokenPayload,
         tenantId: null as string | null,
@@ -53,40 +104,11 @@ export const authPlugin = new Elysia({ name: 'auth' })
       };
     }
 
-    // Verify token has not expired due to password change, profile update, or user deactivation
-    const dbUser = await db.query.users.findFirst({
-      where: eq(users.id, payload.id),
-      columns: { updatedAt: true, isActive: true, name: true, tenantId: true }
-    });
-
-    if (!dbUser || !dbUser.isActive) {
-      return {
-        user: null as unknown as AccessTokenPayload,
-        tenantId: null as string | null,
-        dbUser: null as { name: string; tenantId: string | null } | null,
-        _authFailed: true,
-      };
-    }
-
-    // Token issued-at (iat) is in seconds, convert to ms
-    const tokenIatMs = payload.iat ? payload.iat * 1000 : 0;
-    // Round updatedAt down to the nearest second to align with JWT's second-level resolution (iat)
-    const dbUpdatedAtMs = Math.floor(dbUser.updatedAt.getTime() / 1000) * 1000;
-
-    if (tokenIatMs < dbUpdatedAtMs) {
-      return {
-        user: null as unknown as AccessTokenPayload,
-        tenantId: null as string | null,
-        dbUser: null as { name: string; tenantId: string | null } | null,
-        _authFailed: true,
-      };
-    }
-
-    // Default tenantId from token
-    let tenantId = payload.tenantId as string | null;
+    const { user, dbUser } = authed;
+    let tenantId = authed.tenantId;
 
     // SuperAdmin master access: Resolve tenant context from request if missing in token
-    if (!tenantId && payload.role === 'super_admin') {
+    if (!tenantId && user.role === 'super_admin') {
       let rawId = headers['x-tenant-id'] ||
                   (params as any)?.slug ||
                   (query as any)?.tenantId ||
@@ -106,28 +128,17 @@ export const authPlugin = new Elysia({ name: 'auth' })
       // scoped routes find nothing instead of reading whichever school was named.
       if (rawId) {
         const { platformMay } = await import('./permissions');
-        if (await platformMay(payload, 'tenants', 'view')) {
+        if (await platformMay(user, 'tenants', 'view')) {
           const { resolveTenantId } = await import('./resolve-tenant');
           tenantId = await resolveTenantId(rawId);
         }
       }
     }
 
-    // Only cache results whose tenant came from the token itself. The
-    // super-admin branch above resolves tenant from request headers, so its
-    // result is request-specific and must never be replayed from cache.
-    if (payload.tenantId) {
-      setAuthCache(cacheKey, {
-        user: payload as { id: string; exp?: number },
-        tenantId,
-        dbUser: { name: dbUser.name, tenantId: dbUser.tenantId },
-      });
-    }
-
     return {
-      user: payload,
+      user,
       tenantId,
-      dbUser: { name: dbUser.name, tenantId: dbUser.tenantId },
+      dbUser,
       _authFailed: false,
     };
   });

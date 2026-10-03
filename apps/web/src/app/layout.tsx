@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Lexend } from "next/font/google";
 import "./globals.css";
+import "@/styles/auth.css";
+import "@/styles/devices-modal.css";
+import "@/styles/modules.css";
+import "@/styles/fee-dashboard.css";
 import { Providers } from "@/components/providers";
 import { ThemeProvider } from "@/components/theme-provider";
 import { MonitoringProvider } from "@/components/monitoring-provider";

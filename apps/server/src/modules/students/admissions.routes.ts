@@ -5,6 +5,7 @@ import { eq, and, sql } from 'drizzle-orm';
 import { requireAuth } from '../../lib/auth';
 import { requirePermission } from '../../lib/permissions';
 import { dataCache } from '../../lib/cache';
+import { loadCachedYearRows } from '../../lib/dashboardCache';
 import { captureError } from '../../lib/monitoring/posthog';
 import { createAuditLog } from '../../lib/audit-helper';
 import Elysia, { t } from 'elysia';
@@ -215,10 +216,7 @@ const handleCreateAdmission = async (body: any, tenantId: string, user: any, req
     throw new AdmissionRouteError(400, 'WEAK_PASSWORD', 'Password must be at least 8 characters and include letters and numbers');
   }
 
-  const ownedYears = await db.query.academicYears.findMany({
-    where: eq(schema.academicYears.tenantId, tenantId),
-    columns: { name: true, isCurrent: true },
-  });
+  const ownedYears = await loadCachedYearRows(tenantId);
   let academicYear: string;
   try {
     academicYear = academicYearIsKnown(

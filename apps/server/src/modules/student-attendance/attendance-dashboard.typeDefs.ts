@@ -99,6 +99,6 @@ export const attendanceDashboardTypeDefs = /* GraphQL */ `#graphql
   }
 
   extend type Query {
-    attendanceCommandCenter(tenantId: String, academicYear: String, month: String): AttendanceCommandCenter!
+    attendanceCommandCenter(tenantId: String, academicYear: String, month: String, date: String): AttendanceCommandCenter!
   }
 `;

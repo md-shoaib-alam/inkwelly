@@ -20,12 +20,23 @@ import { useAppStore } from "@/store/use-app-store";
 import { useActiveAcademicYear } from "@/modules/academics/hooks/use-active-academic-year";
 import { useAttendanceCommandCenter } from "../hooks/use-attendance-command-center";
 import { ClassDailyAttendanceView } from "./class-daily-attendance-view";
+import { AcademicSessionBanner } from "./academic-session-banner";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 function buildClassSlug(name: string, section: string): string {
   return `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${section.toLowerCase().trim()}`;
+}
+
+// Parse a "yyyy-MM-dd" query value as a local date. new Date("2026-09-29")
+// would read it as UTC midnight and shift a day back for positive offsets.
+function parseDateParam(raw: string | null | undefined): Date | null {
+  if (!raw) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+  if (!m) return null;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return isNaN(d.getTime()) ? null : d;
 }
 
 export type DailyMarkingMode = "today" | "past-days";
@@ -40,6 +51,9 @@ export interface ClassAttendanceRow {
   section: string;
   totalStudents: number;
   status: ClassAttendanceStatus;
+  /** True only for rows backed by a real DB class. Mock/placeholder rows are
+   *  false, so the marking screen neither loads nor posts against fake ids. */
+  isReal?: boolean;
   present?: number;
   absent?: number;
   unmarked?: number;
@@ -71,8 +85,54 @@ export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { currentTenantId } = useAppStore();
-  const { yearSlug } = useActiveAcademicYear();
-  const { data: commandCenter } = useAttendanceCommandCenter(currentTenantId, yearSlug);
+  const { year, years, yearSlug } = useActiveAcademicYear();
+
+  // Date selection: the ?date= query wins (set when a class is opened from the
+  // past-days list); otherwise today defaults to now, past-days to yesterday.
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const fromUrl = parseDateParam(searchParams?.get("date"));
+    if (fromUrl) return fromUrl;
+    const today = new Date();
+    return mode === "today" ? today : subDays(today, 1);
+  });
+  const dateStr = format(selectedDate, "yyyy-MM-dd");
+
+  // The Past Days list reads the command center's `marking` array, which the server anchors
+  // on `date` when one is given. Without it the list shows today's register no matter which
+  // day is picked — the bug this fixes. Today mode has no picker, so it stays server-anchored.
+  const { data: commandCenter } = useAttendanceCommandCenter(
+    currentTenantId,
+    yearSlug,
+    null,
+    mode === "past-days" ? dateStr : null,
+  );
+
+  // The session this screen is scoped to: the URL-matched year, else the
+  // tenant's current year. Its date range drives the "Outside the academic
+  // session" banner. Null when neither carries dates (no session configured).
+  const session = useMemo(() => {
+    const y =
+      year?.startDate && year?.endDate
+        ? year
+        : (years || []).find((a: any) => a.isCurrent || a.isActive);
+    return y?.startDate && y?.endDate
+      ? { start: String(y.startDate), end: String(y.endDate) }
+      : null;
+  }, [year, years]);
+
+  // The session range as local Date objects, for the calendar's selectable
+  // bounds. Slicing to yyyy-MM-dd and rebuilding locally avoids the UTC-midnight
+  // off-by-one that `new Date(iso)` introduces for positive offsets.
+  const sessionRange = useMemo(() => {
+    if (!session) return null;
+    const toLocal = (iso: string) => {
+      const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+      return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null;
+    };
+    const start = toLocal(session.start);
+    const end = toLocal(session.end);
+    return start && end ? { start, end } : null;
+  }, [session]);
 
   const markingMap = useMemo(() => {
     const byId = new Map<string, any>();
@@ -89,11 +149,27 @@ export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
     return { byId, byName };
   }, [commandCenter]);
 
-  // Date selection: today defaults to current date; past-days defaults to yesterday
-  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+  // Re-sync when the URL date changes while this view stays mounted
+  // (navigating between classes, or a fresh deep link).
+  useEffect(() => {
+    const fromUrl = parseDateParam(searchParams?.get("date"));
+    if (fromUrl) setSelectedDate(fromUrl);
+  }, [searchParams]);
+
+  // Past-days opens on the last day the admin can actually record — the
+  // session's end, or today when the session is still running — rather than a
+  // bare "yesterday" that may sit outside the session. Applied once the session
+  // range is known, and never over a date the URL already chose.
+  const sessionDefaultApplied = useRef(false);
+  useEffect(() => {
+    if (mode !== "past-days" || sessionDefaultApplied.current) return;
+    if (parseDateParam(searchParams?.get("date"))) return;
+    if (!sessionRange) return;
     const today = new Date();
-    return mode === "today" ? today : subDays(today, 1);
-  });
+    today.setHours(0, 0, 0, 0);
+    setSelectedDate(sessionRange.end > today ? today : sessionRange.end);
+    sessionDefaultApplied.current = true;
+  }, [mode, sessionRange, searchParams]);
 
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "marked" | "partial" | "pending" | "off-days">("all");
@@ -101,13 +177,22 @@ export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
   const [sortBy, setSortBy] = useState<"name" | "status" | "total">("name");
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
 
-  // Fetch real school classes if available
+  // The session name classes are stored under (e.g. "2025-2026"). Scoping the
+  // class list to it is what keeps this screen from showing every year's
+  // classes at once — the unscoped `mode=min` returned 60 rows here, many of
+  // them empty, with duplicate "Class 1 - A" names across sessions.
+  const sessionName =
+    year?.name || (years || []).find((a: any) => a.isCurrent || a.isActive)?.name || "";
+
+  // Fetch this session's real classes (each row carries a live studentCount).
   const { data: serverClasses = [] } = useQuery({
-    queryKey: ["classes", "min"],
+    queryKey: ["classes", "attendance-day", sessionName],
+    enabled: !!sessionName,
     queryFn: async () => {
-      const res = await apiFetch("/api/classes?mode=min");
+      const res = await apiFetch(`/api/classes?academicYear=${encodeURIComponent(sessionName)}`);
       if (!res.ok) return [];
-      return res.json();
+      const data = await res.json();
+      return Array.isArray(data) ? data : (data?.items ?? []);
     },
   });
 
@@ -134,8 +219,9 @@ export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
 
   // Merge server classes with default mock classes and command center status
   const rows: ClassAttendanceRow[] = useMemo(() => {
+    const fromServer = !!serverClasses && serverClasses.length > 0;
     const sourceClasses =
-      serverClasses && serverClasses.length > 0
+      fromServer
         ? serverClasses.map((cls: any, idx: number) => {
             const defaultMock = DEFAULT_MOCK_CLASSES[idx % DEFAULT_MOCK_CLASSES.length];
             return {
@@ -143,7 +229,9 @@ export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
               slug: cls.slug as string | undefined,
               name: cls.name || `Class ${idx + 1}`,
               section: cls.section || "A",
-              totalStudents: cls.studentCount || cls.capacity || defaultMock.totalStudents || 25,
+              totalStudents: Number.isFinite(cls.studentCount)
+                ? cls.studentCount
+                : (cls.capacity || defaultMock.totalStudents || 25),
             };
           })
         : DEFAULT_MOCK_CLASSES;
@@ -180,6 +268,7 @@ export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
         section: cls.section,
         totalStudents: cls.totalStudents,
         status,
+        isReal: fromServer,
         present,
         absent,
         unmarked,
@@ -207,9 +296,8 @@ export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
       (r) => `${r.name}-${r.section}`.toLowerCase().replace(/[^a-z0-9]+/g, "-") === target
     );
     if (byName) return byName;
-    // 5. Fallback: create a placeholder row.
-    // id stays as the URL slug so ClassDailyAttendanceView can show seed data
-    // without hitting the real API (its guard checks UUID format).
+    // 5. Fallback: create a placeholder row. Not a real class, so the marking
+    // screen shows seed students and skips the save instead of posting fake ids.
     return {
       id: target,
       slug: target,
@@ -221,6 +309,7 @@ export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
       section: target.split("-").slice(-1)[0]?.toUpperCase() || "A",
       totalStudents: 25,
       status: "pending" as ClassAttendanceStatus,
+      isReal: false,
     };
   }, [activeClassSlug, rows]);
 
@@ -232,6 +321,9 @@ export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
         className={activeClassRow.name}
         section={activeClassRow.section}
         selectedDate={selectedDate}
+        isRealClass={!!activeClassRow.isReal}
+        sessionStart={session?.start}
+        sessionEnd={session?.end}
         onBack={() => {
           router.push(tenantHref(`student-attendance/${mode}`));
         }}
@@ -305,7 +397,6 @@ export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
     return result;
   }, [rows, activeTab, searchQuery, sortBy]);
 
-  const dateStr = format(selectedDate, "yyyy-MM-dd");
   const formattedSubtitleDate = format(selectedDate, "EEEE, d MMM yyyy");
   const formattedPickerDate = format(selectedDate, "EEE, MMM d, yyyy");
 
@@ -346,7 +437,18 @@ export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
                       setDatePickerOpen(false);
                     }
                   }}
-                  disabled={(d) => d > new Date()}
+                  disabled={(d) => {
+                    const today = new Date();
+                    today.setHours(23, 59, 59, 999);
+                    if (d > today) return true;
+                    if (sessionRange && (d < sessionRange.start || d > sessionRange.end)) return true;
+                    return false;
+                  }}
+                  defaultMonth={
+                    selectedDate && (!sessionRange || (selectedDate >= sessionRange.start && selectedDate <= sessionRange.end))
+                      ? selectedDate
+                      : sessionRange?.end
+                  }
                   initialFocus
                 />
               </PopoverContent>
@@ -354,6 +456,12 @@ export function DailyMarkingView({ mode }: { mode: DailyMarkingMode }) {
           </div>
         )}
       </div>
+
+      <AcademicSessionBanner
+        dateStr={dateStr}
+        startDate={session?.start}
+        endDate={session?.end}
+      />
 
       {/* Status Filter Pills */}
       <div className="flex flex-wrap items-center gap-2">

@@ -1,7 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { db } from '../../lib/db';
 import * as schema from '../../db/schema';
-import { eq, and, desc, asc, gte, lte, ilike, or, count } from 'drizzle-orm';
+import { eq, and, desc, asc, gte, lte, ilike, or, inArray, count } from 'drizzle-orm';
 import { requireAuth } from '../../lib/auth';
 import { invalidateUnreadCount } from '../../lib/notifications';
 import { posthog, captureError } from '../../lib/monitoring/posthog';
@@ -25,6 +25,52 @@ const SORTABLE_COLUMNS: Record<string, any> = {
   status: schema.leaves.status,
   createdAt: schema.leaves.createdAt,
 };
+
+// One insert, one token query, one tenant read for the whole recipient list —
+// instead of three queries (plus an FCM send) per recipient.
+async function fanOutLeaveNotification(opts: {
+  tenantId: string;
+  recipientUserIds: string[];
+  title: string;
+  content: string;
+  data: Record<string, any>;
+}) {
+  const { tenantId, recipientUserIds, title, content, data } = opts;
+  if (recipientUserIds.length === 0) return;
+
+  const createdAt = new Date();
+  await db.insert(schema.notifications).values(
+    recipientUserIds.map(userId => ({
+      tenantId,
+      userId,
+      title,
+      content,
+      type: 'push',
+      isRead: false,
+      createdAt,
+    }))
+  );
+  await Promise.all(recipientUserIds.map(id => invalidateUnreadCount(id)));
+
+  const tokenRows = await db.query.notificationTokens.findMany({
+    where: inArray(schema.notificationTokens.userId, recipientUserIds),
+    columns: { userId: true, token: true },
+  });
+  if (tokenRows.length === 0) return;
+
+  const { sendPushNotification } = require('../lib/firebase-admin');
+  const tenant = await db.query.tenants.findFirst({
+    where: eq(schema.tenants.id, tenantId),
+    columns: { slug: true },
+  });
+
+  await sendPushNotification(
+    tokenRows.map(t => t.token),
+    title,
+    content,
+    { ...data, link: `/${tenant?.slug || tenantId}/leaves` },
+  ).catch((fcmErr: any) => console.error('FCM failed for leave notification:', fcmErr));
+}
 
 export const leavesRoutes = new Elysia({ prefix: '/leaves' })
   .use(requireAuth)
@@ -257,51 +303,17 @@ export const leavesRoutes = new Elysia({ prefix: '/leaves' })
           columns: { id: true }
         });
 
-        const adminUserIds = schoolAdmins.map(admin => admin.id);
-
-        for (const adminId of adminUserIds) {
-          // Write to persistent database notification log
-          await db.insert(schema.notifications).values({
-            tenantId: tenantId as string,
-            userId: adminId,
-            title,
-            content,
-            type: 'push',
-            isRead: false,
-            createdAt: new Date(),
-          });
-          await invalidateUnreadCount(adminId);
-
-          // Fetch admin FCM registration tokens
-          const tokensRows = await db.query.notificationTokens.findMany({
-            where: eq(schema.notificationTokens.userId, adminId),
-            columns: { token: true }
-          });
-          const tokens = tokensRows.map(t => t.token);
-
-          if (tokens.length > 0) {
-            const { sendPushNotification } = require('../lib/firebase-admin');
-            
-            // Resolve dynamic redirection link paths
-            const adminTenant = await db.query.tenants.findFirst({
-              where: eq(schema.tenants.id, tenantId as string),
-              columns: { slug: true }
-            });
-            const linkPath = `/${adminTenant?.slug || tenantId}/leaves`;
-
-            await sendPushNotification(
-              tokens,
-              title,
-              content,
-              {
-                type: 'new_leave_request',
-                leaveId: record.id,
-                userId: applicant.id,
-                link: linkPath,
-              }
-            ).catch((fcmErr: any) => console.error(`FCM failed for admin ${adminId}:`, fcmErr));
-          }
-        }
+        await fanOutLeaveNotification({
+          tenantId: tenantId as string,
+          recipientUserIds: schoolAdmins.map(admin => admin.id),
+          title,
+          content,
+          data: {
+            type: 'new_leave_request',
+            leaveId: record.id,
+            userId: applicant.id,
+          },
+        });
       } catch (notifyError) {
         console.error("FCM execution failed when notifying admins of leave request:", notifyError);
       }
@@ -419,49 +431,17 @@ export const leavesRoutes = new Elysia({ prefix: '/leaves' })
           }
 
           // Send notifications & push tokens
-          for (const targetUid of recipientUserIds) {
-            // Write notification to persistent database schema
-            await db.insert(schema.notifications).values({
-              tenantId: tenantId as string,
-              userId: targetUid,
-              title,
-              content,
-              type: 'push',
-              isRead: false,
-              createdAt: new Date(),
-            });
-            await invalidateUnreadCount(targetUid);
-
-            // Fetch device FCM tokens
-            const tokensRows = await db.query.notificationTokens.findMany({
-              where: eq(schema.notificationTokens.userId, targetUid),
-              columns: { token: true }
-            });
-            const tokens = tokensRows.map(t => t.token);
-            
-            if (tokens.length > 0) {
-              const { sendPushNotification } = require('../lib/firebase-admin');
-              
-              // Resolve dynamic redirection link paths
-              const userTenant = await db.query.tenants.findFirst({
-                where: eq(schema.tenants.id, tenantId as string),
-                columns: { slug: true }
-              });
-              const linkPath = `/${userTenant?.slug || tenantId}/leaves`;
-
-              await sendPushNotification(
-                tokens,
-                title,
-                content,
-                {
-                  type: 'leave_status',
-                  leaveId: leave.id,
-                  status,
-                  link: linkPath,
-                }
-              ).catch((fcmErr: any) => console.error(`FCM failed for user ${targetUid}:`, fcmErr));
-            }
-          }
+          await fanOutLeaveNotification({
+            tenantId: tenantId as string,
+            recipientUserIds,
+            title,
+            content,
+            data: {
+              type: 'leave_status',
+              leaveId: leave.id,
+              status,
+            },
+          });
         } catch (notifyError) {
           console.error("FCM/Notification execution failed for leave update:", notifyError);
         }

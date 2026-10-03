@@ -1,8 +1,8 @@
 /**
  * The academic year is the partition key for a student's records, so a write
  * that guesses it is worse than a write that fails. `students.academicYear`
- * defaults to the literal `'2024-2025'` in the schema, which no school
- * necessarily owns — hence an explicit fallback to the tenant's current year.
+ * has no column default: this guard is the only way a student row gets its
+ * year, and it refuses anything the tenant doesn't own.
  */
 export function academicYearIsKnown(
   requested: string | undefined,

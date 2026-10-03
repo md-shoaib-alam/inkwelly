@@ -368,13 +368,6 @@ export const tenantsRoutes = new Elysia({ prefix: "/tenants" })
         orderBy: [desc(schema.tenants.createdAt)],
         limit,
         offset,
-        with: {
-          users: { columns: { id: true } },
-          classes: { columns: { id: true } },
-          notices: { columns: { id: true } },
-          events: { columns: { id: true } },
-          subscriptions: { columns: { id: true } },
-        }
       });
 
       const baseConditions = [];
@@ -417,7 +410,7 @@ export const tenantsRoutes = new Elysia({ prefix: "/tenants" })
       // Step 2: Efficient Aggregated Statistics (N + 1 fix)
       let enrichedTenants: any[] = [];
       if (tenantIds.length > 0) {
-        const [userRoleCounts, activeSubStats] = await Promise.all([
+        const [userRoleCounts, activeSubStats, classCounts, noticeCounts, eventCounts, subCounts] = await Promise.all([
           db.select({
             tenantId: schema.users.tenantId,
             role: schema.users.role,
@@ -434,7 +427,21 @@ export const tenantsRoutes = new Elysia({ prefix: "/tenants" })
           .from(schema.subscriptions)
           .where(and(inArray(schema.subscriptions.tenantId, tenantIds), eq(schema.subscriptions.status, "active")))
           .groupBy(schema.subscriptions.tenantId),
+          db.select({ tenantId: schema.classes.tenantId, count: count(schema.classes.id) })
+            .from(schema.classes).where(inArray(schema.classes.tenantId, tenantIds)).groupBy(schema.classes.tenantId),
+          db.select({ tenantId: schema.notices.tenantId, count: count(schema.notices.id) })
+            .from(schema.notices).where(inArray(schema.notices.tenantId, tenantIds)).groupBy(schema.notices.tenantId),
+          db.select({ tenantId: schema.events.tenantId, count: count(schema.events.id) })
+            .from(schema.events).where(inArray(schema.events.tenantId, tenantIds)).groupBy(schema.events.tenantId),
+          db.select({ tenantId: schema.subscriptions.tenantId, count: count(schema.subscriptions.id) })
+            .from(schema.subscriptions).where(inArray(schema.subscriptions.tenantId, tenantIds)).groupBy(schema.subscriptions.tenantId),
         ]);
+        const countByTenant = (rows: { tenantId: string; count: number }[]) =>
+          new Map(rows.map((r) => [r.tenantId, Number(r.count)]));
+        const classMap = countByTenant(classCounts);
+        const noticeMap = countByTenant(noticeCounts);
+        const eventMap = countByTenant(eventCounts);
+        const subMap = countByTenant(subCounts);
 
         enrichedTenants = tenantsList.map((tenant) => {
           const tId = tenant.id;
@@ -444,11 +451,11 @@ export const tenantsRoutes = new Elysia({ prefix: "/tenants" })
           return {
             ...tenant,
             _count: {
-              users: tenant.users.length,
-              classes: tenant.classes.length,
-              notices: tenant.notices.length,
-              events: tenant.events.length,
-              subscriptions: tenant.subscriptions.length,
+              users: tRoleCounts.reduce((s: number, c: any) => s + Number(c.count), 0),
+              classes: classMap.get(tId) || 0,
+              notices: noticeMap.get(tId) || 0,
+              events: eventMap.get(tId) || 0,
+              subscriptions: subMap.get(tId) || 0,
             },
             studentCount: Number(tRoleCounts.find((c: any) => c.role === "student")?.count || 0),
             teacherCount: Number(tRoleCounts.find((c: any) => c.role === "teacher")?.count || 0),

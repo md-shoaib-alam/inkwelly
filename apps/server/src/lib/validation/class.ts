@@ -121,6 +121,7 @@ const triState = z
 
 export const ClassListQuerySchema = z.object({
   classLevel: z.string().trim().min(1).optional(),
+  academicYear: z.string().trim().min(1).optional(),
   section: z.string().trim().min(1).optional(),
   medium: z.string().trim().min(1).optional(),
   vocational: triState.optional(),

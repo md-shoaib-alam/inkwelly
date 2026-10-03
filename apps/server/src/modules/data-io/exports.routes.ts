@@ -10,6 +10,7 @@ import * as XLSX from 'xlsx';
 import { formatDate } from '../../lib/date-utils';
 import { resolveTenantId } from '../../lib/resolve-tenant';
 import { dataCache } from '../../lib/cache';
+import { academicYearForNewRow } from '../../lib/dashboardCache';
 import { deriveClassName } from '../../lib/validation/class';
 
 
@@ -376,6 +377,13 @@ export const importRoute = new Elysia({ prefix: '/import' })
       const errors: string[] = [];
 
       if (dataType === 'students') {
+        // Imported students and auto-created classes must land in a session the
+        // school owns; there is no invented fallback year any more.
+        const importYear = await academicYearForNewRow(targetTenantId);
+        if (!importYear) {
+          set.status = 400;
+          return { error: 'The school has no current academic session — create one before importing students' };
+        }
         const hashedPassword = await hashPassword('changeme123');
         
         // 1. Pre-fetch classes and transport routes for fast mapping
@@ -503,6 +511,7 @@ export const importRoute = new Elysia({ prefix: '/import' })
                 name: c.name,
                 section: c.section,
                 classLevel: c.classLevel,
+                academicYear: importYear,
                 capacity: 40
               }))
             ).returning();
@@ -709,6 +718,7 @@ export const importRoute = new Elysia({ prefix: '/import' })
                   userId,
                   rollNumber: v.rollNumber,
                   classId: v.classId,
+                  academicYear: importYear,
                   gender: v.gender,
                   dateOfBirth: formattedDob,
                   bloodGroup: v.bloodGroup,

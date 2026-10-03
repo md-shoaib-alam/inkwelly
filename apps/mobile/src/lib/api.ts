@@ -466,11 +466,21 @@ export async function getChallengeRequest(challengeId: string): Promise<Challeng
   return body.request;
 }
 
+/**
+ * Same lookup for the camera-free path, where the phone holds only the six characters.
+ * Admin-only on the server: a typed code is guessable, so this never goes through the
+ * public poll route that accepts the 24-char id.
+ */
+export async function getChallengeRequestByCode(code: string): Promise<{ challengeId: string; request: ChallengeRequestInfo }> {
+  const body = await api.get<{ status: string; challengeId?: string; request?: ChallengeRequestInfo }>(
+    `/auth/login-challenge/by-code/${encodeURIComponent(code)}`,
+  );
+  if (!body.request || !body.challengeId) throw new Error('That code is no longer valid.');
+  return { challengeId: body.challengeId, request: body.request };
+}
+
 export const approveChallengeById = (challengeId: string, code: string) =>
   api.post<ChallengeApproval>(`/auth/login-challenge/${encodeURIComponent(challengeId)}/approve`, { code });
-
-export const approveChallengeByCode = (code: string) =>
-  api.post<ChallengeApproval>('/auth/login-challenge/approve', { code });
 
 /** Turns the server's 410/400/403 shapes into what the admin should read. */
 export function approvalErrorMessage(err: unknown): string {

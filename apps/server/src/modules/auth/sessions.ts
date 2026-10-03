@@ -73,7 +73,7 @@ async function listSessions(userId: string, currentFamily?: string): Promise<Ses
         lastSeenAt: iso(row.last_seen_at ?? row.signed_in_at),
         expiresAt: iso(row.expires_at),
         isShared: Boolean(row.is_shared),
-        current: Boolean(currentFamily) && row.family === currentFamily,
+        current: row.family === currentFamily,
         known: true,
       };
     }),
@@ -119,7 +119,7 @@ export const sessionsRoutes = new Elysia()
   }, { params: t.Object({ ref: t.String({ minLength: 1, maxLength: 64 }) }) })
 
   .post('/sessions/revoke-all', async ({ user }) => {
-    const current = (user as { sid?: string }).sid;
+    const current = user.sid;
     if (!current) {
       // A token without an sid claim can't name this device, so nothing can be spared:
       // this deletes every row AND bumps users.updatedAt, which is why it is immediate —

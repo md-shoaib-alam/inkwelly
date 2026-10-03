@@ -122,7 +122,7 @@ export const promotionsRoutes = new Elysia({ prefix: '/promotions' })
               type: 'graduation',
               status: 'graduated',
             }))
-          ).returning();
+          ).returning({ id: schema.promotions.id });
 
           await tx.update(schema.students)
             .set({ status: 'graduated' })
@@ -138,25 +138,31 @@ export const promotionsRoutes = new Elysia({ prefix: '/promotions' })
       if (payload.bulk) {
         const { fromClassId, toClassId, academicYear, remarks } = payload;
 
+        // A class is a tenant-owned resource: prove the class is the caller's,
+        // and every student inside it is too — no cross-tenant fetch-and-filter.
+        const fromCls = await db.query.classes.findFirst({
+          where: and(eq(schema.classes.id, fromClassId), eq(schema.classes.tenantId, tenantId!)),
+          columns: { id: true },
+        });
+        if (!fromCls) {
+          set.status = 403;
+          return { error: 'Invalid class ID or access denied' };
+        }
+
         const students = await db.query.students.findMany({
           where: and(
             eq(schema.students.classId, fromClassId),
             eq(schema.students.status, 'active'),
             isNull(schema.students.deletedAt)
           ),
-          with: {
-            class: { columns: { tenantId: true } }
-          }
+          columns: { id: true }
         });
 
-        // Filter by tenantId (since classId doesn't guarantee tenantId in simple where)
-        const tenantStudents = students.filter(s => s.class.tenantId === tenantId);
-
-        if (tenantStudents.length === 0) {
+        if (students.length === 0) {
           return { created: 0, total: 0 };
         }
 
-        const studentIds = tenantStudents.map(s => s.id);
+        const studentIds = students.map(s => s.id);
 
         const results = await db.transaction(async (tx) => {
           const promoResults = await tx.insert(schema.promotions).values(
@@ -170,7 +176,7 @@ export const promotionsRoutes = new Elysia({ prefix: '/promotions' })
               type: 'promotion',
               status: 'approved',
             }))
-          ).returning();
+          ).returning({ id: schema.promotions.id });
 
           await tx.update(schema.students)
             .set({ classId: toClassId, academicYear })
@@ -179,7 +185,7 @@ export const promotionsRoutes = new Elysia({ prefix: '/promotions' })
           return promoResults;
         });
 
-        return { created: results.length, total: tenantStudents.length };
+        return { created: results.length, total: students.length };
       }
 
       // Individual Promotion Request

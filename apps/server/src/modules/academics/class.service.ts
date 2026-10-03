@@ -22,6 +22,7 @@ export interface ClassRow {
   slug: string | null;
   section: string;
   classLevel: string;
+  academicYear: string;
   medium: string;
   isVocational: boolean;
   isActive: boolean;
@@ -97,6 +98,7 @@ export function buildClassFilters(
   const clauses: SQL[] = [eq(schema.classes.tenantId, tenantId)];
 
   if (filters.classLevel) clauses.push(eq(schema.classes.classLevel, filters.classLevel));
+  if (filters.academicYear) clauses.push(eq(schema.classes.academicYear, filters.academicYear));
   if (filters.section) clauses.push(eq(schema.classes.section, filters.section));
   if (filters.medium) clauses.push(eq(schema.classes.medium, filters.medium));
   if (typeof filters.vocational === 'boolean') clauses.push(eq(schema.classes.isVocational, filters.vocational));
@@ -129,7 +131,7 @@ export function buildClassFilters(
 export function classCacheKey(params: ClassListParams, teacherScope: string): string {
   const f = params;
   const parts = [
-    f.classLevel ?? '', f.section ?? '', f.medium ?? '',
+    f.classLevel ?? '', f.academicYear ?? '', f.section ?? '', f.medium ?? '',
     f.vocational === undefined ? '' : String(f.vocational),
     f.status ?? '', f.search ?? '',
     f.sortBy ?? 'name', f.sortDir ?? 'asc',
@@ -212,6 +214,7 @@ export const ClassService = {
             slug: schema.classes.slug,
             section: schema.classes.section,
             classLevel: schema.classes.classLevel,
+            academicYear: schema.classes.academicYear,
             medium: schema.classes.medium,
             isVocational: schema.classes.isVocational,
             isActive: schema.classes.isActive,
@@ -260,6 +263,7 @@ export const ClassService = {
         slug: c.slug,
         section: c.section,
         classLevel: c.classLevel,
+        academicYear: c.academicYear,
         medium: c.medium,
         isVocational: c.isVocational,
         isActive: c.isActive,

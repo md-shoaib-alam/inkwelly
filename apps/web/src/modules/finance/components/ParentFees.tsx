@@ -49,15 +49,12 @@ export function ParentFees() {
     async function fetchFees() {
       if (students.length === 0) return;
       try {
-        const studentIds = students.map((s: StudentInfo) => s.id);
-        const promises = studentIds.map((id) => apiFetch(`/api/fees?studentId=${id}`));
-        const responses = await Promise.all(promises);
-        const results = await Promise.all(responses.map(async (r) => {
-          if (!r.ok) return [];
-          const data = await r.json();
-          return Array.isArray(data) ? data : (data.items || []);
-        }));
-        setAllChildrenFees(results.flat() as FeeRecord[]);
+        // GET /api/fees is already scoped to this parent's children server-side,
+        // so one request replaces one-per-child fan-out.
+        const res = await apiFetch(`/api/fees?limit=1000`);
+        const data = res.ok ? await res.json() : [];
+        const fees = Array.isArray(data) ? data : (data.items || []);
+        setAllChildrenFees(fees as FeeRecord[]);
       } catch (e) {
         console.error("Failed to fetch data:", e);
       }

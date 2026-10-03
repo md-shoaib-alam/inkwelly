@@ -6,6 +6,7 @@ import { requireAuth } from '../../lib/auth';
 import { dataCache } from '../../lib/cache';
 import { formatDate } from '../../lib/date-utils';
 import { invalidateFeeCaches } from '../../lib/fees-cache';
+import { academicYearForNewRow } from '../../lib/dashboardCache';
 import {
   CreateTransportAssignmentSchema,
   formatZodError,
@@ -187,20 +188,24 @@ export const transportRoutes = new Elysia()
         }
         const { studentId, routeId, startDate, pickupPoint, newPickupPointFee } = parsed.data;
 
-        // 🛡️ SECURITY: Verify student belongs to tenant
-        const student = await db.query.students.findFirst({
-          where: eq(schema.students.id, studentId),
-          with: { user: { columns: { tenantId: true } } },
-        });
+        // 🛡️ SECURITY: three independent tenant-scoped reads, fetched together
+        const [student, route, existingCategory] = await Promise.all([
+          db.query.students.findFirst({
+            where: eq(schema.students.id, studentId),
+            with: { user: { columns: { tenantId: true } } },
+          }),
+          db.query.transportRoutes.findFirst({
+            where: and(eq(schema.transportRoutes.id, routeId), eq(schema.transportRoutes.tenantId, tenantId!)),
+          }),
+          db.query.feeCategories.findFirst({
+            where: and(eq(schema.feeCategories.tenantId, tenantId!), eq(schema.feeCategories.code, 'TRANSPORT')),
+          }),
+        ]);
+
         if (!student || student.user.tenantId !== tenantId) {
           set.status = 403;
           return { error: 'Access denied: student does not belong to your school' };
         }
-
-        // 🛡️ SECURITY: Verify transport route belongs to tenant
-        const route = await db.query.transportRoutes.findFirst({
-          where: and(eq(schema.transportRoutes.id, routeId), eq(schema.transportRoutes.tenantId, tenantId!)),
-        });
         if (!route) {
           set.status = 403;
           return { error: 'Access denied: route not found' };
@@ -226,10 +231,8 @@ export const transportRoutes = new Elysia()
           }
         }
 
-        // Automatically fetch or create TRANSPORT category
-        let category = await db.query.feeCategories.findFirst({
-          where: and(eq(schema.feeCategories.tenantId, tenantId!), eq(schema.feeCategories.code, 'TRANSPORT')),
-        });
+        // Automatically fetch or create TRANSPORT category (prefetched above)
+        let category = existingCategory;
 
         if (!category) {
           const [newCat] = await db.insert(schema.feeCategories).values({
@@ -289,6 +292,7 @@ export const transportRoutes = new Elysia()
             tenantId: tenantId!,
             studentId,
             feeCategoryId: category.id,
+            academicYear: student.academicYear,
             amount: targetFee,
             type: typeStr,
             dueDate: startDate || formatDate(),

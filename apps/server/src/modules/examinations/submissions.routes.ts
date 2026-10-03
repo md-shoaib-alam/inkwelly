@@ -131,7 +131,8 @@ export const submissionsRoutes = new Elysia({ prefix: '/submissions' })
         assignmentId: data.assignmentId, studentId: data.studentId, 
         content: data.content || null, status: data.status || 'submitted',
         grade: data.grade || null,
-        feedback: data.feedback || null
+        feedback: data.feedback || null,
+        academicYear: assignment.academicYear
       }).returning();
 
       if (!submission) throw new Error('Failed to create submission');
@@ -177,18 +178,22 @@ export const submissionsRoutes = new Elysia({ prefix: '/submissions' })
         }
       }
 
-      // 🛡️ SECURITY: Validate all target assignments belong to tenant
+      // 🛡️ SECURITY: Validate all target assignments belong to tenant, and keep
+      // their academic year so new submission rows can be stamped with it.
+      const assignmentYears = new Map<string, string>();
       if (assignmentIdsToCheck.size > 0) {
-        const validAssignments = await db.select({ count: count() })
+        const validAssignments = await db
+          .select({ id: schema.assignments.id, academicYear: schema.assignments.academicYear })
           .from(schema.assignments)
           .where(and(
             inArray(schema.assignments.id, Array.from(assignmentIdsToCheck)),
             eq(schema.assignments.tenantId, tenantId!)
           ));
-        if ((validAssignments[0]?.count || 0) !== assignmentIdsToCheck.size) {
+        if (validAssignments.length !== assignmentIdsToCheck.size) {
           set.status = 403;
           return { success: false, message: 'Access denied: one or more assignments do not belong to your school' };
         }
+        for (const row of validAssignments) assignmentYears.set(row.id, row.academicYear);
       }
 
       // 🛡️ SECURITY: Validate all target students belong to tenant
@@ -207,36 +212,43 @@ export const submissionsRoutes = new Elysia({ prefix: '/submissions' })
         }
       }
 
+      const inserts: any[] = [];
+      const deleteIds: string[] = [];
+      const rowUpdates: any[] = [];
+      for (const u of updates) {
+        if (!u.id) continue;
+        if (u.id.startsWith('not_sub_')) {
+          if (u.status === 'not_submitted') continue;
+          const assignmentId = data.assignmentId || u.assignmentId;
+          if (!assignmentId) continue;
+          inserts.push({
+            tenantId: tenantId!,
+            assignmentId,
+            studentId: u.id.replace('not_sub_', ''),
+            content: null,
+            status: u.status || 'submitted',
+            grade: u.grade || null,
+            feedback: u.feedback || null,
+            academicYear: assignmentYears.get(assignmentId)!
+          });
+        } else if (u.status === 'not_submitted') {
+          deleteIds.push(u.id);
+        } else {
+          rowUpdates.push(u);
+        }
+      }
+
       await db.transaction(async (tx) => {
-        for (const u of updates) {
-          if (!u.id) continue;
-
-          if (u.id.startsWith('not_sub_')) {
-            if (u.status === 'not_submitted') continue;
-            const assignmentId = data.assignmentId || u.assignmentId;
-            if (!assignmentId) continue;
-            const studentId = u.id.replace('not_sub_', '');
-            await tx.insert(schema.submissions).values({
-              tenantId: tenantId!,
-              assignmentId: assignmentId,
-              studentId: studentId,
-              content: null,
-              status: u.status || 'submitted',
-              grade: u.grade || null,
-              feedback: u.feedback || null
-            });
-            continue;
-          }
-
-          if (u.status === 'not_submitted') {
-            await tx.delete(schema.submissions)
-              .where(and(
-                eq(schema.submissions.id, u.id),
-                eq(schema.submissions.tenantId, tenantId!)
-              ));
-            continue;
-          }
-
+        if (inserts.length > 0) await tx.insert(schema.submissions).values(inserts);
+        if (deleteIds.length > 0) {
+          await tx.delete(schema.submissions)
+            .where(and(
+              inArray(schema.submissions.id, deleteIds),
+              eq(schema.submissions.tenantId, tenantId!)
+            ));
+        }
+        // Per-row updates stay per-row: each sets a different subset of columns
+        for (const u of rowUpdates) {
           const updateData: any = {};
           if (u.grade !== undefined) updateData.grade = u.grade;
           if (u.status !== undefined) updateData.status = u.status;
@@ -271,7 +283,7 @@ export const submissionsRoutes = new Elysia({ prefix: '/submissions' })
         // 🛡️ SECURITY: Verify assignment belongs to tenant
         const assignment = await db.query.assignments.findFirst({
           where: and(eq(schema.assignments.id, assignmentId), eq(schema.assignments.tenantId, tenantId!)),
-          columns: { id: true }
+          columns: { id: true, academicYear: true }
         });
         if (!assignment) {
           set.status = 403;
@@ -295,7 +307,8 @@ export const submissionsRoutes = new Elysia({ prefix: '/submissions' })
           content: null,
           status: data.status || 'graded',
           grade: data.grade || null,
-          feedback: data.feedback || null
+          feedback: data.feedback || null,
+          academicYear: assignment.academicYear
         }).returning();
         if (!submission) throw new Error('Failed to insert submission');
         return { success: true, data: { id: submission.id, assignmentId: submission.assignmentId, studentId: submission.studentId, content: submission.content, status: submission.status, submittedAt: submission.submittedAt, grade: submission.grade, feedback: submission.feedback } };

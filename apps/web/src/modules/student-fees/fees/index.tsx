@@ -7,7 +7,9 @@ import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Dynamic loading for "Low Stack" performance optimization
+const FeeDashboardTab = dynamic(() => import('./adminFees/FeeDashboardTab').then(m => m.FeeDashboardTab), {
+  loading: () => <TabLoadingSkeleton />
+});
 const SetFeesTab = dynamic(() => import('./adminFees/SetFeesTab').then(m => m.SetFeesTab), {
   loading: () => <TabLoadingSkeleton />
 });
@@ -54,17 +56,18 @@ export function AdminFees() {
   const { screen } = useParams();
   
   // Sync tab with URL screen or internal store state
-  let activeTab = 'set-fees';
+  let activeTab = 'categories';
   
   if (screen === 'fee-categories') activeTab = 'categories';
+  else if (screen === 'set-fees') activeTab = 'set-fees';
   else if (screen === 'fee-concessions') activeTab = 'concessions';
   else if (screen === 'make-payment') activeTab = 'payment';
   else if (screen === 'check-receipt') activeTab = 'receipts';
   else if (screen === 'fee-status') activeTab = 'status';
   else if (screen === 'check-payments') activeTab = 'check-payments';
   else if (screen === 'transport-fee') activeTab = 'transport-fee';
-  else if (screen === 'fees') activeTab = 'set-fees';
-  else activeTab = currentSubScreen || 'set-fees';
+  else if (screen === 'fees') activeTab = 'dashboard';
+  else activeTab = currentSubScreen || 'categories';
 
   return (
     <div className="space-y-6">
@@ -80,6 +83,9 @@ export function AdminFees() {
 
       {/* Render active tab content - sidebar handles navigation */}
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+        {activeTab === 'dashboard' && (
+          <FeeDashboardTab canCreate={canCreate} canEdit={canEdit} canDelete={canDelete} />
+        )}
         {activeTab === 'set-fees' && (
           <SetFeesTab canCreate={canCreate} canEdit={canEdit} canDelete={canDelete} />
         )}

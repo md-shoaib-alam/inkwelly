@@ -103,7 +103,7 @@ export const students = pgTable('Student', {
   rollNumber: text('rollNumber').notNull(),
   classId: text('classId').notNull(),
   parentId: text('parentId'),
-  academicYear: text('academicYear').default('2024-2025').notNull(),
+  academicYear: text('academicYear').notNull(),
   dateOfBirth: text('dateOfBirth'),
   gender: text('gender').default('male').notNull(),
   bloodGroup: text('bloodGroup'),
@@ -189,6 +189,21 @@ export const parents = pgTable('Parent', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   userId: text('userId').notNull().unique(),
   occupation: text('occupation'),
+  fatherTitle: text('fatherTitle'),
+  fatherFirstName: text('fatherFirstName'),
+  fatherMiddleName: text('fatherMiddleName'),
+  fatherLastName: text('fatherLastName'),
+  fatherMobile: text('fatherMobile'),
+  fatherEducation: text('fatherEducation'),
+  fatherWorkAddress: text('fatherWorkAddress'),
+  motherTitle: text('motherTitle'),
+  motherFirstName: text('motherFirstName'),
+  motherMiddleName: text('motherMiddleName'),
+  motherLastName: text('motherLastName'),
+  motherMobile: text('motherMobile'),
+  motherEducation: text('motherEducation'),
+  motherWorkAddress: text('motherWorkAddress'),
+  motherOccupation: text('motherOccupation'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });
@@ -223,6 +238,9 @@ export const classes = pgTable('Class', {
   isVocational: boolean('isVocational').default(false).notNull(),
   isActive: boolean('isActive').default(true).notNull(),
   capacity: integer('capacity').default(40).notNull(),
+  // No column default: a class is only created after its school has an academic
+  // session, and every write path stamps that session explicitly.
+  academicYear: text('academicYear').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 }, (table) => ({
@@ -231,7 +249,11 @@ export const classes = pgTable('Class', {
   mediumIdx: index('Class_medium_idx').on(table.medium),
   activeIdx: index('Class_isActive_idx').on(table.isActive),
   tenantClassLevelIdx: index('Class_tenantId_classLevel_idx').on(table.tenantId, table.classLevel),
-  tenantNameSectionUnique: uniqueIndex('Class_tenantId_name_section_unique').on(table.tenantId, table.name, table.section),
+  tenantYearIdx: index('Class_tenantId_academicYear_idx').on(table.tenantId, table.academicYear),
+  // The year is in the uniqueness so next session's "Class 10 - A" is a new row,
+  // not a collision. slug stays unique per tenant ACROSS years on purpose: URLs
+  // carry no year segment, so one slug must never resolve to two classes.
+  tenantNameSectionUnique: uniqueIndex('Class_tenantId_name_section_academicYear_unique').on(table.tenantId, table.name, table.section, table.academicYear),
   tenantSlugUnique: uniqueIndex('Class_tenantId_slug_unique').on(table.tenantId, table.slug),
 }));
 
@@ -358,6 +380,9 @@ export const assignments = pgTable('Assignment', {
   statusIdx: index('Assignment_status_idx').on(table.status),
   modeIdx: index('Assignment_mode_idx').on(table.mode),
   tenantYearIdx: index('Assignment_tenantId_academicYear_idx').on(table.tenantId, table.academicYear),
+  // GET /homework always filters tenantId + status and sorts createdAt DESC —
+  // this composite lets the list read the index in order instead of a heap sort.
+  listIdx: index('Assignment_tenantId_status_createdAt_idx').on(table.tenantId, table.status, table.createdAt),
 }));
 
 export const submissions = pgTable('Submission', {
@@ -460,6 +485,7 @@ export const feeConcessions = pgTable('FeeConcession', {
   tenantIdIdx: index('FeeConcession_tenantId_idx').on(table.tenantId),
   studentIdIdx: index('FeeConcession_studentId_idx').on(table.studentId),
   feeCategoryIdIdx: index('FeeConcession_feeCategoryId_idx').on(table.feeCategoryId),
+  tenantCreatedAtIdx: index('FeeConcession_tenantId_createdAt_idx').on(table.tenantId, table.createdAt),
 }));
 
 export const feeReceipts = pgTable('FeeReceipt', {
@@ -560,6 +586,9 @@ export const notifications = pgTable('Notification', {
   createdAt: timestamp('createdAt').defaultNow().notNull(),
 }, (table) => ({
   userIdIdx: index('Notification_userId_idx').on(table.userId),
+  // The unread-count query runs on every page load; the partial index keeps it
+  // small on a table that only grows.
+  unreadPerUserIdx: index('Notification_userId_unread_idx').on(table.userId).where(sql`${table.isRead} = false`),
   tenantIdIdx: index('Notification_tenantId_idx').on(table.tenantId),
   createdAtIdx: index('Notification_createdAt_idx').on(table.createdAt),
 }));
@@ -637,6 +666,9 @@ export const subscriptions = pgTable('Subscription', {
   statusIdx: index('Subscription_status_idx').on(table.status),
   planIdIdx: index('Subscription_planId_idx').on(table.planId),
   createdAtIdx: index('Subscription_createdAt_idx').on(table.createdAt),
+  // Payment webhooks look the subscription up by transactionId on every callback;
+  // without this the whole table is scanned per event.
+  transactionIdIdx: index('Subscription_transactionId_idx').on(table.transactionId),
   tenantStatusPlanIdx: index('Subscription_tenantId_status_planName_idx').on(table.tenantId, table.status, table.planName),
 }));
 
@@ -852,7 +884,7 @@ export const exams = pgTable('Exam', {
   subjectId: text('subjectId').notNull(),
   name: text('name').notNull(),
   examType: text('examType').notNull(),
-  academicYear: text('academicYear').default('2024-2025').notNull(),
+  academicYear: text('academicYear').notNull(),
   date: text('date').notNull(),
   startTime: text('startTime'),
   endTime: text('endTime'),
@@ -867,6 +899,9 @@ export const exams = pgTable('Exam', {
   subjectIdIdx: index('Exam_subjectId_idx').on(table.subjectId),
   statusIdx: index('Exam_status_idx').on(table.status),
   dateIdx: index('Exam_date_idx').on(table.date),
+  // Every exam list and the student/parent scope filter lead with tenant+class
+  // and then constrain the year; the three single indexes serve one apiece.
+  tenantClassYearIdx: index('Exam_tenantId_classId_academicYear_idx').on(table.tenantId, table.classId, table.academicYear),
 }));
 
 export const examResults = pgTable('ExamResult', {

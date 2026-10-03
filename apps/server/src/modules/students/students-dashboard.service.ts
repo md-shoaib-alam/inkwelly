@@ -352,6 +352,40 @@ export const StudentsDashboardService = {
     const windowStart = session?.startDate ?? null;
     const windowEnd = session?.endDate ?? today;
 
+    // These two counts share no input with the cohort fetch or each other, so all
+    // three run at once; each is awaited where its number is actually needed.
+    // `classId` is NOT NULL, so an orphan points at a class that has since been deleted.
+    // The join below cannot see those rows, which is why this needs its own count.
+    const orphanedQ = classIds.length
+      ? db
+          .select({ n: count() })
+          .from(schema.students)
+          .innerJoin(schema.users, eq(schema.students.userId, schema.users.id))
+          .where(
+            and(
+              eq(schema.users.tenantId, tenantId),
+              notInArray(schema.students.classId, classIds),
+              isNull(schema.students.deletedAt),
+            ),
+          )
+          .then((r) => Number(r[0]?.n ?? 0))
+      : Promise.resolve(0);
+    // A promotion is a fact only once it has run; a pending row is still a plan. With no
+    // session row there is no "this session" to count inside, so the tile says none.
+    const promotedQ = session
+      ? db
+          .select({ n: count() })
+          .from(schema.promotions)
+          .where(
+            and(
+              eq(schema.promotions.tenantId, tenantId),
+              eq(schema.promotions.academicYear, session.name),
+              eq(schema.promotions.status, 'completed'),
+            ),
+          )
+          .then((r) => Number(r[0]?.n ?? 0))
+      : Promise.resolve(0);
+
     const cohort = classIds.length
       ? ((
           await db
@@ -429,25 +463,7 @@ export const StudentsDashboardService = {
         : active.filter((r) =>
             youngerThanExpected({ grade: classById.get(r.classId)?.grade ?? null, dob: r.dateOfBirth, on: windowStart }),
           ).length;
-    // `classId` is NOT NULL, so an orphan points at a class that has since been deleted.
-    // The join above cannot see those rows, which is why this needs its own count.
-    const orphaned = classIds.length
-      ? Number(
-          (
-            await db
-              .select({ n: count() })
-              .from(schema.students)
-              .innerJoin(schema.users, eq(schema.students.userId, schema.users.id))
-              .where(
-                and(
-                  eq(schema.users.tenantId, tenantId),
-                  notInArray(schema.students.classId, classIds),
-                  isNull(schema.students.deletedAt),
-                ),
-              )
-          )[0]?.n ?? 0,
-        )
-      : 0;
+    const orphaned = await orphanedQ;
 
     const candidates: (StudentAlert | false)[] = [
       orphaned > 0 && {
@@ -560,24 +576,7 @@ export const StudentsDashboardService = {
       })
       .filter((row, i) => i < AGE_BANDS.length || row.boys + row.girls > 0);
 
-    // A promotion is a fact only once it has run; a pending row is still a plan. With no
-    // session row there is no "this session" to count inside, so the tile says none.
-    const promoted = session
-      ? Number(
-          (
-            await db
-              .select({ n: count() })
-              .from(schema.promotions)
-              .where(
-                and(
-                  eq(schema.promotions.tenantId, tenantId),
-                  eq(schema.promotions.academicYear, session.name),
-                  eq(schema.promotions.status, 'completed'),
-                ),
-              )
-          )[0]?.n ?? 0,
-        )
-      : 0;
+    const promoted = await promotedQ;
 
     // --- Trends: the session the school is running, or a trailing year with no session. ---
     const months = trendMonths(today, monthSpan(windowStart, today));

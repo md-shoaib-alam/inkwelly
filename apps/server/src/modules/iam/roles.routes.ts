@@ -13,11 +13,17 @@ export const rolesRoutes = new Elysia({ prefix: '/roles' })
     try {
       if (!tenantId) { set.status = 403; return { error: 'Tenant context required' }; }
 
-      const roles = await db.query.customRoles.findMany({
-        where: eq(schema.customRoles.tenantId, tenantId),
-        with: { users: { columns: { id: true } } },
-        orderBy: [desc(schema.customRoles.createdAt)],
-      });
+      const [roles, holderCounts] = await Promise.all([
+        db.query.customRoles.findMany({
+          where: eq(schema.customRoles.tenantId, tenantId),
+          orderBy: [desc(schema.customRoles.createdAt)],
+        }),
+        db.select({ roleId: schema.users.customRoleId, count: count() })
+          .from(schema.users)
+          .where(eq(schema.users.tenantId, tenantId))
+          .groupBy(schema.users.customRoleId),
+      ]);
+      const holdersById = new Map(holderCounts.map((h) => [h.roleId, Number(h.count)]));
 
       return roles.map(r => {
         let perms = {};
@@ -30,7 +36,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles' })
         return {
           ...r,
           permissions: perms,
-          userCount: r.users.length,
+          userCount: holdersById.get(r.id) || 0,
         };
       });
     } catch (error) {

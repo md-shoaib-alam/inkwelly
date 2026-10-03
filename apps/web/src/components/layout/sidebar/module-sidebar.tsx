@@ -184,6 +184,7 @@ export function ModuleSidebar({
         collapsed={collapsed}
         onExpand={toggleCollapsed}
         onSelect={handleSelectModule}
+        onLogoClick={() => navigateTo('modules')}
       />
 
       {/* The wrapper stays mounted for every mode so the space the panel occupied

@@ -458,27 +458,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         )}
 
         {/* Main Content */}
-        <div className={cn(
-          "flex-1 flex flex-col min-w-0 overflow-hidden bg-background lg:transition-[border-radius] lg:duration-300",
-          useModuleSidebar && "lg:my-2 lg:h-[calc(100%-16px)]",
-          // The gap tracks the rail, which the URL does decide. The corners track the
-          // panel, which the URL decides a router transition too late: while it still
-          // said `modules` the panel was already open against a square left edge.
-          useModuleSidebar && (hideRailOnDesktop ? "lg:mx-2" : "lg:mr-2"),
-          useModuleSidebar && (panelMode !== "shown" ? "lg:rounded-[24px]" : "lg:rounded-r-[24px]")
-        )}>
-          {/* Top Header */}
-          <Header
-            items={items}
-            resolvedScreen={resolvedScreen}
-            layoutPref={layoutPref}
-            onPasswordChange={() => setIsChangePasswordOpen(true)}
-            sidebarPanelCollapsed={useModuleSidebar && !hideRailOnDesktop && panelMode === "hidden"}
-            onExpandSidebarPanel={() => window.dispatchEvent(new CustomEvent("inkwelly_module_sidebar_toggle"))}
-          />
-
-          {/* Page Content */}
-          <main data-lenis-scroll-container className="flex-1 overflow-y-auto p-4 lg:p-6 overscroll-contain">
+        {resolvedScreen === "modules" && isAdmin ? (
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#071f1b]">
             {isExpired && !isExemptFromLock ? (
               <SubscriptionExpiredScreen 
                 tenantName={resolvedTenant?.name || currentTenantName || "School"} 
@@ -490,8 +471,43 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             ) : (
               children
             )}
-          </main>
-        </div>
+          </div>
+        ) : (
+          <div className={cn(
+            "flex-1 flex flex-col min-w-0 overflow-hidden bg-background lg:transition-[border-radius] lg:duration-300",
+            useModuleSidebar && "lg:my-2 lg:h-[calc(100%-16px)]",
+            // The gap tracks the rail, which the URL does decide. The corners track the
+            // panel, which the URL decides a router transition too late: while it still
+            // said `modules` the panel was already open against a square left edge.
+            useModuleSidebar && (hideRailOnDesktop ? "lg:mx-2" : "lg:mr-2"),
+            useModuleSidebar && (panelMode !== "shown" ? "lg:rounded-[24px]" : "lg:rounded-r-[24px]")
+          )}>
+            {/* Top Header */}
+            <Header
+              items={items}
+              resolvedScreen={resolvedScreen}
+              layoutPref={layoutPref}
+              onPasswordChange={() => setIsChangePasswordOpen(true)}
+              sidebarPanelCollapsed={useModuleSidebar && !hideRailOnDesktop && panelMode === "hidden"}
+              onExpandSidebarPanel={() => window.dispatchEvent(new CustomEvent("inkwelly_module_sidebar_toggle"))}
+            />
+
+            {/* Page Content */}
+            <main data-lenis-scroll-container className="flex-1 overflow-y-auto p-4 lg:p-6 overscroll-contain">
+              {isExpired && !isExemptFromLock ? (
+                <SubscriptionExpiredScreen 
+                  tenantName={resolvedTenant?.name || currentTenantName || "School"} 
+                  tenantSlug={resolvedTenant?.slug || currentTenantSlug || ""}
+                  role={currentUser.role}
+                  endDate={resolvedTenant?.endDate}
+                  status={resolvedTenant?.status}
+                />
+              ) : (
+                children
+              )}
+            </main>
+          </div>
+        )}
 
         </div>
         <ChangePasswordModal

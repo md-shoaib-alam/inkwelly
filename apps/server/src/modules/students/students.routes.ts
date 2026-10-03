@@ -5,6 +5,7 @@ import { eq, and, or, sql, desc, count, ilike, inArray, isNull, isNotNull } from
 import { requireAuth } from '../../lib/auth';
 import { requirePermission } from '../../lib/permissions';
 import { dataCache } from '../../lib/cache';
+import { loadCachedYearRows } from '../../lib/dashboardCache';
 import { posthog, captureError } from '../../lib/monitoring/posthog';
 import { createAuditLog } from '../../lib/audit-helper';
 import Elysia, { t } from 'elysia';
@@ -100,6 +101,7 @@ type DbTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type TransportSyncInput = {
   tenantId: string;
   studentId: string;
+  academicYear: string;
   transportEnabled?: boolean;
   routeId?: string;
   pickupPoint?: string;
@@ -286,6 +288,7 @@ const enableStudentTransport = async (tx: DbTx, input: TransportSyncInput) => {
       tenantId,
       studentId,
       feeCategoryId: category.id,
+      academicYear: input.academicYear,
       amount: targetFee,
       type: feeType,
       dueDate: formatDate(),
@@ -373,12 +376,9 @@ const handleCreateStudent = async (body: any, tenantId: string, user: any, reque
     throw new StudentRouteError(400, 'INVALID_TRANSPORT_ROUTE', 'Route ID is required when transport is enabled');
   }
 
-  // Resolve the partition key before anything is written, so a student never
-  // lands under the schema's literal default year.
-  const ownedYears = await db.query.academicYears.findMany({
-    where: eq(schema.academicYears.tenantId, tenantId),
-    columns: { name: true, isCurrent: true },
-  });
+  // Resolve the partition key before anything is written. The cached helper is
+  // keyed by tenant, so a school that has just created its session sees it.
+  const ownedYears = await loadCachedYearRows(tenantId);
   let academicYear: string;
   try {
     academicYear = academicYearIsKnown(
@@ -450,6 +450,7 @@ const handleCreateStudent = async (body: any, tenantId: string, user: any, reque
     await syncStudentTransportAndFees(tx, {
       tenantId,
       studentId: student.id,
+      academicYear,
       transportEnabled: Boolean(data.transportEnabled),
       routeId: cleanRouteId,
       pickupPoint: cleanPickupPoint,
@@ -579,6 +580,7 @@ const handleUpdateStudent = async (body: any, tenantId: string, user: any, reque
     await syncStudentTransportAndFees(tx, {
       tenantId,
       studentId: data.id,
+      academicYear: student.academicYear,
       transportEnabled: data.transportEnabled,
       routeId: data.routeId,
       pickupPoint: data.pickupPoint,
@@ -824,15 +826,18 @@ const handleGetDeletedStudents = async (search: string | undefined, tenantId: st
     );
   }
 
-  const rows = await db.query.students.findMany({
-    where: and(...conditions),
-    with: {
-      user: { columns: { name: true, username: true, email: true, avatar: true } },
-      class: { columns: { name: true, section: true } },
-    },
-    orderBy: desc(schema.students.deletedAt),
-    limit: 500,
-  });
+  const [rows, [countRow]] = await Promise.all([
+    db.query.students.findMany({
+      where: and(...conditions),
+      with: {
+        user: { columns: { name: true, username: true, email: true, avatar: true } },
+        class: { columns: { name: true, section: true } },
+      },
+      orderBy: desc(schema.students.deletedAt),
+      limit: 500,
+    }),
+    db.select({ total: count() }).from(schema.students).where(and(...conditions)),
+  ]);
 
   return {
     items: rows.map((s: any) => ({
@@ -845,7 +850,7 @@ const handleGetDeletedStudents = async (search: string | undefined, tenantId: st
       deletedAt: s.deletedAt,
       deletionReason: s.deletionReason,
     })),
-    total: rows.length,
+    total: Number(countRow?.total ?? 0),
   };
 };
 

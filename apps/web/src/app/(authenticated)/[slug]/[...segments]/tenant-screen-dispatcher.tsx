@@ -37,6 +37,7 @@ const StudentDashboard = dynamic(() => import('@/modules/dashboard/components/St
 const ParentDashboard = dynamic(() => import('@/modules/dashboard/components/ParentDashboard').then(m => m.ParentDashboard), { loading: LoadingScreen });
 const StaffDashboard = dynamic(() => import('@/modules/dashboard/components/staffDashboard/index').then(m => m.StaffDashboard), { loading: LoadingScreen });
 const AdminDashboard = dynamic(() => import('@/modules/dashboard/components/adminDashboard/index').then(m => m.AdminDashboard), { loading: DashboardLoadingScreen });
+const DedicatedModulesScreen = dynamic(() => import('@/modules/dashboard/components/dedicatedModules/DedicatedModulesScreen').then(m => m.DedicatedModulesScreen), { loading: DashboardLoadingScreen });
 const SuperAdminDashboard = dynamic(() => import('@/modules/dashboard/components/SuperAdminDashboard').then(m => m.SuperAdminDashboard), { loading: LoadingScreen });
 const AdminStudents = dynamic(() => import('@/modules/students/students').then(m => m.AdminStudents), { loading: LoadingScreen });
 const AdminTeachers = dynamic(() => import('@/modules/employees/teachers').then(m => m.AdminTeachers), { loading: LoadingScreen });
@@ -47,6 +48,7 @@ const AdminAttendance = dynamic(() => import('@/modules/student-attendance/class
 const AdminAttendanceDashboard = dynamic(() => import('@/modules/student-attendance/attendance-dashboard').then(m => m.AdminAttendanceDashboard), { loading: LoadingScreen });
 const AdminAttendanceToday = dynamic(() => import('@/modules/student-attendance/today').then(m => m.AdminAttendanceToday), { loading: LoadingScreen });
 const AdminAttendancePastDays = dynamic(() => import('@/modules/student-attendance/past-days').then(m => m.AdminAttendancePastDays), { loading: LoadingScreen });
+const FeeDashboard = dynamic(() => import('@/modules/student-fees/dashboard').then(m => m.FeeDashboard), { loading: LoadingScreen });
 const AdminFees = dynamic(() => import('@/modules/student-fees/fees').then(m => m.AdminFees), { loading: LoadingScreen });
 const AdminNotices = dynamic(() => import('@/modules/communication/components/AdminNotices').then(m => m.AdminNotices), { loading: LoadingScreen });
 const AdminTimetable = dynamic(() => import('@/modules/academics/timetable').then(m => m.AdminTimetable), { loading: LoadingScreen });
@@ -374,7 +376,7 @@ export default function TenantScreenDispatcherClient() {
     switch (screenKey) {
       case 'modules': 
         if (currentUser.role === 'super_admin' && slug === 'tenants') return <SuperAdminDashboard />;
-        return currentUser.role === 'staff' ? <StaffDashboard /> : <AdminDashboard />;
+        return currentUser.role === 'staff' ? <StaffDashboard /> : <DedicatedModulesScreen />;
       // `list` is the admin roster's own key (`/students/list`); `students` stays the
       // bare root's key, which is also the staff tree's. Same screen, two spellings --
       // the shape `session` and `academic-years` already use in this switch.
@@ -403,6 +405,8 @@ export default function TenantScreenDispatcherClient() {
       case 'past-days': return <AdminAttendancePastDays />;
       case 'student-attendance-reports': return <AdminStudentAttendanceReports />;
       case 'fees':
+      case 'fee-dashboard':
+        return <FeeDashboard />;
       case 'fee-categories':
       case 'fee-concessions':
       case 'make-payment':

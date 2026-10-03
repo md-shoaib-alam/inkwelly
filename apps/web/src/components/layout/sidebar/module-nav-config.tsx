@@ -21,6 +21,7 @@ import {
   Crown,
   Heart,
   Layers,
+  FileSpreadsheet,
   Tag,
   Percent,
   Banknote,
@@ -659,6 +660,7 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
       items: [
         { key: "fees", label: "Dashboard", icon: <LayoutDashboard className={iconCls} /> },
         { key: "fee-categories", label: "Fee Profiles", icon: <Tag className={iconCls} /> },
+        { key: "fee-sheet", label: "Fee Sheet", icon: <FileSpreadsheet className={iconCls} />, badge: "NEW", disabled: true },
         { key: "classes", label: "Classes", icon: <School className={iconCls} />, permModule: "classes" },
       ],
     },
@@ -666,7 +668,7 @@ export const adminPanelSections: Record<string, ModuleNavSection[]> = {
       label: "Collection",
       items: [
         { key: "invoices", label: "Invoices", icon: <FileText className={iconCls} />, disabled: true },
-        { key: "late-fees", label: "Late fees", icon: <Clock className={iconCls} />, disabled: true },
+        { key: "late-fees", label: "Late fees", icon: <Clock className={iconCls} />, badge: "NEW", disabled: true },
         { key: "check-payments", label: "Payments", icon: <History className={iconCls} /> },
         { key: "make-payment", label: "Collect Payment", icon: <Banknote className={iconCls} /> },
         { key: "check-receipt", label: "Receipts", icon: <FileCheck className={iconCls} /> },

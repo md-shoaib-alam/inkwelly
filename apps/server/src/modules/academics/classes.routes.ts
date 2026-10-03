@@ -5,6 +5,7 @@ import { eq, and, or, sql, count, inArray } from 'drizzle-orm';
 import { requireAuth } from '../../lib/auth';
 import { requirePermission } from '../../lib/permissions';
 import { dataCache } from '../../lib/cache';
+import { academicYearForNewRow } from '../../lib/dashboardCache';
 import { posthog, captureError } from '../../lib/monitoring/posthog';
 import { ClassService } from './class.service';
 import {
@@ -91,21 +92,32 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
 
       const name = deriveClassName(data.classLevel);
 
+      // The class belongs to the session it's created in, so "Class 10 - A" can be
+      // re-created next session without colliding. Matches the widened unique index.
+      const academicYear = await academicYearForNewRow(tenantId!);
+      if (!academicYear) {
+        set.status = 400;
+        return { error: 'Create the academic session first — classes are filed under it' };
+      }
+
       const existing = await db.query.classes.findFirst({
         where: and(
           eq(schema.classes.tenantId, tenantId!),
           eq(schema.classes.name, name),
-          eq(schema.classes.section, data.section)
+          eq(schema.classes.section, data.section),
+          eq(schema.classes.academicYear, academicYear)
         )
       });
 
       if (existing) {
         set.status = 400;
-        return { error: `Class "${name} - ${data.section}" already exists for this school` };
+        return { error: `Class "${name} - ${data.section}" already exists for this school in ${academicYear}` };
       }
 
       // The name is derived and the slug is derived from the name: the server is
       // the only slug author, so a client cannot point a class at someone else's URL.
+      // Slugs stay unique across sessions on purpose (URLs carry no year segment),
+      // so takenSlugs deliberately does NOT filter by year.
       const taken = await takenSlugs(tenantId);
       const slug = resolveSlugCollision(buildClassSlug(name, data.section), taken);
 
@@ -118,6 +130,7 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
         isVocational: data.isVocational,
         isActive: data.isActive,
         capacity: data.capacity,
+        academicYear,
         tenantId: tenantId!
       }).returning();
 
@@ -184,6 +197,9 @@ export const classesRoutes = new Elysia({ prefix: '/classes' })
           eq(schema.classes.tenantId, tenantId!),
           eq(schema.classes.name, name),
           eq(schema.classes.section, section),
+          // An update never moves a class between sessions, so a same-named
+          // class in another year is not a clash. Mirrors the unique index.
+          eq(schema.classes.academicYear, cls.academicYear),
           sql`${schema.classes.id} != ${id}`
         )
       });

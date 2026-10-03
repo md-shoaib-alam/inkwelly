@@ -31,8 +31,12 @@ export function useTenantHref(): (tail: string) => string {
     currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
 
   return useCallback(
-    (tail: string) =>
-      academicYearUrl(slug, yearSlug, qualify ? qualifyAdminTail(tail, routeModule) : tail),
+    (tail: string) => {
+      if (tail === 'modules') {
+        return academicYearUrl(slug, null, 'modules');
+      }
+      return academicYearUrl(slug, yearSlug, qualify ? qualifyAdminTail(tail, routeModule) : tail);
+    },
     [slug, yearSlug, routeModule, qualify],
   );
 }

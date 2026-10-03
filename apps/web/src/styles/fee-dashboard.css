@@ -1,0 +1,60 @@
+/* ── Inkwelly Fee Dashboard Styles (.fd) ───────────────────────────── */
+
+.fd-hero {
+  background: #0B3D36;
+  padding: 34px 24px 38px;
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 36px -12px rgba(11, 61, 54, 0.4);
+}
+
+.fd-two {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+  align-items: stretch;
+  gap: 18px;
+  display: grid;
+}
+
+button.fd-head {
+  position: relative;
+  z-index: 1;
+  height: 32px;
+  white-space: nowrap;
+  border-radius: 9999px;
+  border: 0;
+  color: #06201C;
+  font-size: 12.5px;
+  padding: 0 16px;
+  font-family: var(--font-lexend), Lexend, "Avenir Next", "Segoe UI", sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button.fd-head[data-active="true"] {
+  background: #E5A93C;
+  color: #06201C;
+  box-shadow: 0 2px 8px -1px rgba(229, 169, 60, 0.4);
+}
+
+button.fd-head[data-active="false"] {
+  color: #475569;
+  background: transparent;
+}
+
+.dark button.fd-head[data-active="false"] {
+  color: #94a3b8;
+}
+
+button.fd-head[data-active="false"]:hover {
+  color: #0f172a;
+}
+
+.dark button.fd-head[data-active="false"]:hover {
+  color: #f8fafc;
+}

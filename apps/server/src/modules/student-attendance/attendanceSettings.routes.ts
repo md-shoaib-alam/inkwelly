@@ -3,6 +3,7 @@ import { eq, sql } from 'drizzle-orm';
 import { db } from '../../lib/db';
 import * as schema from '../../db/schema';
 import { requireAuth } from '../../lib/auth';
+import { invalidateTenantDashboardCache } from '../../lib/dashboardCache';
 import { requirePermission } from '../../lib/permissions';
 import { captureError } from '../../lib/monitoring/posthog';
 
@@ -109,6 +110,7 @@ export const attendanceSettingsRoutes = new Elysia({ prefix: '/attendance-settin
         return { error: 'Failed to save attendance settings' };
       }
 
+      await invalidateTenantDashboardCache(tenantId);
       return saved;
     } catch (error) {
       if (error instanceof Reject) {

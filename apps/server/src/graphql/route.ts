@@ -2,7 +2,7 @@ import { Elysia } from 'elysia';
 import { createYoga } from 'graphql-yoga';
 import { GraphQLError } from 'graphql';
 import { schema } from './schema';
-import { verifyJWT } from '../lib/jwt';
+import { authenticateAccessToken, type AuthenticatedCaller } from '../lib/auth';
 
 /**
  * Masking turns every thrown error into an indistinguishable
@@ -29,31 +29,27 @@ function maskError(error: any) {
 // Create GraphQL Yoga instance
 const yoga = createYoga({
   schema,
-  context: async ({ request }) => {
-    // Get token from Authorization header (Bearer token)
-    const authHeader = request.headers.get('authorization');
+  context: async ({ request, authed }: { request: Request; authed?: AuthenticatedCaller | null }) => {
+    // The gate below authenticates once per request and hands the result to
+    // the context — never re-verify here, that doubles per-op auth cost.
     let user = null;
     let tenantId = null;
 
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.split(' ')[1] || '';
-      const payload = await verifyJWT(token);
-      if (payload) {
-        user = payload;
-        tenantId = (payload as any).tenantId;
+    if (authed) {
+      user = authed.user;
+      tenantId = authed.tenantId;
 
-        // SuperAdmin can override tenantId via header
-        if (!tenantId && (payload as any).role === 'super_admin') {
-          const xTenantId = request.headers.get('x-tenant-id');
-          // Cross-tenant reach is the `tenants` grant: a scoped platform admin
-          // without it simply keeps their own (empty) scope instead of aiming at
-          // any school they can guess the slug of.
-          if (xTenantId) {
-            const { platformMay } = await import('../lib/permissions');
-            if (await platformMay(payload as any, 'tenants', 'view')) {
-              const { resolveTenantId } = await import('../lib/resolve-tenant');
-              tenantId = await resolveTenantId(xTenantId);
-            }
+      // SuperAdmin can override tenantId via header
+      if (!tenantId && (authed.user as any).role === 'super_admin') {
+        const xTenantId = request.headers.get('x-tenant-id');
+        // Cross-tenant reach is the `tenants` grant: a scoped platform admin
+        // without it simply keeps their own (empty) scope instead of aiming at
+        // any school they can guess the slug of.
+        if (xTenantId) {
+          const { platformMay } = await import('../lib/permissions');
+          if (await platformMay(authed.user as any, 'tenants', 'view')) {
+            const { resolveTenantId } = await import('../lib/resolve-tenant');
+            tenantId = await resolveTenantId(xTenantId);
           }
         }
       }
@@ -96,9 +92,9 @@ async function handleGraphQL(context: { request: Request }) {
 
   const authHeader = context.request.headers.get('authorization');
   const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1]?.trim() : undefined;
-  const payload = token ? await verifyJWT(token) : null;
+  const authed = token ? await authenticateAccessToken(token) : null;
 
-  if (!payload) {
+  if (!authed) {
     return new Response(
       JSON.stringify({
         errors: [
@@ -115,7 +111,7 @@ async function handleGraphQL(context: { request: Request }) {
     );
   }
 
-  return yoga.fetch(context.request);
+  return yoga.fetch(context.request, { authed });
 }
 
 /**

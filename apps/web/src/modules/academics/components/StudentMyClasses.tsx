@@ -27,20 +27,19 @@ const subjectIconNames = ["BookOpen", "GraduationCap", "Hash", "User"] as const;
 export function StudentClasses() {
   const { currentUser } = useAppStore();
   const [loading, setLoading] = useState(true);
-  const [students, setStudents] = useState<StudentInfo[]>([]);
+  const [student, setStudent] = useState<StudentInfo | null>(null);
   const [subjects, setSubjects] = useState<SubjectInfo[]>([]);
-
-  const student = students.find((s) => s.email === currentUser?.email) || null;
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [studentsData, subjectsData] = await Promise.all([
-        apiFetch("/api/students").then((res) => res.json()),
+      // /students/me returns only this student — the old fetch-all-then-find-by-email
+      // silently failed for anyone past the first server page (50 rows).
+      const [meRes, subjectsData] = await Promise.all([
+        apiFetch("/api/students/me"),
         apiFetch("/api/subjects").then((res) => res.json()),
       ]);
-      
-      setStudents(Array.isArray(studentsData?.items) ? studentsData.items : []);
+      setStudent(meRes.ok ? (await meRes.json()) : null);
       setSubjects(Array.isArray(subjectsData) ? subjectsData : []);
     } catch (e) {
       console.error(e);

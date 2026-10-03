@@ -13,6 +13,7 @@ interface SidebarHeaderProps {
   tenantName: string | null;
   currentUser: AppUser;
   onToggle: () => void;
+  onNavigate?: (screen: string) => void;
 }
 
 export function SidebarHeader({
@@ -23,6 +24,7 @@ export function SidebarHeader({
   tenantName,
   currentUser,
   onToggle,
+  onNavigate,
 }: SidebarHeaderProps) {
   return (
     <div
@@ -44,9 +46,12 @@ export function SidebarHeader({
         {sidebarOpen && (
           <>
             {/* SchoolConnect Graduation Cap or School Logo Container */}
-            <div
+            <button
+              type="button"
+              onClick={() => onNavigate?.("modules")}
+              aria-label="Go to Modules"
               className={cn(
-                "size-10 rounded-xl flex items-center justify-center text-white shadow-xs overflow-hidden shrink-0",
+                "size-10 rounded-xl flex items-center justify-center text-white shadow-xs overflow-hidden shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-transform outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
                 isSuperAdmin 
                   ? "bg-gradient-to-br from-blue-600 to-indigo-700 shadow-blue-500/20" 
                   : "border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900",
@@ -62,7 +67,7 @@ export function SidebarHeader({
               ) : (
                 <GraduationCap className="size-6 text-white" />
               )}
-            </div>
+            </button>
             <div className="transition-all duration-300">
               <h2
                 className={cn(

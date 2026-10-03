@@ -3,6 +3,7 @@ import { db } from '../../lib/db';
 import * as schema from '../../db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { requireAuth } from '../../lib/auth';
+import { academicYearForNewRow } from '../../lib/dashboardCache';
 import { posthog, captureError } from '../../lib/monitoring/posthog';
 
 export const homeworkRoutes = new Elysia({ prefix: '/homework' })
@@ -22,54 +23,65 @@ export const homeworkRoutes = new Elysia({ prefix: '/homework' })
 
       const statusFilter = query.status as string || 'active';
 
-      const homeworkList = await db.query.assignments.findMany({
-        where: (assignments, { eq, and }) => {
-          const conditions = [
-            eq(assignments.tenantId, tenantId!),
-            eq(assignments.status, statusFilter)
-          ];
-          if (query.classId) conditions.push(eq(assignments.classId, query.classId as string));
-          if (teacherIdFilter) conditions.push(eq(assignments.teacherId, teacherIdFilter));
-          
-          if (user.role === 'student') {
-            conditions.push(sql`EXISTS (
-              SELECT 1 FROM ${schema.students} s
-              WHERE s."classId" = ${assignments.classId} AND s."userId" = ${user.id}
-            )`);
-          } else if (user.role === 'parent') {
-            conditions.push(sql`EXISTS (
-              SELECT 1 FROM ${schema.students} s
-              JOIN ${schema.parents} p ON s."parentId" = p.id
-              WHERE s."classId" = ${assignments.classId} AND p."userId" = ${user.id}
-            )`);
-          }
-          return and(...conditions);
-        },
-        with: {
-          subject: { columns: { name: true } },
-          class: { 
-            columns: { name: true, section: true },
-            with: { students: { columns: { id: true } } }
-          },
-          teacher: { with: { user: { columns: { name: true } } } },
-          submissions: { columns: { status: true } }
-        },
-        orderBy: [desc(schema.assignments.createdAt)]
-      });
+      const a = schema.assignments;
+      const conditions = [
+        eq(a.tenantId, tenantId!),
+        eq(a.status, statusFilter)
+      ];
+      if (query.classId) conditions.push(eq(a.classId, query.classId as string));
+      if (teacherIdFilter) conditions.push(eq(a.teacherId, teacherIdFilter));
+      if (query.academicYear) conditions.push(eq(a.academicYear, query.academicYear as string));
 
-      return homeworkList.map(a => ({
-        id: a.id, 
-        title: a.title, 
+      if (user.role === 'student') {
+        conditions.push(sql`EXISTS (
+          SELECT 1 FROM ${schema.students} s
+          WHERE s."classId" = ${a.classId} AND s."userId" = ${user.id}
+        )`);
+      } else if (user.role === 'parent') {
+        conditions.push(sql`EXISTS (
+          SELECT 1 FROM ${schema.students} s
+          JOIN ${schema.parents} p ON s."parentId" = p.id
+          WHERE s."classId" = ${a.classId} AND p."userId" = ${user.id}
+        )`);
+      }
+
+      const homeworkList = await db.select({
+        id: a.id,
+        title: a.title,
         description: a.description,
-        subjectName: a.subject.name, 
-        className: `${a.class.name}-${a.class.section}`,
-        teacherName: a.teacher.user.name, 
         dueDate: a.dueDate,
-        submissions: a.submissions.length, 
-        totalStudents: a.class.students.length,
-        ungradedSubmissions: a.submissions.filter(s => s.status === 'submitted').length,
         mode: a.mode,
+        academicYear: a.academicYear,
         createdAt: a.createdAt,
+        subjectName: schema.subjects.name,
+        className: schema.classes.name,
+        section: schema.classes.section,
+        teacherName: schema.users.name,
+        submissions: sql<number>`(select count(*)::int from "Submission" sub where sub."assignmentId" = ${a.id})`,
+        totalStudents: sql<number>`(select count(*)::int from "Student" s where s."classId" = ${a.classId})`,
+        ungradedSubmissions: sql<number>`(select count(*)::int from "Submission" sub where sub."assignmentId" = ${a.id} and sub."status" = 'submitted')`,
+      }).from(a)
+        .innerJoin(schema.subjects, eq(a.subjectId, schema.subjects.id))
+        .innerJoin(schema.classes, eq(a.classId, schema.classes.id))
+        .innerJoin(schema.teachers, eq(a.teacherId, schema.teachers.id))
+        .leftJoin(schema.users, eq(schema.teachers.userId, schema.users.id))
+        .where(and(...conditions))
+        .orderBy(desc(a.createdAt));
+
+      return homeworkList.map(row => ({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        subjectName: row.subjectName,
+        className: `${row.className}-${row.section}`,
+        teacherName: row.teacherName,
+        dueDate: row.dueDate,
+        submissions: row.submissions,
+        totalStudents: row.totalStudents,
+        ungradedSubmissions: row.ungradedSubmissions,
+        mode: row.mode,
+        academicYear: row.academicYear,
+        createdAt: row.createdAt,
       }));
     } catch (error) {
       captureError(error, { method: 'GET', path: '/homework', tenantId });
@@ -88,6 +100,12 @@ export const homeworkRoutes = new Elysia({ prefix: '/homework' })
         return { error: 'Invalid class ID or access denied' };
       }
 
+      const academicYear = await academicYearForNewRow(tenantId!);
+      if (!academicYear) {
+        set.status = 400;
+        return { error: 'Create the academic session first — homework is filed under it' };
+      }
+
       const [assignment] = await db.insert(schema.assignments).values({
         tenantId: tenantId!,
         subjectId: data.subjectId, 
@@ -97,6 +115,7 @@ export const homeworkRoutes = new Elysia({ prefix: '/homework' })
         description: data.description, 
         dueDate: data.dueDate,
         mode: data.mode || 'offline',
+        academicYear,
       }).returning();
 
       if (!assignment) throw new Error('Failed to create homework');

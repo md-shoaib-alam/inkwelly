@@ -64,9 +64,10 @@ export function SignedInDevicesModal({ open, onOpenChange }: { open: boolean; on
     setBusy('all');
     try {
       await revokeAllSessions();
+      toast.success('Other devices will be signed out within 15 minutes');
+      setBusy(null);
       setConfirmTarget(null);
-      onOpenChange(false);
-      window.location.href = '/login';
+      await refresh();
     } catch (err) {
       toast.error((err as Error).message || 'Could not sign out your devices');
       setBusy(null);
@@ -74,10 +75,7 @@ export function SignedInDevicesModal({ open, onOpenChange }: { open: boolean; on
     }
   };
 
-  const currentDevice = devices.find(d => d.current);
   const activeCount = devices.length;
-  const lastSignIn = currentDevice ? timeAgo(currentDevice.signedInAt) : '—';
-  const thisDeviceLabel = currentDevice ? `${currentDevice.browser} on ${currentDevice.os}` : '—';
   const otherDevicesCount = devices.filter(d => !d.current).length;
 
   const userInitials = (currentUser?.name || 'Shoaib')
@@ -164,31 +162,14 @@ export function SignedInDevicesModal({ open, onOpenChange }: { open: boolean; on
                 <p className="iwp-pane-desc">Review where you're signed in and manage your account security.</p>
               </div>
 
-              {/* Security Status Summary Card (div.iwp-security-card) */}
+              {/* Security Status Summary Card — simple pill */}
               <div className="iwp-security-card">
-                <div className="iwp-status">
-                  <div className="iwp-security-shield">
-                    <ShieldCheck className="size-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 leading-tight">Your account is secure</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">Nothing needs your attention right now.</p>
-                  </div>
+                <div className="iwp-security-shield">
+                  <ShieldCheck className="size-5" />
                 </div>
-
-                <div className="iwp-metrics-row">
-                  <div className="iwp-stat">
-                    <div className="iwp-metric-label">ACTIVE DEVICES</div>
-                    <div className="iwp-metric-val">{activeCount}</div>
-                  </div>
-                  <div className="iwp-stat">
-                    <div className="iwp-metric-label">LAST SIGN-IN</div>
-                    <div className="iwp-metric-val">{lastSignIn}</div>
-                  </div>
-                  <div className="iwp-stat">
-                    <div className="iwp-metric-label">THIS DEVICE</div>
-                    <div className="iwp-metric-val truncate">{thisDeviceLabel}</div>
-                  </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[#1d3a31] leading-tight">Your account is secure</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Nothing needs your attention right now.</p>
                 </div>
               </div>
 
@@ -357,7 +338,7 @@ export function SignedInDevicesModal({ open, onOpenChange }: { open: boolean; on
 
             <p className="iwp-confirm-desc">
               {confirmTarget === 'all'
-                ? 'All other devices will be signed out right away — they will lose access the next time they are used.'
+                ? 'Every device except this one stops renewing and is signed out within 15 minutes.'
                 : 'This device will be signed out right away — it loses access the next time it’s used.'}
             </p>
           </div>

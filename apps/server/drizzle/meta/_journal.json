@@ -148,6 +148,13 @@
       "when": 1790831391834,
       "tag": "0020_session_tracking",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790882190673,
+      "tag": "0021_schema_optimization_p1",
+      "breakpoints": true
     }
   ]
 }

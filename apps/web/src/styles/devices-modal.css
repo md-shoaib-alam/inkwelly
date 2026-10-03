@@ -1,0 +1,402 @@
+/* ── Inkwelly Portal Settings & Signed-In Devices Modal ──────────── */
+
+/* Two-Column Settings Dialog Layout */
+.iwp-modal-dialog,
+.iwp-layer.iwp-modal {
+  max-width: 900px !important;
+  width: calc(100% - 2rem) !important;
+  height: 620px !important;
+  max-height: 90vh !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 28px !important;
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.4) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: row !important;
+}
+
+/* Left Sidebar */
+.iwp-modal-side {
+  width: 246px;
+  flex: none;
+  background: #0c382f;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 20px;
+  border-radius: 28px 0 0 28px;
+  color: #ffffff;
+}
+
+.iwp-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 20px;
+}
+
+.iwp-user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  border: 1.5px solid #edb449;
+  background: #071f1b;
+  color: #f9dd86;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iwp-user-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.iwp-user-role {
+  font-size: 10px;
+  font-weight: 800;
+  color: #edb449;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.iwp-side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.iwp-side-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #a3c2b8;
+  transition: all 0.16s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.iwp-side-tab:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.iwp-side-tab.is-active {
+  color: #f9dd86;
+  background: rgba(249, 221, 134, 0.1);
+  border: 1px solid rgba(249, 221, 134, 0.2);
+}
+
+/* Right Main Area */
+.iwp-modal-main {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 0 28px 28px 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.iwp-close,
+.iwp-close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.15s;
+}
+
+.iwp-close:hover,
+.iwp-close-btn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.iwp-pane {
+  padding: 32px 36px 28px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
+}
+
+.iwp-pane[data-pane="security"] {
+  padding-bottom: 28px;
+}
+
+.iwp-pane-header {
+  margin-bottom: 2px;
+}
+
+.iwp-pane-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1d3a31;
+  letter-spacing: -0.02em;
+}
+
+.iwp-pane-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* Security Summary Card — simple pill row */
+.iwp-security-card {
+  border-radius: 16px;
+  border: 1px solid #14312a14;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+}
+
+.iwp-security-shield {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: #f0f7f4;
+  border: 1px solid #d1ece5;
+  color: #12483e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Transaction PIN Card */
+.iwp-pin-card {
+  border-radius: 16px;
+  border: 1px solid #14312a0d;
+  background: #ffffff;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.iwp-btn-pill-action {
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 9999px;
+  border: 1.5px solid #14312a15;
+  background: #ffffff;
+  color: #14312a;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iwp-btn-pill-action:hover {
+  background: #faf7ed;
+  border-color: #14312a30;
+}
+
+/* Device Row: div.iwp-device (padding: 14px 16px, background #ffffff) */
+.iwp-device {
+  padding: 14px 16px;
+  background: #ffffff;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #14312a14;
+  transition: all 0.16s ease;
+}
+
+.iwp-device:hover {
+  border-color: #14312a28;
+  box-shadow: 0 4px 12px -4px rgba(20, 49, 42, 0.06);
+}
+
+.iwp-btn-danger-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  border: 1px solid #fecaca;
+  background: #ffffff;
+  color: #a8341f;
+  font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.iwp-btn-danger-outline:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.iwp-btn-danger-outline:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Confirmation Dialog */
+.iwp-confirm-dialog {
+  max-width: 400px !important;
+  width: 100% !important;
+  background: #ffffff !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(20, 49, 42, 0.08) !important;
+  box-shadow: 0 25px 50px -12px rgba(7, 31, 27, 0.25) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.iwp-confirm-body {
+  width: 400px;
+  max-width: 100%;
+  padding: 32px 32px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.iwp-confirm-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  background: #fdf1ed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  color: #a8341f;
+}
+
+.iwp-confirm-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #14312a;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.iwp-confirm-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #4c5f58;
+  max-width: 310px;
+}
+
+.iwp-confirm-actions {
+  width: 400px;
+  max-width: 100%;
+  padding: 16px 24px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iwp-btn-cancel {
+  flex: 1;
+  height: 48px;
+  border-radius: 9999px;
+  border: 1.5px solid #14312a24;
+  background: #ffffff;
+  color: #14312a;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iwp-btn-cancel:hover {
+  background: #faf7ed;
+  border-color: #14312a40;
+}
+
+.iwp-btn-danger {
+  flex: 1;
+  height: 48px;
+  border-radius: 9999px;
+  border: none;
+  background: #a8341f;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 24px -10px rgba(168, 52, 31, 0.6);
+  transition: all 0.16s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 18px;
+}
+
+.iwp-btn-danger:hover {
+  background: #932d1a;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px -8px rgba(168, 52, 31, 0.7);
+}
+
+.iwp-btn-danger:active {
+  transform: translateY(0);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .iwp-modal-dialog,
+  .iwp-layer.iwp-modal {
+    flex-direction: column !important;
+    height: 90vh !important;
+  }
+
+  .iwp-modal-side {
+    width: 100%;
+    border-radius: 28px 28px 0 0;
+    padding: 18px;
+  }
+
+  .iwp-modal-main {
+    border-radius: 0 0 28px 28px;
+  }
+
+  .iwp-pane {
+    padding: 20px;
+  }
+}

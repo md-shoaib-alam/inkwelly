@@ -4,6 +4,8 @@ import { useState, useMemo, useCallback, useRef } from "react";
 import { format } from "date-fns";
 import {
   ArrowLeft,
+  ArrowUpRight,
+  CalendarX,
   Search,
   UserCheck,
   UserX,
@@ -24,6 +26,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, fetchAllStudents } from "@/lib/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { formatSessionDate, isDateOutsideSession } from "./academic-session";
 
 export type DailyAttendanceStatus = "present" | "absent" | "late" | "halfDay" | "leave" | "none";
 
@@ -76,6 +79,13 @@ interface ClassDailyAttendanceViewProps {
   className: string;
   section: string;
   selectedDate: Date;
+  /** Whether classId is a real DB class. Mock/placeholder classes must not
+   *  load or post attendance against fake ids. */
+  isRealClass: boolean;
+  /** Academic session range the screen is scoped to; drives the "Outside the
+   *  academic session" banner. Omitted when no session carries dates. */
+  sessionStart?: string | null;
+  sessionEnd?: string | null;
   onBack: () => void;
   onSaved?: () => void;
 }
@@ -85,6 +95,9 @@ export function ClassDailyAttendanceView({
   className,
   section,
   selectedDate,
+  isRealClass,
+  sessionStart,
+  sessionEnd,
   onBack,
   onSaved,
 }: ClassDailyAttendanceViewProps) {
@@ -95,9 +108,15 @@ export function ClassDailyAttendanceView({
   const isToday = dateStr === todayStr;
   const dayLabel = isToday ? "Today" : format(selectedDate, "EEEE");
 
-  // Only treat the classId as a real DB id if it looks like a UUID.
-  // Mock / slug fallback ids (e.g. "cls-1", "class-1st-a") are not UUIDs.
-  const isRealClassId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(classId);
+  // Outside the session there is nothing to mark, so the screen collapses to a
+  // centered notice (matching production) and the roster/attendance fetches are
+  // skipped rather than loading a grid the admin can't save to.
+  const outsideSession = isDateOutsideSession(dateStr, sessionStart, sessionEnd);
+
+  // The parent resolves the row from the server's class list, so it knows
+  // whether this is a real class. Ids are cuid2/seed text (e.g. "cls-3-1-5"),
+  // not UUIDs, so format-sniffing here would misclassify every real class.
+  const isRealClassId = isRealClass;
 
   const [search, setSearch] = useState("");
   // Staged edits: studentId -> DailyAttendanceStatus
@@ -120,7 +139,7 @@ export function ClassDailyAttendanceView({
         return [];
       }
     },
-    enabled: isRealClassId,
+    enabled: isRealClassId && !outsideSession,
   });
 
   const studentsList: StudentDailyRow[] = useMemo(() => {
@@ -132,8 +151,11 @@ export function ClassDailyAttendanceView({
         admissionNo: s.admissionNo || `ADM${2026100 + idx + 1}`,
       }));
     }
-    return DEFAULT_SEED_TODAY_STUDENTS;
-  }, [serverStudents]);
+    // A real class with no students is genuinely empty — showing the demo seed
+    // here made "Save" post fake std-* ids the backend rejects with 403. Only a
+    // placeholder class (URL matched no real class) keeps the demo rows.
+    return isRealClassId ? [] : DEFAULT_SEED_TODAY_STUDENTS;
+  }, [serverStudents, isRealClassId]);
 
   // 2. Fetch existing attendance for this date
   const { data: attendanceData } = useQuery({
@@ -151,7 +173,7 @@ export function ClassDailyAttendanceView({
         return { records: [] };
       }
     },
-    enabled: isRealClassId,
+    enabled: isRealClassId && !outsideSession,
   });
 
   // Base map from server records
@@ -289,19 +311,28 @@ export function ClassDailyAttendanceView({
         }
       }
 
-      if (isRealClassId) {
-        await apiFetch("/api/attendance", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            classId,
-            date: dateStr,
-            records: recordsToSave,
-          }),
-        });
+      if (!isRealClassId) {
+        // Mock/placeholder class: nothing to persist. Say so instead of
+        // claiming a save that never reaches the database.
+        toast.info("Demo class — changes are not saved");
+        return;
       }
 
-      // Commit to local saved state
+      const res = await apiFetch("/api/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          classId,
+          date: dateStr,
+          records: recordsToSave,
+        }),
+      });
+      if (!res.ok) {
+        const msg = await res.json().then((b: any) => b?.error).catch(() => null);
+        throw new Error(msg || `Server responded ${res.status}`);
+      }
+
+      // Commit to local saved state only after the server confirms the write
       setSavedEdits((prev) => ({
         ...prev,
         ...unsavedEdits,
@@ -324,7 +355,7 @@ export function ClassDailyAttendanceView({
       saveLockRef.current = false;
       setIsSaving(false);
     }
-  }, [classId, dateStr, unsavedEdits, studentNotes, unsavedCount, isSaving, queryClient, onSaved]);
+  }, [classId, dateStr, unsavedEdits, studentNotes, unsavedCount, isSaving, isRealClassId, queryClient, onSaved]);
 
   // Filter students by search
   const filteredStudents = useMemo(() => {
@@ -339,6 +370,31 @@ export function ClassDailyAttendanceView({
   }, [studentsList, search]);
 
   const classTitle = `${className}${section ? ` - ${section}` : ""}`;
+
+  if (outsideSession) {
+    return (
+      <div className="flex min-h-[calc(100vh-56px-32px)] flex-col items-center justify-center px-4 py-10 text-center lg:min-h-[calc(100vh-56px-48px)]">
+        <span className="grid size-14 place-items-center rounded-2xl bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-300">
+          <CalendarX className="size-7" />
+        </span>
+        <h2 className="mt-5 text-[17px] font-bold tracking-tight text-slate-900 dark:text-zinc-50">
+          {formatSessionDate(dateStr)} is outside the academic session
+        </h2>
+        <p className="mt-1.5 max-w-md text-[13px] text-slate-500 dark:text-zinc-400">
+          Attendance can only be recorded between {formatSessionDate(sessionStart!)} and{" "}
+          {formatSessionDate(sessionEnd!)}.
+        </p>
+        <Button
+          type="button"
+          onClick={onBack}
+          className="mt-5 h-9 gap-1.5 rounded-lg bg-[#0D9488] px-4 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#0F766E] cursor-pointer"
+        >
+          <span>Back to today</span>
+          <ArrowUpRight className="size-3.5" />
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-56px-32px)] lg:min-h-[calc(100vh-56px-48px)] space-y-4">

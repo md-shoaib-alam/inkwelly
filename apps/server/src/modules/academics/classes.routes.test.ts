@@ -16,6 +16,7 @@ import { classesRoutes } from "./classes.routes";
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 const createdIds: string[] = [];
 let admin: { token: string; tenantId: string };
+let sessionYear: string;
 
 async function call(method: "POST" | "PUT", body: Record<string, unknown>) {
   return classesRoutes.handle(
@@ -47,6 +48,13 @@ beforeAll(async () => {
     typ: "access", jti: `class-write-${Date.now()}`,
   }).setProtectedHeader({ alg: "HS256" }).setIssuedAt(iat).setExpirationTime("5m").sign(secret);
   admin = { token, tenantId: user.tenantId };
+  // POST /classes now refuses without a current session, and the schema has no
+  // year default any more — the fixture rows need one too.
+  const session = await db.query.academicYears.findFirst({
+    where: and(eq(schema.academicYears.tenantId, user.tenantId), eq(schema.academicYears.isCurrent, true)),
+  });
+  if (!session) throw new Error(`tenant ${user.tenantId} needs a current AcademicYear for these tests`);
+  sessionYear = session.name;
 });
 
 afterAll(async () => {
@@ -125,6 +133,7 @@ test("a capacity-only edit on a legacy-named row does not rewrite its name or UR
       slug: "grade-92-legacy",
       section: "Z",
       classLevel: "92",
+      academicYear: sessionYear,
       capacity: 30,
     })
     .returning();

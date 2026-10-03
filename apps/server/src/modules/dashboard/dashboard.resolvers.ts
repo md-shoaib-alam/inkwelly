@@ -139,11 +139,15 @@ export const dashboardResolvers = {
     // Outside the try: its catch would report a refusal as an empty school.
     const tenantId = await resolveScopedTenantId(context, rawId);
     try {
-      const [classes, grades] = await Promise.all([
-        db.query.classes.findMany({ 
-          where: eq(schema.classes.tenantId, tenantId), 
-          with: { students: { columns: { id: true } } } 
-        }),
+      const [classes, studentCounts, grades] = await Promise.all([
+        db.select({ id: schema.classes.id, name: schema.classes.name, section: schema.classes.section })
+          .from(schema.classes)
+          .where(eq(schema.classes.tenantId, tenantId)),
+        db.select({ classId: schema.students.classId, count: count() })
+          .from(schema.students)
+          .innerJoin(schema.classes, eq(schema.classes.id, schema.students.classId))
+          .where(eq(schema.classes.tenantId, tenantId))
+          .groupBy(schema.students.classId),
         db.select({ grade: schema.grades.grade, count: count() })
           .from(schema.grades)
           .where(and(
@@ -163,8 +167,9 @@ export const dashboardResolvers = {
         if (nameCompare !== 0) return nameCompare;
         return (a.section || '').localeCompare(b.section || '', undefined, { sensitivity: 'base' });
       });
+      const studentCountByClass = new Map(studentCounts.map((s: any) => [s.classId, Number(s.count)]));
       return { 
-        classDistribution: sortedClasses.map(c => ({ name: `${c.name}-${c.section}`, students: c.students.length })), 
+        classDistribution: sortedClasses.map(c => ({ name: `${c.name}-${c.section}`, students: studentCountByClass.get(c.id) || 0 })), 
         gradeDistribution: grades.map(g => ({ grade: g.grade!, count: g.count })) 
       }
     } catch (e) { console.error(e); return { classDistribution: [], gradeDistribution: [] } }

@@ -8,10 +8,8 @@ import { TriangleAlert } from "lucide-react";
 import { useAppStore, type AppUser } from "@/store/use-app-store";
 import { useTenantResolution } from "@/lib/graphql/hooks/platform.hooks";
 import { hasPermission } from "@/lib/permissions";
-import { FavoritesStrip } from "./FavoritesStrip";
 import { ModuleGrid } from "./ModuleGrid";
 import { gridModuleCards, type ModuleCard } from "./moduleCatalogue";
-import { useModuleFavorites } from "./useModuleFavorites";
 
 function getDaysRemaining(endDate?: string | null) {
   if (!endDate) return null;
@@ -49,21 +47,10 @@ export function AdminDashboard() {
   const isExpiringSoon = daysRemaining !== null && daysRemaining >= 0 && daysRemaining <= 3;
   const isExpired = daysRemaining !== null && daysRemaining < 0;
 
-  const { pinned, togglePin, clearAll } = useModuleFavorites();
-
   const visibleCards = useMemo(
     () => gridModuleCards.filter((card) => isCardVisible(card, currentUser)),
     [currentUser],
   );
-
-  // Pinned order wins, but a card that lost permission or was removed from the catalogue
-  // disappears from the strip instead of rendering a dead slot.
-  const favoriteCards = useMemo(() => {
-    const byId = new Map(visibleCards.map((card) => [card.id, card]));
-    return pinned
-      .map((id) => byId.get(id))
-      .filter((card): card is ModuleCard => !!card && card.screen !== null);
-  }, [pinned, visibleCards]);
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -91,17 +78,8 @@ export function AdminDashboard() {
         </div>
       )}
 
-      <FavoritesStrip
-        cards={favoriteCards}
-        onNavigate={navigateTo}
-        onUnpin={togglePin}
-        onClearAll={clearAll}
-      />
-
       <ModuleGrid
         cards={visibleCards}
-        pinned={pinned}
-        onTogglePin={togglePin}
         onNavigate={navigateTo}
       />
     </div>

@@ -3,6 +3,7 @@ import * as schema from '../../db/schema';
 import { and, count, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm';
 import { formatDate } from '../../lib/date-utils';
 import { pickCurrentSession, sessionProgress, type SessionRow } from '../../lib/academic-session';
+import { loadCachedAttendanceSettings, loadCachedWorkingDays, loadCachedYearRows } from '../../lib/dashboardCache';
 import { ATTENDANCE_STATUSES, normalizeAttendanceStatus, type AttendanceStatus } from './attendance-status';
 
 /**
@@ -191,11 +192,21 @@ export function pastCutoff(now: Date, cutoffTime: string): boolean {
 type ClassRow = { id: string; name: string; section: string; grade: string };
 
 export const AttendanceDashboardService = {
-  async commandCenter(tenantId: string, requestedYear?: string | null, requestedMonth?: string | null) {
+  async commandCenter(
+    tenantId: string,
+    requestedYear?: string | null,
+    requestedMonth?: string | null,
+    requestedDate?: string | null,
+  ) {
     const today = formatDate();
     const now = new Date();
+    // The per-class register the Past Days list reads is measured on a chosen day, not on
+    // the server's today. When a date is passed the `marking` array follows it; every other
+    // figure (the trailing week, the session, the calendar) stays anchored on today, because
+    // the only caller that passes a date reads `marking` alone. Absent a date it is today.
+    const markingDay = /^\d{4}-\d{2}-\d{2}$/.test(requestedDate ?? '') ? (requestedDate as string) : today;
 
-    const [classRows, yearRows, settingRow, tenantRow] = await Promise.all([
+    const [classRows, yearRows, settingRows, workingDays] = await Promise.all([
       db
         .select({
           id: schema.classes.id,
@@ -205,40 +216,16 @@ export const AttendanceDashboardService = {
         })
         .from(schema.classes)
         .where(eq(schema.classes.tenantId, tenantId)),
-      db
-        .select({
-          name: schema.academicYears.name,
-          startDate: schema.academicYears.startDate,
-          endDate: schema.academicYears.endDate,
-          isCurrent: schema.academicYears.isCurrent,
-          status: schema.academicYears.status,
-        })
-        .from(schema.academicYears)
-        .where(eq(schema.academicYears.tenantId, tenantId)),
-      db.query.attendanceSettings.findFirst({
-        where: eq(schema.attendanceSettings.tenantId, tenantId),
-        columns: { cutoffTime: true, targetRate: true },
-      }),
-      db.select({ settings: schema.tenants.settings }).from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1),
+      loadCachedYearRows(tenantId),
+      loadCachedAttendanceSettings(tenantId),
+      loadCachedWorkingDays(tenantId),
     ]);
 
     const classes = classRows as ClassRow[];
     const classIds = classes.map((c) => c.id);
+    const settingRow = settingRows[0] ?? null;
     const cutoffTime = settingRow?.cutoffTime ?? DEFAULT_CUTOFF;
     const target = settingRow?.targetRate ?? DEFAULT_TARGET;
-
-    let workingDays: string[] = [];
-    const blob = tenantRow[0]?.settings;
-    if (blob && blob.trim() && blob !== '{}') {
-      try {
-        const parsed = JSON.parse(blob) as { workingDays?: unknown };
-        if (Array.isArray(parsed.workingDays)) {
-          workingDays = parsed.workingDays.filter((d): d is string => typeof d === 'string');
-        }
-      } catch {
-        // A blob that will not parse is the default working week, not an error screen.
-      }
-    }
 
     const session = pickCurrentSession(yearRows as SessionRow[], requestedYear, today);
     const progress = session ? sessionProgress(session.startDate, session.endDate, today) : null;
@@ -293,7 +280,7 @@ export const AttendanceDashboardService = {
             .where(
               and(
                 eq(schema.attendance.tenantId, tenantId),
-                eq(schema.attendance.date, today),
+                eq(schema.attendance.date, markingDay),
                 inArray(schema.attendance.classId, classIds),
               ),
             )

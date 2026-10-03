@@ -94,6 +94,7 @@ export function Sidebar({
         tenantName={currentTenantName}
         currentUser={currentUser}
         onToggle={toggleSidebar}
+        onNavigate={navigateTo}
       />
 
       <SidebarNav 

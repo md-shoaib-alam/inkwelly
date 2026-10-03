@@ -46,10 +46,11 @@ export type YearGate =
   | { kind: 'canonicalise'; toYearSlug: string };
 
 /**
- * The setup screen is the one URL a tenant can be at with no year — it is how a
- * school gets its first one. Everything else must carry a year.
+ * Screens that a tenant can be at with no year in the URL.
+ * - 'academic-years': how a school gets its first year
+ * - 'modules': the dedicated modules / launchpad view is year-agnostic and should open instantly
  */
-export const YEAR_FREE_SCREENS = new Set(['academic-years']);
+export const YEAR_FREE_SCREENS = new Set(['academic-years', 'modules']);
 
 /**
  * A learner's fees, results and attendance are read as "this session", so an

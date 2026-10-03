@@ -338,30 +338,30 @@ export const commonQueries = {
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;
 
-    const result = await paginate(schema.subscriptions, db.query.subscriptions, {
-      where,
-      page: args.page,
-      limit: args.limit,
-      with: { 
-        tenant: { columns: { id: true, name: true, slug: true } },
-        parent: { with: { user: { columns: { name: true, email: true } } } }
-      },
-      orderBy: [desc(schema.subscriptions.createdAt)]
-    });
-
-    const statsRes = await db.select({
-      totalRevenue: sum(schema.subscriptions.amount),
-      totalCount: count()
-    })
-    .from(schema.subscriptions)
-    .where(tenantId ? eq(schema.subscriptions.tenantId, tenantId) : undefined);
-
-    const activeCountRes = await db.select({ count: count() })
+    const [result, statsRes, activeCountRes] = await Promise.all([
+      paginate(schema.subscriptions, db.query.subscriptions, {
+        where,
+        page: args.page,
+        limit: args.limit,
+        with: {
+          tenant: { columns: { id: true, name: true, slug: true } },
+          parent: { with: { user: { columns: { name: true, email: true } } } }
+        },
+        orderBy: [desc(schema.subscriptions.createdAt)]
+      }),
+      db.select({
+        totalRevenue: sum(schema.subscriptions.amount),
+        totalCount: count()
+      })
       .from(schema.subscriptions)
-      .where(and(
-        tenantId ? eq(schema.subscriptions.tenantId, tenantId) : undefined,
-        eq(schema.subscriptions.status, 'active')
-      ));
+      .where(tenantId ? eq(schema.subscriptions.tenantId, tenantId) : undefined),
+      db.select({ count: count() })
+        .from(schema.subscriptions)
+        .where(and(
+          tenantId ? eq(schema.subscriptions.tenantId, tenantId) : undefined,
+          eq(schema.subscriptions.status, 'active')
+        )),
+    ]);
 
     const response = {
       subscriptions: result.items,

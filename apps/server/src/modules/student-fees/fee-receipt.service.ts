@@ -173,6 +173,7 @@ export const FeeReceiptService = {
       await tx.insert(schema.fees).values({
         tenantId,
         studentId,
+        academicYear: selectedFees[0]!.academicYear,
         amount: 0,
         type: 'Advance Payment',
         status: 'paid',

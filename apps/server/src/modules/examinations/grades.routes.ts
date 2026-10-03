@@ -237,7 +237,7 @@ export const gradesRoutes = new Elysia({ prefix: '/grades' })
         studentId: r.studentId,
         subjectId,
         teacherId: resolvedTeacherId,
-        academicYear: studentAcademicYears.get(r.studentId) || '2024-2025',
+        academicYear: studentAcademicYears.get(r.studentId)!,
         examType,
         marks: r.marks,
         maxMarks,

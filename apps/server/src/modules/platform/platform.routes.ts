@@ -73,10 +73,6 @@ const platformLandingRoutes = new Elysia()
         db.query.tenants.findMany({
           orderBy: [desc(schema.tenants.createdAt), desc(schema.tenants.id)],
           limit: 5,
-          with: {
-            users: { columns: { id: true } },
-            classes: { columns: { id: true } }
-          }
         })
       ]);
 
@@ -99,20 +95,28 @@ const platformLandingRoutes = new Elysia()
       const topTenantIds = tenantsRaw.map((t: any) => t.id);
       let topTenants = [];
       if (topTenantIds.length > 0) {
-        const topTenantRevStats = await db.select({
-          tenantId: schema.subscriptions.tenantId,
-          total: sum(schema.subscriptions.amount)
-        })
-        .from(schema.subscriptions)
-        .where(and(inArray(schema.subscriptions.tenantId, topTenantIds), eq(schema.subscriptions.status, 'active')))
-        .groupBy(schema.subscriptions.tenantId);
+        const [topTenantRevStats, topUserCounts, topClassCounts] = await Promise.all([
+          db.select({
+            tenantId: schema.subscriptions.tenantId,
+            total: sum(schema.subscriptions.amount)
+          })
+          .from(schema.subscriptions)
+          .where(and(inArray(schema.subscriptions.tenantId, topTenantIds), eq(schema.subscriptions.status, 'active')))
+          .groupBy(schema.subscriptions.tenantId),
+          db.select({ tenantId: schema.users.tenantId, count: count() })
+            .from(schema.users).where(inArray(schema.users.tenantId, topTenantIds)).groupBy(schema.users.tenantId),
+          db.select({ tenantId: schema.classes.tenantId, count: count() })
+            .from(schema.classes).where(inArray(schema.classes.tenantId, topTenantIds)).groupBy(schema.classes.tenantId),
+        ]);
 
         const revMap = new Map(topTenantRevStats.map((r: any) => [r.tenantId, Number(r.total || 0)]));
+        const userMap = new Map(topUserCounts.map((r: any) => [r.tenantId, Number(r.count)]));
+        const classMap = new Map(topClassCounts.map((r: any) => [r.tenantId, Number(r.count)]));
         topTenants = tenantsRaw.map((t: any) => ({
           ...t,
           totalRevenue: revMap.get(t.id) || 0,
-          studentCount: t.users.length,
-          _count: { users: t.users.length, classes: t.classes.length }
+          studentCount: userMap.get(t.id) || 0,
+          _count: { users: userMap.get(t.id) || 0, classes: classMap.get(t.id) || 0 }
         })).sort((a: any, b: any) => b.totalRevenue - a.totalRevenue);
       }
 
@@ -194,6 +198,8 @@ const platformBillingRoutes = new Elysia()
         tenantRevenue,
         activeSubCounts,
         tenantList,
+        userCountsByTenant,
+        classCountsByTenant,
         totalTenantsResult,
         planGrouping,
         methodGrouping,
@@ -225,13 +231,13 @@ const platformBillingRoutes = new Elysia()
         .where(eq(schema.subscriptions.status, 'active'))
         .groupBy(schema.subscriptions.tenantId),
         db.query.tenants.findMany({
-          with: {
-            users: { columns: { id: true } },
-            classes: { columns: { id: true } }
-          },
           offset: (tenantPage - 1) * limit,
           limit,
         }),
+        db.select({ tenantId: schema.users.tenantId, count: count() })
+          .from(schema.users).groupBy(schema.users.tenantId),
+        db.select({ tenantId: schema.classes.tenantId, count: count() })
+          .from(schema.classes).groupBy(schema.classes.tenantId),
         db.select({ count: count() }).from(schema.tenants),
         db.select({
           planName: schema.subscriptions.planName,
@@ -253,13 +259,15 @@ const platformBillingRoutes = new Elysia()
 
       const revMap = new Map<string, any>(tenantRevenue.map((r: any) => [r.tenantId, { total: Number(r.total || 0), count: Number(r.count || 0) }]));
       const activeMap = new Map<string, any>(activeSubCounts.map((r: any) => [r.tenantId, { revenue: Number(r.total || 0), count: Number(r.count || 0) }]));
+      const userCountMap = new Map<string, number>(userCountsByTenant.map((r: any) => [r.tenantId, Number(r.count)]));
+      const classCountMap = new Map<string, number>(classCountsByTenant.map((r: any) => [r.tenantId, Number(r.count)]));
 
       const tenantBilling = tenantList.map((t: any) => {
         const rev = revMap.get(t.id) || { total: 0, count: 0 };
         const active = activeMap.get(t.id) || { revenue: 0, count: 0 };
         return {
           ...t,
-          _count: { users: t.users.length, classes: t.classes.length },
+          _count: { users: userCountMap.get(t.id) || 0, classes: classCountMap.get(t.id) || 0 },
           totalRevenue: rev.total,
           activeRevenue: active.revenue,
           activeSubscriptions: active.count,
@@ -361,11 +369,17 @@ const platformRoleRoutes = new Elysia()
   // Platform roles CRUD
   .get('/roles', async ({ set }) => {
     try {
-      const roles = await db.query.platformRoles.findMany({ 
-        orderBy: [desc(schema.platformRoles.createdAt)],
-        with: { users: { columns: { id: true } } }
-      });
-      return roles.map(r => ({ ...r, _count: { users: r.users.length }, users: undefined }));
+      const [roles, roleUserCounts] = await Promise.all([
+        db.query.platformRoles.findMany({
+          orderBy: [desc(schema.platformRoles.createdAt)],
+        }),
+        db.select({ roleId: schema.users.platformRoleId, count: count() })
+          .from(schema.users)
+          .where(isNotNull(schema.users.platformRoleId))
+          .groupBy(schema.users.platformRoleId),
+      ]);
+      const roleCountMap = new Map(roleUserCounts.map((r: any) => [r.roleId, Number(r.count)]));
+      return roles.map(r => ({ ...r, _count: { users: roleCountMap.get(r.id) || 0 } }));
     } catch (error) {
       set.status = 500;
       return { error: 'Failed to fetch platform roles' };

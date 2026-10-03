@@ -148,6 +148,16 @@ function noStore(set: any) {
   set.headers['Cache-Control'] = 'no-store';
 }
 
+/**
+ * What a pending challenge says about the machine that created it. The public poll and the
+ * guarded by-code lookup both answer with this, so one shape cannot drift from the other and
+ * show the admin a different browser than the computer actually reports.
+ */
+function pendingRequestInfo(challenge: ChallengeState) {
+  const { device, browser, os } = parseUserAgent(challenge.ua);
+  return { device, browser, os, ip: challenge.ip, createdAt: challenge.createdAt };
+}
+
 export const challengePublicRoutes = new Elysia()
   .post('/login-challenge', async ({ body, request, server, set }) => {
     // Unconditional: a create response carries a challenge code, rate-limited or not.
@@ -207,11 +217,7 @@ export const challengePublicRoutes = new Elysia()
       return { status: 'consumed' };
     }
 
-    const { device, browser, os } = parseUserAgent(challenge.ua);
-    return {
-      status: 'pending',
-      request: { device, browser, os, ip: challenge.ip, createdAt: challenge.createdAt },
-    };
+    return { status: 'pending', request: pendingRequestInfo(challenge) };
   }, { params: t.Object({ id: t.String({ minLength: 1, maxLength: 64 }) }) });
 
 /**
@@ -318,12 +324,7 @@ export const challengeApproveRoutes = new Elysia()
       set.status = 410;
       return { status: 'expired' };
     }
-    const { device, browser, os } = parseUserAgent(challenge.ua);
-    return {
-      status: 'pending',
-      challengeId: keyId,
-      request: { device, browser, os, ip: challenge.ip, createdAt: challenge.createdAt },
-    };
+    return { status: 'pending', challengeId: keyId, request: pendingRequestInfo(challenge) };
   }, { params: t.Object({ code: t.String({ minLength: 3, maxLength: 12 }) }) })
 
   .post('/login-challenge/approve', async ({ body, user, set }) => {

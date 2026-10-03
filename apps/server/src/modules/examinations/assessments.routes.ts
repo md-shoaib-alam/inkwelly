@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia';
 import { db } from '../../lib/db';
 import * as schema from '../../db/schema';
-import { eq, and, desc, inArray, count } from 'drizzle-orm';
+import { eq, and, desc, inArray, count, sql } from 'drizzle-orm';
 import { requireAuth } from '../../lib/auth';
 import { posthog, captureError } from '../../lib/monitoring/posthog';
 
@@ -228,25 +228,23 @@ export const assessmentsRoutes = new Elysia({ prefix: '/assessments' })
         }
       }
 
-      // 2. Upsert in transaction
-      await db.transaction(async (tx) => {
-        for (const r of records) {
-          await tx.insert(schema.assessmentGrades).values({
-            tenantId: tenantId!,
-            assessmentId,
-            studentId: r.studentId,
-            marksObtained: parseFloat(r.marksObtained),
-            remarks: r.remarks || '',
-          }).onConflictDoUpdate({
-            target: [schema.assessmentGrades.assessmentId, schema.assessmentGrades.studentId],
-            set: {
-              marksObtained: parseFloat(r.marksObtained),
-              remarks: r.remarks || '',
-              updatedAt: new Date(),
-            }
-          });
-        }
-      });
+      // 2. Upsert all rows in one statement (marksObtained/remarks vary per row → EXCLUDED)
+      if (records.length > 0) {
+        await db.insert(schema.assessmentGrades).values(records.map((r: any) => ({
+          tenantId: tenantId!,
+          assessmentId,
+          studentId: r.studentId,
+          marksObtained: parseFloat(r.marksObtained),
+          remarks: r.remarks || '',
+        }))).onConflictDoUpdate({
+          target: [schema.assessmentGrades.assessmentId, schema.assessmentGrades.studentId],
+          set: {
+            marksObtained: sql`EXCLUDED."marksObtained"`,
+            remarks: sql`EXCLUDED."remarks"`,
+            updatedAt: new Date(),
+          }
+        });
+      }
 
       posthog.capture({
         distinctId: user.id,

@@ -127,8 +127,8 @@ export const resolvers = {
         db.select({ count: count(), revenue: sum(schema.subscriptions.amount) })
           .from(schema.subscriptions)
           .where(and(eq(schema.subscriptions.tenantId, parent.tenantId), eq(schema.subscriptions.status, 'active'))),
-        db.select({ id: schema.classes.id }).from(schema.classes).where(eq(schema.classes.tenantId, parent.tenantId)),
-        db.select({ id: schema.notices.id }).from(schema.notices).where(eq(schema.notices.tenantId, parent.tenantId))
+        db.select({ count: count() }).from(schema.classes).where(eq(schema.classes.tenantId, parent.tenantId)),
+        db.select({ count: count() }).from(schema.notices).where(eq(schema.notices.tenantId, parent.tenantId))
       ]);
       
       const rCount = (role: string) => roleCounts.find((r: any) => r.role === role)?.count || 0;
@@ -144,9 +144,9 @@ export const resolvers = {
         totalRevenue: Number(activeSubsRes[0]?.revenue || 0),
         _count: {
           users: totalUsers,
-          classes: classesRes.length,
+          classes: Number(classesRes[0]?.count || 0),
           subscriptions: Number(activeSubsRes[0]?.count || 0),
-          notices: notices.length,
+          notices: Number(notices[0]?.count || 0),
           events: 0
         }
       };
@@ -188,11 +188,16 @@ export const resolvers = {
       return parents.map((p: any) => ({ ...p, name: p.user?.name || 'Unknown', email: p.user?.email || '', phone: p.user?.phone, status: p.user?.isActive ? 'active' : 'inactive' }));
     },
     classes: async (parent: { tenantId: string }) => {
-      const classesRes = await db.query.classes.findMany({ 
-        where: eq(schema.classes.tenantId, parent.tenantId), 
-        with: { students: { columns: { id: true } } }
-      });
-      return classesRes.map((c: any) => ({ ...c, studentCount: c.students?.length || 0 })).sort((a: any, b: any) => {
+      const [classesRes, studentCounts] = await Promise.all([
+        db.query.classes.findMany({ where: eq(schema.classes.tenantId, parent.tenantId) }),
+        db.select({ classId: schema.students.classId, count: count() })
+          .from(schema.students)
+          .innerJoin(schema.classes, eq(schema.classes.id, schema.students.classId))
+          .where(eq(schema.classes.tenantId, parent.tenantId))
+          .groupBy(schema.students.classId),
+      ]);
+      const countByClass = new Map(studentCounts.map((s: any) => [s.classId, Number(s.count)]));
+      return classesRes.map((c: any) => ({ ...c, studentCount: countByClass.get(c.id) || 0 })).sort((a: any, b: any) => {
         const nameCompare = (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' });
         if (nameCompare !== 0) return nameCompare;
         return (a.section || '').localeCompare(b.section || '', undefined, { sensitivity: 'base' });

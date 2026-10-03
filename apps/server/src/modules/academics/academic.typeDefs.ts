@@ -72,6 +72,7 @@ export const academicTypeDefs = `#graphql
     slug: String
     section: String!
     classLevel: String!
+    academicYear: String!
     medium: String!
     isVocational: Boolean!
     isActive: Boolean!

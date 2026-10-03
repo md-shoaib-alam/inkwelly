@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Stack } from "expo-router";
 import { AuthProvider } from "@/store/auth-context";
 import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';

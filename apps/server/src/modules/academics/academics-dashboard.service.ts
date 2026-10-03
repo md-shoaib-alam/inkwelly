@@ -3,6 +3,7 @@ import * as schema from '../../db/schema';
 import { and, count, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import { formatDate } from '../../lib/date-utils';
 import { pickCurrentSession, sessionProgress } from '../../lib/academic-session';
+import { loadCachedYearRows } from '../../lib/dashboardCache';
 
 /**
  * The Academics command center. Every number is a SELECT over rows that already
@@ -60,11 +61,9 @@ export const AcademicsDashboardService = {
       classStudentRows,
       studentYears,
       examYears,
+      doubleBookedRaw,
     ] = await Promise.all([
-      db
-        .select()
-        .from(schema.academicYears)
-        .where(eq(schema.academicYears.tenantId, tenantId)),
+      loadCachedYearRows(tenantId),
       db
         .select({ count: count() })
         .from(schema.users)
@@ -157,22 +156,23 @@ export const AcademicsDashboardService = {
         .from(schema.exams)
         .where(eq(schema.exams.tenantId, tenantId))
         .groupBy(schema.exams.academicYear),
+      // `Timetable` has no tenantId, so the tenant is reached through its class.
+      db.execute(sql`
+        select count(distinct t1."teacherId") as n
+        from "Timetable" t1
+        join "Class" c1 on c1."id" = t1."classId" and c1."tenantId" = ${tenantId}
+        join "Timetable" t2
+          on t2."teacherId" = t1."teacherId"
+         and t2."day" = t1."day"
+         and t2."id" <> t1."id"
+         and t1."startTime" < t2."endTime"
+         and t2."startTime" < t1."endTime"
+        where t1."teacherId" is not null
+      `),
     ]);
 
-    // `Timetable` has no tenantId, so the tenant is reached through its class.
-    const doubleBookedRows = await db.execute(sql`
-      select count(distinct t1."teacherId") as n
-      from "Timetable" t1
-      join "Class" c1 on c1."id" = t1."classId" and c1."tenantId" = ${tenantId}
-      join "Timetable" t2
-        on t2."teacherId" = t1."teacherId"
-       and t2."day" = t1."day"
-       and t2."id" <> t1."id"
-       and t1."startTime" < t2."endTime"
-       and t2."startTime" < t1."endTime"
-      where t1."teacherId" is not null
-    `);
-    const doubleBooked = Number((doubleBookedRows as { n?: number | string }[])[0]?.n ?? 0);
+    // `Timetable` has no tenantId, so the tenant is reached through its class (joined above).
+    const doubleBooked = Number((doubleBookedRaw as { n?: number | string }[])[0]?.n ?? 0);
 
     const classes = classRows.length;
     const teachers = Number(teacherCount?.count ?? 0);
