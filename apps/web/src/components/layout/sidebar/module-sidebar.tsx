@@ -76,6 +76,7 @@ export function ModuleSidebar({
     isMobile,
     collapsed,
     activeModuleKey: railKey,
+    screen: resolvedScreen,
   });
 
   useIsoLayoutEffect(() => {

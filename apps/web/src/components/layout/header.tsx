@@ -224,6 +224,7 @@ export function Header({
         <button
           type="button"
           aria-label="Ask AI"
+          onClick={() => push(tenantHref("ai"))}
           style={{
             background: "linear-gradient(135deg, #fffdf5 0%, #fef3d6 100%)",
             borderColor: "#d69e2e80",

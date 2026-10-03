@@ -59,6 +59,7 @@ const AdminRoles = dynamic(() => import('@/modules/iam/roles').then(m => m.Admin
 const AdminIamDashboard = dynamic(() => import('@/modules/iam/iam-dashboard').then(m => m.AdminIamDashboard), { loading: LoadingScreen });
 const AdminPermissionsCatalog = dynamic(() => import('@/modules/iam/permissions-catalog').then(m => m.AdminPermissionsCatalog), { loading: LoadingScreen });
 const AdminAiConnect = dynamic(() => import('@/modules/ai-connect/ai-connect').then(m => m.AdminAiConnect), { loading: LoadingScreen });
+const AdminAiChat = dynamic(() => import('@/modules/ai-chat/ai-chat').then(m => m.AdminAiChat), { loading: LoadingScreen });
 const AdminRoleAssignments = dynamic(() => import('@/modules/iam/role-assignments').then(m => m.AdminRoleAssignments), { loading: LoadingScreen });
 const AdminStaff = dynamic(() => import('@/modules/employees/staff').then(m => m.AdminStaff), { loading: LoadingScreen });
 const AdminTickets = dynamic(() => import('@/modules/support/components/AdminTickets').then(m => m.AdminTickets), { loading: LoadingScreen });
@@ -426,6 +427,7 @@ export default function TenantScreenDispatcherClient() {
       case 'permissions-catalog': return <AdminPermissionsCatalog />;
       case 'role-assignments': return <AdminRoleAssignments />;
       case 'ai-connect': return <AdminAiConnect />;
+      case 'ai': return <AdminAiChat />;
       case 'staff': return <AdminStaff />;
       case 'school-settings': return <AdminSchoolSettings />;
       // `session` is the Academics panel row; `academic-years` stays routable for the

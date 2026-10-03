@@ -216,9 +216,7 @@ export function DedicatedModulesScreen() {
           <button
             type="button"
             className="iwm-ask-ai"
-            onClick={() => {
-              window.dispatchEvent(new CustomEvent("open-ai-chat"));
-            }}
+            onClick={() => navigateTo("ai")}
           >
             <Sparkles className="size-3.5 shrink-0" />
             <span>Ask AI</span>

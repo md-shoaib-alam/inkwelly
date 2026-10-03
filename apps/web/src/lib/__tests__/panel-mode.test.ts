@@ -1,7 +1,7 @@
 import { test, expect, describe } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { decidePanelMode, LAUNCHER_RAIL_KEY } from "@/components/layout/sidebar/panel-mode";
+import { decidePanelMode, LAUNCHER_RAIL_KEY, PANEL_LESS_SCREENS } from "@/components/layout/sidebar/panel-mode";
 
 const APP_ROOT = resolve(import.meta.dir, "..", "..", "..");
 const SIDEBAR = join(APP_ROOT, "src", "components", "layout", "sidebar", "module-sidebar.tsx");
@@ -15,7 +15,7 @@ describe("the launcher never renders a sub-panel", () => {
   test("the launcher row gives no panel at either width", () => {
     for (const isMobile of [true, false]) {
       for (const collapsed of [true, false]) {
-        expect(decidePanelMode({ isMobile, collapsed, activeModuleKey: LAUNCHER_RAIL_KEY })).toBe("none");
+        expect(decidePanelMode({ isMobile, collapsed, activeModuleKey: LAUNCHER_RAIL_KEY, screen: "modules" })).toBe("none");
       }
     }
   });
@@ -26,7 +26,7 @@ describe("the launcher never renders a sub-panel", () => {
   test("the answer does not depend on the breakpoint", () => {
     const modes = [true, false].flatMap((isMobile) =>
       [true, false].map((collapsed) =>
-        decidePanelMode({ isMobile, collapsed, activeModuleKey: LAUNCHER_RAIL_KEY }),
+        decidePanelMode({ isMobile, collapsed, activeModuleKey: LAUNCHER_RAIL_KEY, screen: "modules" }),
       ),
     );
     expect(new Set(modes).size).toBe(1);
@@ -34,11 +34,28 @@ describe("the launcher never renders a sub-panel", () => {
 
   test("every other module keeps its panel behaviour", () => {
     // Mobile: the drawer stays open on the panel once a module is picked.
-    expect(decidePanelMode({ isMobile: true, collapsed: false, activeModuleKey: "academics" })).toBe("shown");
-    expect(decidePanelMode({ isMobile: true, collapsed: true, activeModuleKey: "academics" })).toBe("shown");
+    expect(decidePanelMode({ isMobile: true, collapsed: false, activeModuleKey: "academics", screen: "academics" })).toBe("shown");
+    expect(decidePanelMode({ isMobile: true, collapsed: true, activeModuleKey: "academics", screen: "academics" })).toBe("shown");
     // Desktop: the collapse toggle still animates the panel shut rather than removing it.
-    expect(decidePanelMode({ isMobile: false, collapsed: false, activeModuleKey: "academics" })).toBe("shown");
-    expect(decidePanelMode({ isMobile: false, collapsed: true, activeModuleKey: "academics" })).toBe("hidden");
+    expect(decidePanelMode({ isMobile: false, collapsed: false, activeModuleKey: "academics", screen: "academics" })).toBe("shown");
+    expect(decidePanelMode({ isMobile: false, collapsed: true, activeModuleKey: "academics", screen: "academics" })).toBe("hidden");
+  });
+});
+
+// The standalone AI chat is not a sub-link of any module, so `findModuleForScreen`
+// matches nothing and the rail keeps whatever module's panel was last open (AI
+// Connect). The panel-less decision keys on the resolved screen, not the stale module.
+describe("the AI chat renders without a contextual panel", () => {
+  test("a stale active module cannot keep its panel open over the AI screen", () => {
+    for (const isMobile of [true, false]) {
+      for (const collapsed of [true, false]) {
+        expect(decidePanelMode({ isMobile, collapsed, activeModuleKey: "ai-connect", screen: "ai" })).toBe("none");
+      }
+    }
+  });
+
+  test("every panel-less screen is a launcher or the AI chat", () => {
+    expect([...PANEL_LESS_SCREENS].sort()).toEqual(["ai", "modules"]);
   });
 });
 
